@@ -63,6 +63,47 @@ describeDb('authorization matrix', () => {
       call: (t) => bearer(request(h.app).post('/api/v1/roles'), t).send({ code: 'FLEET_SUPERVISOR', nameEn: 'Fleet Supervisor', nameAr: 'مشرف أسطول', permissionCodes: ['vehicles.read_any'] }),
       expect: { SUPER_ADMIN: 403, ADMIN: 403, OPS_MANAGER: 403, FINANCE_OFFICER: 403, SUPPORT_AGENT: 403, CUSTOMER: 403, VEHICLE_OWNER: 403, DRIVER: 403, SPO: 403 },
     },
+    // ── Phase 4: profiles & documents ─────────────────────────────────────────
+    {
+      name: 'GET /customers (customers.read — staff + SPO)',
+      call: (t) => bearer(request(h.app).get('/api/v1/customers'), t),
+      expect: { SUPER_ADMIN: 200, ADMIN: 200, OPS_MANAGER: 200, FINANCE_OFFICER: 200, SUPPORT_AGENT: 200, CUSTOMER: 403, VEHICLE_OWNER: 403, DRIVER: 403, SPO: 200 },
+    },
+    {
+      name: 'GET /owners (owners.read)',
+      call: (t) => bearer(request(h.app).get('/api/v1/owners'), t),
+      expect: { SUPER_ADMIN: 200, ADMIN: 200, OPS_MANAGER: 200, FINANCE_OFFICER: 200, SUPPORT_AGENT: 200, CUSTOMER: 403, VEHICLE_OWNER: 403, DRIVER: 403, SPO: 403 },
+    },
+    {
+      name: 'GET /drivers (drivers.read own → drivers.read_any; a driver lists themself)',
+      call: (t) => bearer(request(h.app).get('/api/v1/drivers'), t),
+      expect: { SUPER_ADMIN: 200, ADMIN: 200, OPS_MANAGER: 200, FINANCE_OFFICER: 403, SUPPORT_AGENT: 200, CUSTOMER: 403, VEHICLE_OWNER: 200, DRIVER: 200, SPO: 403 },
+    },
+    {
+      name: 'POST /drivers (drivers.create)',
+      call: (t) => bearer(request(h.app).post('/api/v1/drivers'), t).send({}),
+      expect: { SUPER_ADMIN: 422, ADMIN: 422, OPS_MANAGER: 422, FINANCE_OFFICER: 403, SUPPORT_AGENT: 403, CUSTOMER: 403, VEHICLE_OWNER: 422, DRIVER: 403, SPO: 403 },
+    },
+    {
+      name: 'GET /documents (documents.read — everyone with a profile; staff via documents.read_any)',
+      call: (t) => bearer(request(h.app).get('/api/v1/documents'), t),
+      expect: { SUPER_ADMIN: 200, ADMIN: 200, OPS_MANAGER: 200, FINANCE_OFFICER: 403, SUPPORT_AGENT: 200, CUSTOMER: 200, VEHICLE_OWNER: 200, DRIVER: 200, SPO: 403 },
+    },
+    {
+      name: 'POST /documents/{id}/verify (documents.verify)',
+      call: (t) => bearer(request(h.app).post('/api/v1/documents/0192f3c1-0000-7000-8000-000000000000/verify'), t).send({}),
+      expect: { SUPER_ADMIN: 404, ADMIN: 404, OPS_MANAGER: 404, FINANCE_OFFICER: 403, SUPPORT_AGENT: 403, CUSTOMER: 403, VEHICLE_OWNER: 403, DRIVER: 403, SPO: 403 },
+    },
+    {
+      name: 'GET /spo/leads (spo.leads.manage)',
+      call: (t) => bearer(request(h.app).get('/api/v1/spo/leads'), t),
+      expect: { SUPER_ADMIN: 200, ADMIN: 200, OPS_MANAGER: 403, FINANCE_OFFICER: 403, SUPPORT_AGENT: 403, CUSTOMER: 403, VEHICLE_OWNER: 403, DRIVER: 403, SPO: 200 },
+    },
+    {
+      name: 'PATCH /admin/customers/{id}/credit (customers.verify)',
+      call: (t) => bearer(request(h.app).patch('/api/v1/admin/customers/0192f3c1-0000-7000-8000-000000000000/credit'), t).send({ creditStatus: 'PENDING_APPROVAL' }),
+      expect: { SUPER_ADMIN: 404, ADMIN: 404, OPS_MANAGER: 403, FINANCE_OFFICER: 404, SUPPORT_AGENT: 403, CUSTOMER: 403, VEHICLE_OWNER: 403, DRIVER: 403, SPO: 403 },
+    },
   ];
 
   for (const row of MATRIX) {
@@ -141,6 +182,19 @@ describeDb('authorization matrix', () => {
     const adminSessions = await prisma().session.findMany({ where: { userId: ids['ADMIN'] ?? '' }, select: { id: true } });
     const foreign = await bearer(request(h.app).delete(`/api/v1/me/sessions/${adminSessions[0]?.id}`), tokens['CUSTOMER'] ?? '');
     expect(foreign.status).toBe(404);
+    // Phase 4: a profile holder asking for ANOTHER profile by id gets 404 — the scope predicate must never be overridden by the requested id.
+    const ownerA = await prisma().ownerProfile.findFirstOrThrow({ where: { userId: ids['VEHICLE_OWNER'] ?? '' }, select: { id: true } });
+    const platformFleet = await prisma().ownerProfile.findFirstOrThrow({ where: { isPlatformFleet: true }, select: { id: true } });
+    expect((await bearer(request(h.app).get(`/api/v1/owners/${ownerA.id}`), tokens['VEHICLE_OWNER'] ?? '')).status).toBe(200);
+    expect((await bearer(request(h.app).get(`/api/v1/owners/${platformFleet.id}`), tokens['VEHICLE_OWNER'] ?? '')).status).toBe(404);
+    expect((await bearer(request(h.app).get(`/api/v1/owners/${platformFleet.id}/bank-accounts`), tokens['VEHICLE_OWNER'] ?? '')).status).toBe(404);
+    const customerA = await prisma().customerProfile.findFirstOrThrow({ where: { userId: ids['CUSTOMER'] ?? '' }, select: { id: true } });
+    expect((await bearer(request(h.app).get(`/api/v1/customers/${customerA.id}`), tokens['CUSTOMER'] ?? '')).status).toBe(200);
+    // the DRIVER user asks for the customer's record: no customers.read and no customer profile → 403; a stranger with a profile → 404
+    expect((await bearer(request(h.app).get(`/api/v1/customers/${customerA.id}`), tokens['DRIVER'] ?? '')).status).toBe(403);
+    const driverA = await prisma().driverProfile.findFirstOrThrow({ where: { userId: ids['DRIVER'] ?? '' }, select: { id: true } });
+    expect((await bearer(request(h.app).get(`/api/v1/drivers/${driverA.id}`), tokens['VEHICLE_OWNER'] ?? '')).status).toBe(404);
+    expect((await bearer(request(h.app).get(`/api/v1/drivers/${driverA.id}`), tokens['DRIVER'] ?? '')).status).toBe(200);
   });
 
   it('self-modification and system-role guards', async () => {

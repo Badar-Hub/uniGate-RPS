@@ -70,6 +70,10 @@ export const envSchema = z
     PAYMENT_WEBHOOK_SECRET: optionalSecret,
     OTP_PROVIDER: z.enum(['console', 'unifonic', 'taqnyat', 'msegat', 'twilio']),
     OTP_ALLOWED_COUNTRY_CODES: z.string().default('+966'),
+    /** Malware scanning of uploads. `none` = uploads are accepted UNSCANNED (A-25: no scanner procured). */
+    SCAN_PROVIDER: z.enum(['none', 'clamav']).default('none'),
+    CLAMAV_HOST: z.string().optional(),
+    CLAMAV_PORT: z.coerce.number().int().positive().default(3310),
     MAPS_SERVER_KEY: z.string().optional(),
     NEXT_PUBLIC_MAPS_BROWSER_KEY: z.string().optional(),
     EMAIL_PROVIDER: z.enum(['mailhog', 'ses', 'smtp']).default('mailhog'),
@@ -108,6 +112,9 @@ export const envSchema = z
       }
       if (!e.API_URL.startsWith('https://')) {
         ctx.addIssue({ code: 'custom', path: ['API_URL'], message: 'must be https outside development' });
+      }
+      if (e.SCAN_PROVIDER === 'clamav' && !e.CLAMAV_HOST) {
+        ctx.addIssue({ code: 'custom', path: ['CLAMAV_HOST'], message: 'CLAMAV_HOST is required when SCAN_PROVIDER=clamav' });
       }
       if (e.NODE_ENV === 'production' && e.PAYMENT_PROVIDER !== 'mock' && !e.PAYMENT_WEBHOOK_SECRET) {
         ctx.addIssue({ code: 'custom', path: ['PAYMENT_WEBHOOK_SECRET'], message: 'required in production' });

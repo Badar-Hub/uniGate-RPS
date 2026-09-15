@@ -150,8 +150,12 @@ export async function loginWithOtp(input: { channel: 'SMS' | 'EMAIL'; destinatio
   const user = await users.findUserForLogin(systemScope('auth.otp-login'), destination);
   if (!user) throw new BusinessRuleError('AUTH_OTP_INVALID', 'The code is invalid');
   if (user.status === 'SUSPENDED' || user.status === 'DEACTIVATED') throw new ForbiddenError('AUTH_ACCOUNT_SUSPENDED', 'Account is suspended');
-  if (user.status === 'PENDING_VERIFICATION') {
-    await prisma().user.update({ where: { id: user.id }, data: { status: 'ACTIVE', ...(input.channel === 'SMS' ? { phoneVerifiedAt: new Date() } : { emailVerifiedAt: new Date() }) } });
+  // A verified code proves possession: activate a pending account, and stamp the destination
+  // verified for accounts staff created without a verified phone/email (drivers, SPO leads).
+  const verifiedStamp = input.channel === 'SMS' ? { phoneVerifiedAt: new Date() } : { emailVerifiedAt: new Date() };
+  const alreadyVerified = input.channel === 'SMS' ? Boolean(user.phoneVerifiedAt) : Boolean(user.emailVerifiedAt);
+  if (user.status === 'PENDING_VERIFICATION' || !alreadyVerified) {
+    await prisma().user.update({ where: { id: user.id }, data: { ...(user.status === 'PENDING_VERIFICATION' ? { status: 'ACTIVE' } : {}), ...verifiedStamp } });
   }
   return openSession(user.id, input.clientType, { deviceId: input.deviceId ?? null, deviceName: input.deviceName ?? null }, meta, 'OTP');
 }

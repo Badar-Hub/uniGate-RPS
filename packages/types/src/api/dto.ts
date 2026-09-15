@@ -2,6 +2,8 @@
  * Base DTO shapes. Every DTO is hand-written; none is derived from a Prisma model.
  */
 
+import type { MoneyString } from '../domain/money.js';
+
 export interface TimestampedDto {
   createdAt: string;
   updatedAt: string;
@@ -173,4 +175,274 @@ export interface PermissionDto {
   descriptionEn: string;
   descriptionAr: string;
   isAssignable: boolean;
+}
+
+// ── Profiles (api.md §8.4–§8.7) ───────────────────────────────────────────────
+
+export interface NationalAddressDto {
+  buildingNumber: string | null;
+  streetEn: string | null;
+  streetAr: string | null;
+  districtEn: string | null;
+  districtAr: string | null;
+  cityId: string | null;
+  postalCode: string | null;
+  additionalNumber: string | null;
+  shortCode: string | null;
+  /** All mandatory ZATCA buyer-address fields present (FR-PROFILES-14). */
+  isComplete: boolean;
+}
+
+export interface CorporateCustomerDto extends TimestampedDto {
+  id: string;
+  companyNameEn: string;
+  companyNameAr: string;
+  crNumber: string;
+  nationalAddress: NationalAddressDto;
+  contactPersonName: string;
+  contactPersonPhone: string;
+  contactPersonEmail: string | null;
+  creditStatus: string;
+  creditLimitAmount: MoneyString;
+  creditTermsDays: number;
+  billingCycle: string;
+  invoiceLineGranularity: string | null;
+  isVerified: boolean;
+  creditApprovedAt: string | null;
+}
+
+export interface CustomerDto extends TimestampedDto {
+  id: string;
+  userId: string;
+  customerType: string;
+  fullNameEn: string;
+  fullNameAr: string | null;
+  /** Masked unless the viewer is the customer themselves or holds a PII permission. */
+  phoneE164: string | null;
+  email: string | null;
+  userStatus: string;
+  vatNumber: string | null;
+  vatNumberVerifiedAt: string | null;
+  /** Set once an invoice has been issued against the VAT number (immutable thereafter). */
+  vatNumberLockedAt: string | null;
+  defaultCityId: string | null;
+  ratingAvg: string;
+  ratingCount: number;
+  totalBookings: number;
+  acquiredBySpoId: string | null;
+  corporate: CorporateCustomerDto | null;
+}
+
+/** GET /customers/{id}/credit — outstanding figures are computed from the ledger on read. */
+export interface CustomerCreditDto {
+  customerProfileId: string;
+  companyNameEn: string;
+  isVerified: boolean;
+  creditStatus: string;
+  creditLimitAmount: MoneyString;
+  creditTermsDays: number;
+  billingCycle: string;
+  defaultBillingMode: 'PREPAID' | 'INVOICED';
+  outstandingAmount: MoneyString;
+  availableAmount: MoneyString;
+  /** Negative headroom after an admin lowered the limit below the outstanding balance. */
+  headroomAmount: MoneyString;
+  currency: 'SAR';
+  creditApprovedAt: string | null;
+  computedAt: string;
+}
+
+export interface OwnerVerticalDto {
+  transportType: string;
+  status: string;
+  approvedAt: string | null;
+  notes: string | null;
+}
+
+export interface OwnerDto extends TimestampedDto {
+  id: string;
+  userId: string;
+  ownerType: string;
+  isPlatformFleet: boolean;
+  businessNameEn: string | null;
+  businessNameAr: string | null;
+  crNumber: string | null;
+  vatNumber: string | null;
+  isVatRegistered: boolean;
+  vatVerifiedAt: string | null;
+  /** Last four digits only — the encrypted value never leaves the database. */
+  nationalIdLast4: string | null;
+  onboardingStatus: string;
+  approvedAt: string | null;
+  rejectionReason: string | null;
+  ratingAvg: string;
+  ratingCount: number;
+  privacySettings: Record<string, boolean>;
+  verticals: OwnerVerticalDto[];
+  serviceAreaCityIds: string[];
+  fullNameEn: string;
+  phoneE164: string | null;
+  email: string | null;
+  userStatus: string;
+}
+
+/** What a counterparty sees of an owner — privacy_settings applied in the mapper (FR-PROFILES-06). */
+export interface OwnerPublicDto {
+  id: string;
+  displayName: string;
+  ownerType: string;
+  ratingAvg: string | null;
+  ratingCount: number | null;
+  fleetSize: number | null;
+  serviceAreaCityIds: string[] | null;
+}
+
+export interface OwnerBankAccountDto {
+  id: string;
+  accountHolderName: string;
+  bankName: string;
+  ibanLast4: string;
+  isVerified: boolean;
+  isDefault: boolean;
+  /** Payouts to a new account are held until this instant (settlement-redirection defence). */
+  activationAt: string;
+  createdAt: string;
+}
+
+export interface DriverVerticalDto {
+  transportType: string;
+  status: string;
+  approvedAt: string | null;
+}
+
+export interface DriverDto extends TimestampedDto {
+  id: string;
+  userId: string;
+  ownerProfileId: string | null;
+  fullNameEn: string;
+  fullNameAr: string | null;
+  phoneE164: string | null;
+  userStatus: string;
+  idType: string;
+  nationalIdLast4: string | null;
+  dateOfBirth: string | null;
+  licenseNumberLast4: string | null;
+  licenseExpiryDate: string | null;
+  licenseCategories: string[];
+  approvalStatus: string;
+  availabilityStatus: string;
+  ratingAvg: string;
+  ratingCount: number;
+  emergencyContactName: string | null;
+  emergencyContactPhone: string | null;
+  verticals: DriverVerticalDto[];
+}
+
+export interface DriverAssignmentDto {
+  id: string;
+  vehicleId: string;
+  assignedAt: string;
+  unassignedAt: string | null;
+  assignedByUserId: string | null;
+}
+
+export interface SpoProfileDto extends TimestampedDto {
+  id: string;
+  userId: string;
+  fullNameEn: string;
+  email: string | null;
+  employeeCode: string;
+  regionId: string | null;
+  managerUserId: string | null;
+  commissionModelId: string | null;
+  isActive: boolean;
+  activeCustomerCount: number;
+}
+
+export interface SpoCustomerAssignmentDto {
+  id: string;
+  spoProfileId: string;
+  customerProfileId: string;
+  customerFullNameEn: string;
+  assignedAt: string;
+  unassignedAt: string | null;
+}
+
+export interface SpoLeadDto extends TimestampedDto {
+  id: string;
+  spoProfileId: string;
+  contactName: string;
+  contactPhone: string;
+  companyName: string | null;
+  status: string;
+  convertedUserId: string | null;
+  notes: string | null;
+}
+
+export interface SpoCommissionLineDto {
+  bookingId: string;
+  spoProfileId: string;
+  customerProfileId: string;
+  amount: MoneyString;
+  basis: string;
+  snapshotAt: string;
+}
+
+export interface SavedLocationDto extends TimestampedDto {
+  id: string;
+  label: string;
+  addressLine: string;
+  cityId: string;
+  latitude: number;
+  longitude: number;
+  placeId: string | null;
+}
+
+// ── Documents (api.md §8.10) ─────────────────────────────────────────────────
+
+export interface DocumentDto {
+  id: string;
+  documentTypeCode: string;
+  target: { kind: string; id: string };
+  originalFilename: string;
+  mimeType: string;
+  sizeBytes: number;
+  checksumSha256: string;
+  uploadStatus: string;
+  verificationStatus: string;
+  verifiedAt: string | null;
+  rejectionReason: string | null;
+  issueDate: string | null;
+  expiryDate: string | null;
+  visibility: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface UploadUrlDto {
+  documentId: string;
+  uploadStatus: 'PENDING';
+  upload: { method: 'PUT'; url: string; headers: Record<string, string>; expiresAt: string };
+}
+
+export interface DownloadUrlDto {
+  url: string;
+  expiresAt: string;
+  mimeType: string;
+  originalFilename: string;
+  sizeBytes: number;
+}
+
+export type DocumentRequirementStatus = 'MISSING' | 'PENDING' | 'VERIFIED' | 'REJECTED' | 'EXPIRED';
+
+export interface DocumentRequirementDto {
+  documentTypeCode: string;
+  nameEn: string;
+  nameAr: string;
+  isMandatory: boolean;
+  requiresExpiry: boolean;
+  transportType: string | null;
+  status: DocumentRequirementStatus;
+  documentId: string | null;
+  expiryDate: string | null;
 }

@@ -42,7 +42,7 @@ services:
       retries: 10
 
   minio:
-    image: minio/minio:latest
+    image: quay.io/minio/minio:latest
     container_name: unigate-minio
     environment:
       MINIO_ROOT_USER: unigate
@@ -61,7 +61,7 @@ services:
 
   # Creates the two private buckets on first start; idempotent.
   minio-init:
-    image: minio/mc:latest
+    image: quay.io/minio/mc:latest
     depends_on:
       minio:
         condition: service_healthy

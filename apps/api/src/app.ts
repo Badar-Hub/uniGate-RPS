@@ -12,6 +12,8 @@ import { docsRouter } from '@/docs/docs.routes.js';
 import { settingsRouter } from '@/modules/reference/settings.routes.js';
 import { authRouter } from '@/modules/iam/auth.routes.js';
 import { adminIamRouter, meRouter } from '@/modules/iam/iam.routes.js';
+import { documentsRouter } from '@/modules/documents/documents.routes.js';
+import { profilesRouter } from '@/modules/profiles/profiles.routes.js';
 import '@/docs/all.js';
 
 /**
@@ -45,8 +47,8 @@ export function createApp(cfg: AppConfig): Express {
       },
       credentials: true,
       methods: ['GET', 'POST', 'PATCH', 'PUT', 'DELETE', 'OPTIONS'],
-      allowedHeaders: ['Content-Type', 'Authorization', 'X-Request-Id', 'Idempotency-Key', 'Accept-Language', 'X-CSRF-Token', 'X-Step-Up-Token'],
-      exposedHeaders: ['X-Request-Id', 'Retry-After', 'Location'],
+      allowedHeaders: ['Content-Type', 'Authorization', 'X-Request-Id', 'Idempotency-Key', 'Accept-Language', 'X-Requested-With', 'X-Step-Up-Token'],
+      exposedHeaders: ['X-Request-Id', 'Retry-After', 'Location', 'Idempotency-Replayed'],
       maxAge: 600,
     }),
   );
@@ -70,6 +72,8 @@ export function createApp(cfg: AppConfig): Express {
   v1.use(meRouter());
   v1.use(adminIamRouter());
   v1.use(settingsRouter());
+  v1.use(documentsRouter());
+  v1.use(profilesRouter());
   if (cfg.apiDocsEnabled) v1.use(docsRouter(cfg.apiUrl, cfg.version));
   app.use('/api/v1', v1);
 

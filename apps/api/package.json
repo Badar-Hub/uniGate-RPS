@@ -32,6 +32,8 @@
   },
   "dependencies": {
     "@asteasolutions/zod-to-openapi": "^7.3.0",
+    "@aws-sdk/client-s3": "^3",
+    "@aws-sdk/s3-request-presigner": "^3",
     "@prisma/client": "^5.22.0",
     "@unigate/config": "workspace:*",
     "@unigate/types": "workspace:*",

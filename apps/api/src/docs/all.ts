@@ -5,3 +5,5 @@
 import '@/health/health.openapi.js';
 import '@/modules/reference/settings.openapi.js';
 import '@/modules/iam/iam.openapi.js';
+import '@/modules/documents/documents.openapi.js';
+import '@/modules/profiles/profiles.openapi.js';

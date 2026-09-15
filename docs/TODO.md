@@ -40,13 +40,23 @@ All items delivered; residuals moved to Phase 3 below.
 - [x] Registration/OTP/login/refresh/logout, password forgot/reset/change, step-up, sessions, admin users/roles/permissions, first-admin CLI, OpenAPI
 - [ ] `unigate_app` runtime role used by the API in staging/production — **moved to Phase 16** (deployment configuration: `DATABASE_URL` as the app role, migrations as owner)
 
-## Immediate — Phase 4 (User profiles & documents)
+## Phase 4 — User profiles & documents — COMPLETE 2026-09-15
 
-- [ ] Web login / OTP / password-reset screens (shadcn) against the Phase 3 API — first portal surface
-- [ ] Customer / owner / driver profile endpoints on `profiles` with `ActorScope` (PARTY scope for company staff)
-- [ ] Document upload: presigned PUT to the quarantine bucket, type/size validation, scan hook (A-25), promotion to the documents bucket
-- [ ] Owner onboarding + `owner_vertical_approvals`; driver approval + `driver_vertical_eligibility`
-- [ ] Extend the authorization matrix with every new repository
+- [x] Web login / OTP / registration / password-reset screens (shadcn) + portal shell, dashboard, documents checklist with presigned upload, admin owner approvals
+- [x] Customer / corporate / owner / driver / SPO endpoints with `ActorScope` (PARTY scope arrives with bookings in Phase 8)
+- [x] Document upload: presigned PUT, type/size/MIME validation, SHA-256 + magic-byte check on confirm, scan hook (`none` | `clamav`), signed downloads audited, expiry + orphan-sweep jobs
+- [x] Owner onboarding + `owner_vertical_approvals`; driver approval + `driver_vertical_eligibility`; corporate verification + credit decision
+- [x] Authorization matrix extended (profiles, documents, SPO, credit)
+- [ ] `GET /customers/{id}/statement` — **Phase 11** (invoice ageing)
+
+## Immediate — Phase 5 (Vehicle management)
+
+- [ ] `fleet` module: vehicles CRUD with plate/VIN uniqueness, categories, documents (VEHICLE kind already supported by `documents`), approval workflow, lifecycle status
+- [ ] Vehicle calendar (`vehicle_calendar_entries` EXCLUDE) — owner blackouts and maintenance windows; overlap tests against real PostgreSQL
+- [ ] Driver ↔ vehicle assignments (`vehicle_driver_assignments`, never overwritten)
+- [ ] Dispatchability predicate (`vehicle.policy`): approved + active + documents verified & unexpired + owner not suspended
+- [ ] Web: owner fleet pages (list, register, documents, calendar); admin vehicle approvals
+- [ ] Extend the authorization matrix with the fleet surface
 
 ## Deferred design work
 

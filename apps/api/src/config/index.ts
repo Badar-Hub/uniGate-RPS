@@ -42,6 +42,8 @@ export interface AppConfig {
   providers: {
     payment: Env['PAYMENT_PROVIDER'];
     otp: Env['OTP_PROVIDER'];
+    scan: Env['SCAN_PROVIDER'];
+    clamav: { host: string | null; port: number };
     otpAllowedCountryCodes: readonly string[];
     email: Env['EMAIL_PROVIDER'];
   };
@@ -89,6 +91,8 @@ export function buildConfig(env: Env): AppConfig {
     providers: {
       payment: env.PAYMENT_PROVIDER,
       otp: env.OTP_PROVIDER,
+      scan: env.SCAN_PROVIDER,
+      clamav: { host: env.CLAMAV_HOST ?? null, port: env.CLAMAV_PORT },
       otpAllowedCountryCodes: env.OTP_ALLOWED_COUNTRY_CODES.split(',').map((s) => s.trim()),
       email: env.EMAIL_PROVIDER,
     },

@@ -70,7 +70,12 @@ node scripts/verify-docs.mjs                   # docs cross-references
 
 `pnpm ci` is exactly what GitHub Actions runs. If it is green locally, CI is green.
 The database suites **reset and re-seed `unigate_test`** on every run and need the full API
-environment (turbo passes it through — see `tasks.test.env` in `turbo.json`).
+environment (turbo passes it through — see `tasks.test.env` in `turbo.json`). The profiles &
+documents suite also needs **MinIO** running (`pnpm db:up` starts it; CI starts it as a step).
+
+The API entrypoints (`main.ts`, `worker.ts`, the admin CLI) load the root `.env` themselves in
+development and test (`src/config/dotenv.ts`, never overriding the shell), so `pnpm dev` works
+without exporting anything. Production and staging read only the platform environment.
 
 ## 4a. Signing in locally
 

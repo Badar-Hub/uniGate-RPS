@@ -29,6 +29,8 @@ env:
   ENCRYPTION_KEY_ID: ci-1
   BLIND_INDEX_PEPPER: ci-blind-index-pepper-0123456789abcdefghij
   OTP_PEPPER: ci-otp-pepper-zyxwvutsrqponmlkjihgfedcba98
+  STORAGE_FORCE_PATH_STYLE: 'true'
+  SCAN_PROVIDER: none
   PAYMENT_PROVIDER: mock
   OTP_PROVIDER: console
 
@@ -76,6 +78,15 @@ jobs:
           psql "postgresql://unigate:unigate@localhost:5432/unigate" -v ON_ERROR_STOP=1 -f docker/postgres-init/01-init.sql
         env:
           PGPASSWORD: unigate
+
+      - name: Object store (MinIO, same buckets as docker-compose)
+        run: |
+          docker run -d --name minio -p 9000:9000             -e MINIO_ROOT_USER=ci-access-key -e MINIO_ROOT_PASSWORD=ci-storage-key-0123456789abcdefghij             quay.io/minio/minio:latest server /data
+          for i in $(seq 1 30); do curl -sf http://localhost:9000/minio/health/live && break; sleep 1; done
+          docker run --rm --network host --entrypoint /bin/sh quay.io/minio/mc:latest -c "
+            mc alias set local http://localhost:9000 ci-access-key ci-storage-key-0123456789abcdefghij &&
+            mc mb --ignore-existing local/unigate-documents && mc mb --ignore-existing local/unigate-quarantine &&
+            mc anonymous set none local/unigate-documents && mc anonymous set none local/unigate-quarantine"
 
       - name: Secrets scan
         uses: gitleaks/gitleaks-action@v2

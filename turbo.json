@@ -63,7 +63,10 @@
         "EMAIL_PROVIDER",
         "LOG_LEVEL",
         "ACCESS_TOKEN_TTL_SECONDS",
-        "REFRESH_TOKEN_TTL_SECONDS"
+        "REFRESH_TOKEN_TTL_SECONDS",
+        "SCAN_PROVIDER",
+        "CLAMAV_HOST",
+        "CLAMAV_PORT"
       ]
     },
     "dev": {

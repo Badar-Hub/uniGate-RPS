@@ -1,7 +1,7 @@
 # UniGate — Implementation Status
 
 **Last updated:** 2026-09-15
-**Current phase:** **Phase 3 complete** (2026-09-15) → Phase 4 (User profiles & documents) ready to start
+**Current phase:** **Phase 4 complete** (2026-09-15) → Phase 5 (Vehicle management) ready to start
 **Overall:** Foundation built and verified end to end: monorepo, typed packages, API core, full Prisma schema (82 tables) with hand-written constraints, seeds, migration-integrity test, web scaffold (shadcn/ui, ar/en RTL), CI. `pnpm ci` is green (20/20 tasks). See [development.md](development.md).
 
 > **Schema-blocking questions resolved 2026-09-14.**
@@ -26,7 +26,7 @@ Status values: `NOT_STARTED` · `IN_PROGRESS` · `BLOCKED` · `COMPLETE`
 | 1 | Architecture & data design | **COMPLETE** | [architecture.md](architecture.md), [database.md](database.md), [api.md](api.md), [security.md](security.md) |
 | 2 | Project foundation | **COMPLETE** 2026-09-15 | Everything on the TODO list delivered and verified: see *Phase 2 exit* below |
 | 3 | Authentication & RBAC | **COMPLETE** 2026-09-15 | See *Phase 3 exit* below. Production OTP delivery still needs **procurement B-9**; `ConsoleOtpProvider` refuses to run in production |
-| 4 | User profiles & documents | `NOT_STARTED` | |
+| 4 | User profiles & documents | **COMPLETE** 2026-09-15 | See *Phase 4 exit* below. Malware scanning runs with `SCAN_PROVIDER=none` until a scanner is procured (A-25) |
 | 5 | Vehicle management | `NOT_STARTED` | ~~Approval workflow detail pending OQ-07~~ settings (ADR-009) |
 | 6 | Trip requests | `NOT_STARTED` | Core `demand` + **`passenger` vertical**; goods tables migrated, goods endpoints `501 VERTICAL_NOT_ENABLED` ([ADR-010](decisions/ADR-010-vertical-modules-over-a-shared-core.md)) |
 | 7 | Bidding | `NOT_STARTED` | ~~Bid window pending OQ-02~~ settings (ADR-009); ~~OQ-16~~ answered |
@@ -87,14 +87,37 @@ Verified on 2026-09-15 with `pnpm turbo run typecheck lint test build --force` (
 
 ---
 
+## Phase 4 exit — what was verified
+
+Verified on 2026-09-15 with `pnpm turbo run typecheck lint test build --force` (20/20 tasks), 69 tests (55 API: 12 migration-integrity, 10 auth lifecycle, 20 authorization matrix, 6 profiles & documents against the real MinIO, 7 unit; 14 package), plus a live browser session: OTP sign-in in cookie mode → portal boot from `/me` → onboarding guard → Arabic RTL documents checklist.
+
+| Area | Delivered | Proof |
+|---|---|---|
+| Documents | Presigned two-step (`upload-url` → PUT to the store → `confirm` with Idempotency-Key). Server-generated keys; type/target/MIME/size/expiry validation; on confirm the object must exist, match size **and** SHA-256 (whole object hashed), and its **magic bytes must match the declared MIME**; scan hook; 120-s signed GET with `Content-Disposition: attachment`, every issuance audited, URL never logged | profiles.flow "presigned upload…" (declared PDF with PNG bytes → `DOCUMENT_MIME_NOT_ALLOWED` with `details.detected`) |
+| Document ownership | Derived from the eight typed FKs inside the repository (owner → own docs, drivers' docs, vehicles' docs; driver → own; customer → corporate); out of scope is 404; `documents.download_any` and `SHARED_WITH_COUNTERPARTY` (booking-linked, live from Phase 8) widen it | same test + matrix |
+| Requirements checklist | `GET /documents/requirements` — every active type for a target (filtered by vertical) with MISSING/PENDING/VERIFIED/REJECTED/EXPIRED; the identical computation gates owner submission and driver approval | owner onboarding test |
+| Malware scanning | `ScanProvider`: `none` (reports SKIPPED — uploads are accepted **unscanned**, warned at boot in production) and `clamav` (clamd INSTREAM). **No scanner is procured (A-25)**; nothing pretends otherwise | code + env schema |
+| Owners | DRAFT → (mandatory docs VERIFIED) → UNDER_REVIEW → APPROVED/REJECTED/SUSPENDED; verticals (`owner_vertical_approvals`); identity edits after approval → back to review; national id encrypted + last4 + blind index; privacy settings enforced in the mapper; service areas; payout accounts with **step-up `BANK_ACCOUNT`** and `settlement.bank_account_cooloff_hours` activation hold | profiles.flow "owner onboarding…" |
+| Drivers | Owner-created phone-only user (OTP login stamps the phone verified); licence/ID encrypted; approval requires verified DRIVER documents + unexpired licence; availability rules (`DRIVER_NOT_APPROVED`, `ON_TRIP` system-only); deactivation revokes sessions and closes open vehicle assignments | profiles.flow "drivers…" |
+| Customers | Corporate extension with the Saudi national address (FR-PROFILES-14); verification requires VAT number + complete address + verified CORPORATE documents; credit decision (`PATCH /admin/customers/{id}/credit`) refuses APPROVED without verification or a positive limit, requires a reason for SUSPENDED, audited NOTICE with before/after; `outstandingAmount` computed from `ledger_entries` on read (30-s cache) — never a column; VAT number locks once invoiced, admin correction route audited | profiles.flow "corporate customer…" |
+| SPO | Profiles, admin-only customer assignment (one live per customer), lead pipeline, QUALIFIED → CONVERTED creating the customer with attribution, commission lines read from `booking_financial_snapshots` | profiles.flow "SPO…" |
+| Authorization | `requirePermissionOrProfile()` for "own → global" rows; `x.read_any` satisfies `x.read`; **a repository bug found by the tests — `{ id, ...scopeWhere }` let the actor's own id override the requested id — fixed with `AND` and pinned by the matrix** | matrix 20/20 |
+| Web | shadcn/ui primitives; cookie-mode API client with CSRF header and one transparent refresh; sign-in (password / OTP), registration + OTP, forgot/reset password; portal shell with `/me` boot, role-filtered nav, sign-out; dashboard with the onboarding card and submit guard; documents checklist with the in-browser presigned upload (SHA-256 computed client-side); admin owner-approval queue with document verify/reject and open-file | browser session |
+| OpenAPI | 71 paths / 83 schemas, diff-checked | `openapi:check` |
+| Dev experience | API entrypoints load the root `.env` in development (`process.loadEnvFile`), so `pnpm dev` and the desktop preview work without exporting variables; CORS now allows `X-Requested-With` (browser preflights were failing) | live check |
+
+**Carried forward:** `GET /customers/{id}/statement` (needs invoice ageing — Phase 11); `SHARED_WITH_COUNTERPARTY` downloads become reachable when bookings exist (Phase 8); web screens for drivers, customers and SPO leads land with their phases; the web build still uses `cross-env NODE_ENV=production`.
+
+---
+
 ## Module status
 
 | Module | Status | Backend | Frontend | Tests | Notes |
 |---|---|---|---|---|---|
 | `iam` | **DONE (Phase 3)** | jwt · permission/otp/auth/admin services · session + user repositories · auth/me/admin controllers & routes · mapper · openapi · `cli/create-admin.ts` | ✅ | db (auth lifecycle 10, authorization matrix 12) | Highest review priority. Impersonation (`typ: impersonation`) reserved for Phase 13. |
-| `profiles` | NOT_STARTED | — | — | — | 5 actor types. Phase 4. |
+| `profiles` | **DONE (Phase 4)** | customer/owner/driver/spo repositories + services, saved locations, mapper (privacy + PII masking), controller, routes, openapi | ✅ | db (profiles.flow 6, matrix) | Statement endpoint waits for invoices (Phase 11). |
 | `reference` | IN_PROGRESS | settings: routes/controller/service/repository/mapper/openapi; registry of 75 keys with per-key Zod + cross-field rules | — | unit + db | Seeded master data done. Settings API live (`/settings`, `/settings/public`, `/settings/sections`, `PUT /settings/{key}` — mutating route is unauthenticated until Phase 3 and mounted outside production only). Remaining reference CRUD lands with Phases 4–5. |
-| `documents` | NOT_STARTED | — | — | — | Presigned upload + verification. Phase 4. |
+| `documents` | **DONE (Phase 4)** | repository (ownership from typed FKs), service (presigned two-step, hash + sniff, scan hook, requirements, expiry/sweep jobs), controller, routes, openapi; `StorageProvider` (S3/MinIO), `ScanProvider` (none/clamav) | ✅ | db (real MinIO) | Uploads are unscanned until A-25 is resolved. |
 | `fleet` | NOT_STARTED | — | — | — | Vehicle calendar + exclusion constraint. Phase 5. **Critical path.** |
 | `demand` | NOT_STARTED | — | — | — | Trip requests + matching. Phase 6. |
 | `bidding` | NOT_STARTED | — | — | — | Acceptance transaction. Phase 7. **Critical path.** |

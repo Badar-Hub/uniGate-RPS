@@ -1565,6 +1565,2109 @@
           "message",
           "meta"
         ]
+      },
+      "UploadUrl": {
+        "type": "object",
+        "properties": {
+          "documentId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "uploadStatus": {
+            "type": "string",
+            "enum": [
+              "PENDING"
+            ]
+          },
+          "upload": {
+            "type": "object",
+            "properties": {
+              "method": {
+                "type": "string",
+                "enum": [
+                  "PUT"
+                ]
+              },
+              "url": {
+                "type": "string",
+                "format": "uri"
+              },
+              "headers": {
+                "type": "object",
+                "additionalProperties": {
+                  "type": "string"
+                }
+              },
+              "expiresAt": {
+                "type": "string",
+                "format": "date-time"
+              }
+            },
+            "required": [
+              "method",
+              "url",
+              "headers",
+              "expiresAt"
+            ]
+          }
+        },
+        "required": [
+          "documentId",
+          "uploadStatus",
+          "upload"
+        ]
+      },
+      "UploadUrlEnvelope": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "enum": [
+              true
+            ]
+          },
+          "data": {
+            "$ref": "#/components/schemas/UploadUrl"
+          },
+          "message": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "meta": {
+            "type": "object",
+            "additionalProperties": {}
+          }
+        },
+        "required": [
+          "success",
+          "data",
+          "message",
+          "meta"
+        ]
+      },
+      "Document": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "documentTypeCode": {
+            "type": "string"
+          },
+          "target": {
+            "type": "object",
+            "properties": {
+              "kind": {
+                "type": "string"
+              },
+              "id": {
+                "type": "string",
+                "format": "uuid"
+              }
+            },
+            "required": [
+              "kind",
+              "id"
+            ]
+          },
+          "originalFilename": {
+            "type": "string"
+          },
+          "mimeType": {
+            "type": "string"
+          },
+          "sizeBytes": {
+            "type": "integer"
+          },
+          "checksumSha256": {
+            "type": "string"
+          },
+          "uploadStatus": {
+            "type": "string",
+            "enum": [
+              "PENDING",
+              "UPLOADED",
+              "FAILED",
+              "QUARANTINED"
+            ]
+          },
+          "verificationStatus": {
+            "type": "string",
+            "enum": [
+              "PENDING",
+              "VERIFIED",
+              "REJECTED",
+              "EXPIRED"
+            ]
+          },
+          "verifiedAt": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "rejectionReason": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "issueDate": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "expiryDate": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "visibility": {
+            "type": "string",
+            "enum": [
+              "PRIVATE",
+              "INTERNAL",
+              "SHARED_WITH_COUNTERPARTY"
+            ]
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "documentTypeCode",
+          "target",
+          "originalFilename",
+          "mimeType",
+          "sizeBytes",
+          "checksumSha256",
+          "uploadStatus",
+          "verificationStatus",
+          "verifiedAt",
+          "rejectionReason",
+          "issueDate",
+          "expiryDate",
+          "visibility",
+          "createdAt",
+          "updatedAt"
+        ],
+        "description": "Metadata only — never the storage key or a URL."
+      },
+      "DocumentEnvelope": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "enum": [
+              true
+            ]
+          },
+          "data": {
+            "$ref": "#/components/schemas/Document"
+          },
+          "message": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "meta": {
+            "type": "object",
+            "additionalProperties": {}
+          }
+        },
+        "required": [
+          "success",
+          "data",
+          "message",
+          "meta"
+        ]
+      },
+      "DocumentListEnvelope": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "enum": [
+              true
+            ]
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Document"
+            }
+          },
+          "message": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "meta": {
+            "type": "object",
+            "additionalProperties": {}
+          }
+        },
+        "required": [
+          "success",
+          "data",
+          "message",
+          "meta"
+        ]
+      },
+      "DocumentRequirement": {
+        "type": "object",
+        "properties": {
+          "documentTypeCode": {
+            "type": "string"
+          },
+          "nameEn": {
+            "type": "string"
+          },
+          "nameAr": {
+            "type": "string"
+          },
+          "isMandatory": {
+            "type": "boolean"
+          },
+          "requiresExpiry": {
+            "type": "boolean"
+          },
+          "transportType": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "MISSING",
+              "PENDING",
+              "VERIFIED",
+              "REJECTED",
+              "EXPIRED"
+            ]
+          },
+          "documentId": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid"
+          },
+          "expiryDate": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "documentTypeCode",
+          "nameEn",
+          "nameAr",
+          "isMandatory",
+          "requiresExpiry",
+          "transportType",
+          "status",
+          "documentId",
+          "expiryDate"
+        ]
+      },
+      "DocumentRequirementListEnvelope": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "enum": [
+              true
+            ]
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DocumentRequirement"
+            }
+          },
+          "message": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "meta": {
+            "type": "object",
+            "additionalProperties": {}
+          }
+        },
+        "required": [
+          "success",
+          "data",
+          "message",
+          "meta"
+        ]
+      },
+      "DownloadUrl": {
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string",
+            "format": "uri"
+          },
+          "expiresAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "mimeType": {
+            "type": "string"
+          },
+          "originalFilename": {
+            "type": "string"
+          },
+          "sizeBytes": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "url",
+          "expiresAt",
+          "mimeType",
+          "originalFilename",
+          "sizeBytes"
+        ]
+      },
+      "DownloadUrlEnvelope": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "enum": [
+              true
+            ]
+          },
+          "data": {
+            "$ref": "#/components/schemas/DownloadUrl"
+          },
+          "message": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "meta": {
+            "type": "object",
+            "additionalProperties": {}
+          }
+        },
+        "required": [
+          "success",
+          "data",
+          "message",
+          "meta"
+        ]
+      },
+      "NationalAddress": {
+        "type": "object",
+        "properties": {
+          "buildingNumber": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "streetEn": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "streetAr": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "districtEn": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "districtAr": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "cityId": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid"
+          },
+          "postalCode": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "additionalNumber": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "shortCode": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "isComplete": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "buildingNumber",
+          "streetEn",
+          "streetAr",
+          "districtEn",
+          "districtAr",
+          "cityId",
+          "postalCode",
+          "additionalNumber",
+          "shortCode",
+          "isComplete"
+        ]
+      },
+      "CorporateCustomer": {
+        "type": [
+          "object",
+          "null"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "companyNameEn": {
+            "type": "string"
+          },
+          "companyNameAr": {
+            "type": "string"
+          },
+          "crNumber": {
+            "type": "string"
+          },
+          "nationalAddress": {
+            "$ref": "#/components/schemas/NationalAddress"
+          },
+          "contactPersonName": {
+            "type": "string"
+          },
+          "contactPersonPhone": {
+            "type": "string"
+          },
+          "contactPersonEmail": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "creditStatus": {
+            "type": "string"
+          },
+          "creditLimitAmount": {
+            "type": "string",
+            "pattern": "^-?\\d+\\.\\d{2}$",
+            "description": "decimal string, 2dp"
+          },
+          "creditTermsDays": {
+            "type": "integer"
+          },
+          "billingCycle": {
+            "type": "string"
+          },
+          "invoiceLineGranularity": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "isVerified": {
+            "type": "boolean"
+          },
+          "creditApprovedAt": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "companyNameEn",
+          "companyNameAr",
+          "crNumber",
+          "nationalAddress",
+          "contactPersonName",
+          "contactPersonPhone",
+          "contactPersonEmail",
+          "creditStatus",
+          "creditLimitAmount",
+          "creditTermsDays",
+          "billingCycle",
+          "invoiceLineGranularity",
+          "isVerified",
+          "creditApprovedAt",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
+      "Customer": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "userId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "customerType": {
+            "type": "string"
+          },
+          "fullNameEn": {
+            "type": "string"
+          },
+          "fullNameAr": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "phoneE164": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "email": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "userStatus": {
+            "type": "string"
+          },
+          "vatNumber": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "vatNumberVerifiedAt": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "vatNumberLockedAt": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "defaultCityId": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid"
+          },
+          "ratingAvg": {
+            "type": "string"
+          },
+          "ratingCount": {
+            "type": "integer"
+          },
+          "totalBookings": {
+            "type": "integer"
+          },
+          "acquiredBySpoId": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid"
+          },
+          "corporate": {
+            "$ref": "#/components/schemas/CorporateCustomer"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "userId",
+          "customerType",
+          "fullNameEn",
+          "fullNameAr",
+          "phoneE164",
+          "email",
+          "userStatus",
+          "vatNumber",
+          "vatNumberVerifiedAt",
+          "vatNumberLockedAt",
+          "defaultCityId",
+          "ratingAvg",
+          "ratingCount",
+          "totalBookings",
+          "acquiredBySpoId",
+          "corporate",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
+      "CustomerListEnvelope": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "enum": [
+              true
+            ]
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Customer"
+            }
+          },
+          "message": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "meta": {
+            "type": "object",
+            "additionalProperties": {}
+          }
+        },
+        "required": [
+          "success",
+          "data",
+          "message",
+          "meta"
+        ]
+      },
+      "CustomerEnvelope": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "enum": [
+              true
+            ]
+          },
+          "data": {
+            "$ref": "#/components/schemas/Customer"
+          },
+          "message": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "meta": {
+            "type": "object",
+            "additionalProperties": {}
+          }
+        },
+        "required": [
+          "success",
+          "data",
+          "message",
+          "meta"
+        ]
+      },
+      "CustomerCredit": {
+        "type": "object",
+        "properties": {
+          "customerProfileId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "companyNameEn": {
+            "type": "string"
+          },
+          "isVerified": {
+            "type": "boolean"
+          },
+          "creditStatus": {
+            "type": "string"
+          },
+          "creditLimitAmount": {
+            "type": "string",
+            "pattern": "^-?\\d+\\.\\d{2}$",
+            "description": "decimal string, 2dp"
+          },
+          "creditTermsDays": {
+            "type": "integer"
+          },
+          "billingCycle": {
+            "type": "string"
+          },
+          "defaultBillingMode": {
+            "type": "string",
+            "enum": [
+              "PREPAID",
+              "INVOICED"
+            ]
+          },
+          "outstandingAmount": {
+            "type": "string",
+            "pattern": "^-?\\d+\\.\\d{2}$",
+            "description": "decimal string, 2dp"
+          },
+          "availableAmount": {
+            "type": "string",
+            "pattern": "^-?\\d+\\.\\d{2}$",
+            "description": "decimal string, 2dp"
+          },
+          "headroomAmount": {
+            "type": "string",
+            "pattern": "^-?\\d+\\.\\d{2}$",
+            "description": "decimal string, 2dp"
+          },
+          "currency": {
+            "type": "string",
+            "enum": [
+              "SAR"
+            ]
+          },
+          "creditApprovedAt": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "computedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "customerProfileId",
+          "companyNameEn",
+          "isVerified",
+          "creditStatus",
+          "creditLimitAmount",
+          "creditTermsDays",
+          "billingCycle",
+          "defaultBillingMode",
+          "outstandingAmount",
+          "availableAmount",
+          "headroomAmount",
+          "currency",
+          "creditApprovedAt",
+          "computedAt"
+        ],
+        "description": "outstandingAmount is computed from ledger_entries on read (30 s cache); never a stored column."
+      },
+      "CustomerCreditEnvelope": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "enum": [
+              true
+            ]
+          },
+          "data": {
+            "$ref": "#/components/schemas/CustomerCredit"
+          },
+          "message": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "meta": {
+            "type": "object",
+            "additionalProperties": {}
+          }
+        },
+        "required": [
+          "success",
+          "data",
+          "message",
+          "meta"
+        ]
+      },
+      "Owner": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "userId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "ownerType": {
+            "type": "string"
+          },
+          "isPlatformFleet": {
+            "type": "boolean"
+          },
+          "businessNameEn": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "businessNameAr": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "crNumber": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "vatNumber": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "isVatRegistered": {
+            "type": "boolean"
+          },
+          "vatVerifiedAt": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "nationalIdLast4": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "onboardingStatus": {
+            "type": "string"
+          },
+          "approvedAt": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "rejectionReason": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "ratingAvg": {
+            "type": "string"
+          },
+          "ratingCount": {
+            "type": "integer"
+          },
+          "privacySettings": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "boolean"
+            }
+          },
+          "verticals": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "transportType": {
+                  "type": "string"
+                },
+                "status": {
+                  "type": "string"
+                },
+                "approvedAt": {
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "format": "date-time"
+                },
+                "notes": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                }
+              },
+              "required": [
+                "transportType",
+                "status",
+                "approvedAt",
+                "notes"
+              ]
+            }
+          },
+          "serviceAreaCityIds": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          "fullNameEn": {
+            "type": "string"
+          },
+          "phoneE164": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "email": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "userStatus": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "userId",
+          "ownerType",
+          "isPlatformFleet",
+          "businessNameEn",
+          "businessNameAr",
+          "crNumber",
+          "vatNumber",
+          "isVatRegistered",
+          "vatVerifiedAt",
+          "nationalIdLast4",
+          "onboardingStatus",
+          "approvedAt",
+          "rejectionReason",
+          "ratingAvg",
+          "ratingCount",
+          "privacySettings",
+          "verticals",
+          "serviceAreaCityIds",
+          "fullNameEn",
+          "phoneE164",
+          "email",
+          "userStatus",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
+      "OwnerEnvelope": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "enum": [
+              true
+            ]
+          },
+          "data": {
+            "$ref": "#/components/schemas/Owner"
+          },
+          "message": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "meta": {
+            "type": "object",
+            "additionalProperties": {}
+          }
+        },
+        "required": [
+          "success",
+          "data",
+          "message",
+          "meta"
+        ]
+      },
+      "OwnerListEnvelope": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "enum": [
+              true
+            ]
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Owner"
+            }
+          },
+          "message": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "meta": {
+            "type": "object",
+            "additionalProperties": {}
+          }
+        },
+        "required": [
+          "success",
+          "data",
+          "message",
+          "meta"
+        ]
+      },
+      "OwnerBankAccount": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "accountHolderName": {
+            "type": "string"
+          },
+          "bankName": {
+            "type": "string"
+          },
+          "ibanLast4": {
+            "type": "string"
+          },
+          "isVerified": {
+            "type": "boolean"
+          },
+          "isDefault": {
+            "type": "boolean"
+          },
+          "activationAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "accountHolderName",
+          "bankName",
+          "ibanLast4",
+          "isVerified",
+          "isDefault",
+          "activationAt",
+          "createdAt"
+        ]
+      },
+      "OwnerBankAccountListEnvelope": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "enum": [
+              true
+            ]
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OwnerBankAccount"
+            }
+          },
+          "message": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "meta": {
+            "type": "object",
+            "additionalProperties": {}
+          }
+        },
+        "required": [
+          "success",
+          "data",
+          "message",
+          "meta"
+        ]
+      },
+      "OwnerBankAccountEnvelope": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "enum": [
+              true
+            ]
+          },
+          "data": {
+            "$ref": "#/components/schemas/OwnerBankAccount"
+          },
+          "message": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "meta": {
+            "type": "object",
+            "additionalProperties": {}
+          }
+        },
+        "required": [
+          "success",
+          "data",
+          "message",
+          "meta"
+        ]
+      },
+      "Driver": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "userId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "ownerProfileId": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid"
+          },
+          "fullNameEn": {
+            "type": "string"
+          },
+          "fullNameAr": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "phoneE164": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "userStatus": {
+            "type": "string"
+          },
+          "idType": {
+            "type": "string"
+          },
+          "nationalIdLast4": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "dateOfBirth": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "licenseNumberLast4": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "licenseExpiryDate": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "licenseCategories": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "approvalStatus": {
+            "type": "string"
+          },
+          "availabilityStatus": {
+            "type": "string"
+          },
+          "ratingAvg": {
+            "type": "string"
+          },
+          "ratingCount": {
+            "type": "integer"
+          },
+          "emergencyContactName": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "emergencyContactPhone": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "verticals": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "transportType": {
+                  "type": "string"
+                },
+                "status": {
+                  "type": "string"
+                },
+                "approvedAt": {
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "format": "date-time"
+                }
+              },
+              "required": [
+                "transportType",
+                "status",
+                "approvedAt"
+              ]
+            }
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "userId",
+          "ownerProfileId",
+          "fullNameEn",
+          "fullNameAr",
+          "phoneE164",
+          "userStatus",
+          "idType",
+          "nationalIdLast4",
+          "dateOfBirth",
+          "licenseNumberLast4",
+          "licenseExpiryDate",
+          "licenseCategories",
+          "approvalStatus",
+          "availabilityStatus",
+          "ratingAvg",
+          "ratingCount",
+          "emergencyContactName",
+          "emergencyContactPhone",
+          "verticals",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
+      "DriverListEnvelope": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "enum": [
+              true
+            ]
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Driver"
+            }
+          },
+          "message": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "meta": {
+            "type": "object",
+            "additionalProperties": {}
+          }
+        },
+        "required": [
+          "success",
+          "data",
+          "message",
+          "meta"
+        ]
+      },
+      "DriverEnvelope": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "enum": [
+              true
+            ]
+          },
+          "data": {
+            "$ref": "#/components/schemas/Driver"
+          },
+          "message": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "meta": {
+            "type": "object",
+            "additionalProperties": {}
+          }
+        },
+        "required": [
+          "success",
+          "data",
+          "message",
+          "meta"
+        ]
+      },
+      "DriverAssignment": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "vehicleId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "assignedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "unassignedAt": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "assignedByUserId": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid"
+          }
+        },
+        "required": [
+          "id",
+          "vehicleId",
+          "assignedAt",
+          "unassignedAt",
+          "assignedByUserId"
+        ]
+      },
+      "DriverAssignmentListEnvelope": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "enum": [
+              true
+            ]
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DriverAssignment"
+            }
+          },
+          "message": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "meta": {
+            "type": "object",
+            "additionalProperties": {}
+          }
+        },
+        "required": [
+          "success",
+          "data",
+          "message",
+          "meta"
+        ]
+      },
+      "SpoProfile": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "userId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "fullNameEn": {
+            "type": "string"
+          },
+          "email": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "employeeCode": {
+            "type": "string"
+          },
+          "regionId": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid"
+          },
+          "managerUserId": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid"
+          },
+          "commissionModelId": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid"
+          },
+          "isActive": {
+            "type": "boolean"
+          },
+          "activeCustomerCount": {
+            "type": "integer"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "userId",
+          "fullNameEn",
+          "email",
+          "employeeCode",
+          "regionId",
+          "managerUserId",
+          "commissionModelId",
+          "isActive",
+          "activeCustomerCount",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
+      "SpoProfileListEnvelope": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "enum": [
+              true
+            ]
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SpoProfile"
+            }
+          },
+          "message": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "meta": {
+            "type": "object",
+            "additionalProperties": {}
+          }
+        },
+        "required": [
+          "success",
+          "data",
+          "message",
+          "meta"
+        ]
+      },
+      "SpoProfileEnvelope": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "enum": [
+              true
+            ]
+          },
+          "data": {
+            "$ref": "#/components/schemas/SpoProfile"
+          },
+          "message": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "meta": {
+            "type": "object",
+            "additionalProperties": {}
+          }
+        },
+        "required": [
+          "success",
+          "data",
+          "message",
+          "meta"
+        ]
+      },
+      "SpoCustomerAssignment": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "spoProfileId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "customerProfileId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "customerFullNameEn": {
+            "type": "string"
+          },
+          "assignedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "unassignedAt": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "spoProfileId",
+          "customerProfileId",
+          "customerFullNameEn",
+          "assignedAt",
+          "unassignedAt"
+        ]
+      },
+      "SpoCustomerAssignmentListEnvelope": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "enum": [
+              true
+            ]
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SpoCustomerAssignment"
+            }
+          },
+          "message": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "meta": {
+            "type": "object",
+            "additionalProperties": {}
+          }
+        },
+        "required": [
+          "success",
+          "data",
+          "message",
+          "meta"
+        ]
+      },
+      "SpoCustomerAssignmentEnvelope": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "enum": [
+              true
+            ]
+          },
+          "data": {
+            "$ref": "#/components/schemas/SpoCustomerAssignment"
+          },
+          "message": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "meta": {
+            "type": "object",
+            "additionalProperties": {}
+          }
+        },
+        "required": [
+          "success",
+          "data",
+          "message",
+          "meta"
+        ]
+      },
+      "SpoLead": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "spoProfileId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "contactName": {
+            "type": "string"
+          },
+          "contactPhone": {
+            "type": "string"
+          },
+          "companyName": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "status": {
+            "type": "string"
+          },
+          "convertedUserId": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid"
+          },
+          "notes": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "spoProfileId",
+          "contactName",
+          "contactPhone",
+          "companyName",
+          "status",
+          "convertedUserId",
+          "notes",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
+      "SpoLeadListEnvelope": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "enum": [
+              true
+            ]
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SpoLead"
+            }
+          },
+          "message": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "meta": {
+            "type": "object",
+            "additionalProperties": {}
+          }
+        },
+        "required": [
+          "success",
+          "data",
+          "message",
+          "meta"
+        ]
+      },
+      "SpoLeadEnvelope": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "enum": [
+              true
+            ]
+          },
+          "data": {
+            "$ref": "#/components/schemas/SpoLead"
+          },
+          "message": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "meta": {
+            "type": "object",
+            "additionalProperties": {}
+          }
+        },
+        "required": [
+          "success",
+          "data",
+          "message",
+          "meta"
+        ]
+      },
+      "SpoLeadConvertedEnvelope": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "enum": [
+              true
+            ]
+          },
+          "data": {
+            "type": "object",
+            "properties": {
+              "lead": {
+                "$ref": "#/components/schemas/SpoLead"
+              },
+              "customerProfileId": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "userId": {
+                "type": "string",
+                "format": "uuid"
+              }
+            },
+            "required": [
+              "lead",
+              "customerProfileId",
+              "userId"
+            ]
+          },
+          "message": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "meta": {
+            "type": "object",
+            "additionalProperties": {}
+          }
+        },
+        "required": [
+          "success",
+          "data",
+          "message",
+          "meta"
+        ]
+      },
+      "SpoCommissionLine": {
+        "type": "object",
+        "properties": {
+          "bookingId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "spoProfileId": {
+            "type": "string"
+          },
+          "customerProfileId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "amount": {
+            "type": "string",
+            "pattern": "^-?\\d+\\.\\d{2}$",
+            "description": "decimal string, 2dp"
+          },
+          "basis": {
+            "type": "string"
+          },
+          "snapshotAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "bookingId",
+          "spoProfileId",
+          "customerProfileId",
+          "amount",
+          "basis",
+          "snapshotAt"
+        ]
+      },
+      "SpoCommissionListEnvelope": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "enum": [
+              true
+            ]
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SpoCommissionLine"
+            }
+          },
+          "message": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "meta": {
+            "type": "object",
+            "additionalProperties": {}
+          }
+        },
+        "required": [
+          "success",
+          "data",
+          "message",
+          "meta"
+        ]
+      },
+      "SavedLocation": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "label": {
+            "type": "string"
+          },
+          "addressLine": {
+            "type": "string"
+          },
+          "cityId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "latitude": {
+            "type": "number"
+          },
+          "longitude": {
+            "type": "number"
+          },
+          "placeId": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "label",
+          "addressLine",
+          "cityId",
+          "latitude",
+          "longitude",
+          "placeId",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
+      "SavedLocationListEnvelope": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "enum": [
+              true
+            ]
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SavedLocation"
+            }
+          },
+          "message": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "meta": {
+            "type": "object",
+            "additionalProperties": {}
+          }
+        },
+        "required": [
+          "success",
+          "data",
+          "message",
+          "meta"
+        ]
+      },
+      "SavedLocationEnvelope": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "enum": [
+              true
+            ]
+          },
+          "data": {
+            "$ref": "#/components/schemas/SavedLocation"
+          },
+          "message": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "meta": {
+            "type": "object",
+            "additionalProperties": {}
+          }
+        },
+        "required": [
+          "success",
+          "data",
+          "message",
+          "meta"
+        ]
       }
     },
     "parameters": {}
@@ -3754,6 +5857,4203 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/PermissionListEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/documents/upload-url": {
+      "post": {
+        "tags": [
+          "documents"
+        ],
+        "summary": "Step 1 — validate and presign a 15-minute PUT (server-generated key)",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "documentTypeCode": {
+                    "type": "string",
+                    "pattern": "^[A-Z][A-Z0-9_]{1,47}$"
+                  },
+                  "target": {
+                    "type": "object",
+                    "properties": {
+                      "kind": {
+                        "type": "string",
+                        "enum": [
+                          "USER",
+                          "OWNER",
+                          "DRIVER",
+                          "VEHICLE",
+                          "CORPORATE_CUSTOMER",
+                          "EXPENSE",
+                          "MAINTENANCE_RECORD",
+                          "TRIP_PROOF"
+                        ]
+                      },
+                      "id": {
+                        "type": "string",
+                        "format": "uuid"
+                      }
+                    },
+                    "required": [
+                      "kind",
+                      "id"
+                    ],
+                    "additionalProperties": false
+                  },
+                  "originalFilename": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 255
+                  },
+                  "mimeType": {
+                    "type": "string",
+                    "maxLength": 128,
+                    "pattern": "^[a-z]+\\/[a-z0-9.+-]+$"
+                  },
+                  "sizeBytes": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 5368709120
+                  },
+                  "checksumSha256": {
+                    "type": "string",
+                    "pattern": "^[0-9a-f]{64}$"
+                  },
+                  "issueDate": {
+                    "type": "string",
+                    "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                  },
+                  "expiryDate": {
+                    "type": "string",
+                    "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                  },
+                  "visibility": {
+                    "type": "string",
+                    "enum": [
+                      "PRIVATE",
+                      "INTERNAL",
+                      "SHARED_WITH_COUNTERPARTY"
+                    ],
+                    "default": "PRIVATE"
+                  }
+                },
+                "required": [
+                  "documentTypeCode",
+                  "target",
+                  "originalFilename",
+                  "mimeType",
+                  "sizeBytes",
+                  "checksumSha256"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UploadUrlEnvelope"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "target out of scope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {},
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "DOCUMENT_TYPE_NOT_ALLOWED / DOCUMENT_MIME_NOT_ALLOWED / DOCUMENT_SIZE_EXCEEDED / DOCUMENT_EXPIRY_REQUIRED",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {},
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/documents/{id}/confirm": {
+      "post": {
+        "tags": [
+          "documents"
+        ],
+        "summary": "Step 2 — object exists, size + SHA-256 + magic bytes match, malware scan (Idempotency-Key required)",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "name": "idempotency-key",
+            "in": "header"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "checksumSha256": {
+                    "type": "string",
+                    "pattern": "^[0-9a-f]{64}$"
+                  }
+                },
+                "required": [
+                  "checksumSha256"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DocumentEnvelope"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "DOCUMENT_UPLOAD_INCOMPLETE",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {},
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "DOCUMENT_CHECKSUM_MISMATCH / DOCUMENT_MIME_NOT_ALLOWED (details.declared, details.detected) / DOCUMENT_SCAN_QUARANTINED",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {},
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/documents": {
+      "get": {
+        "tags": [
+          "documents"
+        ],
+        "summary": "List (own → global with documents.read_any)",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "default": 1
+            },
+            "required": false,
+            "name": "page",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 20
+            },
+            "required": false,
+            "name": "pageSize",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "maxLength": 48
+            },
+            "required": false,
+            "name": "documentTypeCode",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "PENDING",
+                "VERIFIED",
+                "REJECTED",
+                "EXPIRED"
+              ]
+            },
+            "required": false,
+            "name": "verificationStatus",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "PENDING",
+                "UPLOADED",
+                "FAILED",
+                "QUARANTINED"
+              ]
+            },
+            "required": false,
+            "name": "uploadStatus",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": false,
+            "name": "vehicleId",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": false,
+            "name": "driverProfileId",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": false,
+            "name": "ownerProfileId",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": false,
+            "name": "corporateCustomerProfileId",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": false,
+            "name": "userId",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 365
+            },
+            "required": false,
+            "name": "expiringWithinDays",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK — paginated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DocumentListEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/documents/requirements": {
+      "get": {
+        "tags": [
+          "documents"
+        ],
+        "summary": "Checklist for a target: every document type with its current status",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "USER",
+                "OWNER",
+                "DRIVER",
+                "VEHICLE",
+                "CORPORATE_CUSTOMER",
+                "EXPENSE",
+                "MAINTENANCE_RECORD",
+                "TRIP_PROOF"
+              ]
+            },
+            "required": true,
+            "name": "appliesTo",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "name": "targetId",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "PASSENGER",
+                "GOODS"
+              ]
+            },
+            "required": false,
+            "name": "transportType",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DocumentRequirementListEnvelope"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "target out of scope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {},
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/documents/{id}": {
+      "get": {
+        "tags": [
+          "documents"
+        ],
+        "summary": "Metadata",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DocumentEnvelope"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "NOT_FOUND",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {},
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "documents"
+        ],
+        "summary": "Soft delete (documents.delete); refused when an approval decision references it",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Deleted"
+          },
+          "404": {
+            "description": "NOT_FOUND",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {},
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "CONFLICT",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {},
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/documents/{id}/download-url": {
+      "get": {
+        "tags": [
+          "documents"
+        ],
+        "summary": "120-second signed GET (attachment); every issuance audited",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DownloadUrlEnvelope"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "NOT_FOUND (also for out-of-scope and not-yet-uploaded)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {},
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "DOCUMENT_SCAN_QUARANTINED",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {},
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/documents/{id}/verify": {
+      "post": {
+        "tags": [
+          "documents"
+        ],
+        "summary": "PENDING → VERIFIED (documents.verify)",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "issueDate": {
+                    "type": "string",
+                    "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                  },
+                  "expiryDate": {
+                    "type": "string",
+                    "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                  },
+                  "notes": {
+                    "type": "string",
+                    "maxLength": 500
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DocumentEnvelope"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "DOCUMENT_ALREADY_VERIFIED / DOCUMENT_UPLOAD_INCOMPLETE",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {},
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "DOCUMENT_EXPIRY_REQUIRED / DOCUMENT_EXPIRED",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {},
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/documents/{id}/reject": {
+      "post": {
+        "tags": [
+          "documents"
+        ],
+        "summary": "→ REJECTED with a reason (documents.verify)",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "rejectionReason": {
+                    "type": "string",
+                    "maxLength": 1000
+                  }
+                },
+                "required": [
+                  "rejectionReason"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DocumentEnvelope"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "NOT_FOUND",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {},
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/documents/{id}/visibility": {
+      "patch": {
+        "tags": [
+          "documents"
+        ],
+        "summary": "PRIVATE / INTERNAL / SHARED_WITH_COUNTERPARTY",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "visibility": {
+                    "type": "string",
+                    "enum": [
+                      "PRIVATE",
+                      "INTERNAL",
+                      "SHARED_WITH_COUNTERPARTY"
+                    ]
+                  }
+                },
+                "required": [
+                  "visibility"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DocumentEnvelope"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "NOT_FOUND",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {},
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/customers": {
+      "get": {
+        "tags": [
+          "customers"
+        ],
+        "summary": "List customers (customers.read)",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "default": 1
+            },
+            "required": false,
+            "name": "page",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 20
+            },
+            "required": false,
+            "name": "pageSize",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "INDIVIDUAL",
+                "CORPORATE"
+              ]
+            },
+            "required": false,
+            "name": "customerType",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": false,
+            "name": "cityId",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": false,
+            "name": "acquiredBySpoId",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "NONE",
+                "PENDING_APPROVAL",
+                "APPROVED",
+                "SUSPENDED"
+              ]
+            },
+            "required": false,
+            "name": "creditStatus",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "PER_BOOKING",
+                "WEEKLY",
+                "MONTHLY"
+              ]
+            },
+            "required": false,
+            "name": "billingCycle",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "true",
+                "false"
+              ]
+            },
+            "required": false,
+            "name": "hasVatNumber",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "maxLength": 120
+            },
+            "required": false,
+            "name": "q",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK — paginated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CustomerListEnvelope"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "customers"
+        ],
+        "summary": "Staff/SPO-created customer (customers.create; OTP login verifies the phone)",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "customerType": {
+                    "type": "string",
+                    "enum": [
+                      "INDIVIDUAL",
+                      "CORPORATE"
+                    ]
+                  },
+                  "fullNameEn": {
+                    "type": "string",
+                    "maxLength": 160
+                  },
+                  "fullNameAr": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 160
+                  },
+                  "email": {
+                    "type": "string",
+                    "maxLength": 254,
+                    "format": "email"
+                  },
+                  "phoneE164": {
+                    "type": "string",
+                    "pattern": "^\\+[1-9]\\d{7,14}$"
+                  },
+                  "preferredLocale": {
+                    "type": "string",
+                    "enum": [
+                      "ar",
+                      "en"
+                    ],
+                    "default": "ar"
+                  },
+                  "defaultCityId": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "vatNumber": {
+                    "type": "string",
+                    "pattern": "^3\\d{13}3$"
+                  },
+                  "acquiredBySpoId": {
+                    "type": "string",
+                    "format": "uuid"
+                  }
+                },
+                "required": [
+                  "customerType",
+                  "fullNameEn",
+                  "phoneE164"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CustomerEnvelope"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "AUTH_IDENTIFIER_TAKEN",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {},
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/customers/{id}": {
+      "get": {
+        "tags": [
+          "customers"
+        ],
+        "summary": "Profile + corporate extension (own → global)",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CustomerEnvelope"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "NOT_FOUND",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {},
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "customers"
+        ],
+        "summary": "Default city, VAT number (locked once invoiced), SPO attribution",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "defaultCityId": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "format": "uuid"
+                  },
+                  "vatNumber": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "pattern": "^3\\d{13}3$"
+                  },
+                  "acquiredBySpoId": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "format": "uuid"
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CustomerEnvelope"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "VALIDATION_FAILED with details.lockedByInvoiceNumber",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {},
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/customers/{id}/corporate": {
+      "put": {
+        "tags": [
+          "customers"
+        ],
+        "summary": "Upsert the corporate extension (national address per FR-PROFILES-14)",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "companyNameEn": {
+                    "type": "string",
+                    "maxLength": 160
+                  },
+                  "companyNameAr": {
+                    "type": "string",
+                    "maxLength": 160
+                  },
+                  "crNumber": {
+                    "type": "string",
+                    "pattern": "^\\d{10}$"
+                  },
+                  "nationalAddress": {
+                    "type": "object",
+                    "properties": {
+                      "buildingNumber": {
+                        "type": "string",
+                        "pattern": "^\\d{4}$"
+                      },
+                      "streetEn": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 160
+                      },
+                      "streetAr": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 160
+                      },
+                      "districtEn": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 120
+                      },
+                      "districtAr": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 120
+                      },
+                      "cityId": {
+                        "type": "string",
+                        "format": "uuid"
+                      },
+                      "postalCode": {
+                        "type": "string",
+                        "pattern": "^\\d{5}$"
+                      },
+                      "additionalNumber": {
+                        "type": "string",
+                        "pattern": "^\\d{4}$"
+                      },
+                      "shortCode": {
+                        "type": "string",
+                        "pattern": "^[A-Z]{4}\\d{4}$"
+                      }
+                    },
+                    "required": [
+                      "buildingNumber",
+                      "streetEn",
+                      "streetAr",
+                      "districtEn",
+                      "districtAr",
+                      "cityId",
+                      "postalCode",
+                      "additionalNumber"
+                    ]
+                  },
+                  "contactPersonName": {
+                    "type": "string",
+                    "maxLength": 160
+                  },
+                  "contactPersonPhone": {
+                    "type": "string",
+                    "pattern": "^\\+[1-9]\\d{7,14}$"
+                  },
+                  "contactPersonEmail": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 254,
+                    "format": "email"
+                  },
+                  "creditTermsDays": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 180
+                  },
+                  "billingCycle": {
+                    "type": "string",
+                    "enum": [
+                      "PER_BOOKING",
+                      "WEEKLY",
+                      "MONTHLY"
+                    ]
+                  },
+                  "invoiceLineGranularity": {
+                    "type": "string",
+                    "enum": [
+                      "ORDER",
+                      "BOOKING"
+                    ]
+                  }
+                },
+                "required": [
+                  "companyNameEn",
+                  "companyNameAr",
+                  "crNumber",
+                  "contactPersonName",
+                  "contactPersonPhone"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CustomerEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/customers/{id}/verify": {
+      "post": {
+        "tags": [
+          "customers"
+        ],
+        "summary": "Verify the corporate record: VAT number, full national address and verified mandatory documents (customers.verify)",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "notes": {
+                    "type": "string",
+                    "maxLength": 500
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CustomerEnvelope"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "VALIDATION_FAILED — details.fieldErrors names what is missing",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {},
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/customers/{id}/credit": {
+      "get": {
+        "tags": [
+          "customers"
+        ],
+        "summary": "Credit position (invoices.read; own → global)",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CustomerCreditEnvelope"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "NOT_FOUND — no corporate profile",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {},
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/customers/{id}/credit": {
+      "patch": {
+        "tags": [
+          "customers"
+        ],
+        "summary": "Credit decision (customers.verify): APPROVED needs a verified record and a positive limit; SUSPENDED needs a reason",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "creditStatus": {
+                    "type": "string",
+                    "enum": [
+                      "NONE",
+                      "PENDING_APPROVAL",
+                      "APPROVED",
+                      "SUSPENDED"
+                    ]
+                  },
+                  "creditLimitAmount": {
+                    "type": "string",
+                    "pattern": "^-?\\d{1,12}\\.\\d{2}$"
+                  },
+                  "creditTermsDays": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 180
+                  },
+                  "billingCycle": {
+                    "type": "string",
+                    "enum": [
+                      "PER_BOOKING",
+                      "WEEKLY",
+                      "MONTHLY"
+                    ]
+                  },
+                  "reason": {
+                    "type": "string",
+                    "maxLength": 1000
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CustomerCreditEnvelope"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "VALIDATION_FAILED",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {},
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/customers/{id}/vat-number": {
+      "patch": {
+        "tags": [
+          "customers"
+        ],
+        "summary": "Admin correction of a locked VAT number (audited NOTICE; issued invoices untouched)",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "vatNumber": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "pattern": "^3\\d{13}3$"
+                  },
+                  "reason": {
+                    "type": "string",
+                    "maxLength": 1000
+                  }
+                },
+                "required": [
+                  "vatNumber",
+                  "reason"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CustomerEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/me/owner-profile": {
+      "get": {
+        "tags": [
+          "owners"
+        ],
+        "summary": "The caller’s own owner profile",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OwnerEnvelope"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "no owner profile",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {},
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/owners": {
+      "get": {
+        "tags": [
+          "owners"
+        ],
+        "summary": "List owners (owners.read)",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "default": 1
+            },
+            "required": false,
+            "name": "page",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 20
+            },
+            "required": false,
+            "name": "pageSize",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "INDIVIDUAL",
+                "COMPANY",
+                "PLATFORM"
+              ]
+            },
+            "required": false,
+            "name": "ownerType",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "DRAFT",
+                "DOCUMENTS_SUBMITTED",
+                "UNDER_REVIEW",
+                "APPROVED",
+                "REJECTED",
+                "SUSPENDED"
+              ]
+            },
+            "required": false,
+            "name": "onboardingStatus",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": false,
+            "name": "cityId",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "maxLength": 120
+            },
+            "required": false,
+            "name": "q",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK — paginated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OwnerListEnvelope"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "owners"
+        ],
+        "summary": "Admin-created owner profile for an existing user (owners.create)",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "userId": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "ownerType": {
+                    "type": "string",
+                    "enum": [
+                      "INDIVIDUAL",
+                      "COMPANY"
+                    ]
+                  },
+                  "businessNameEn": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 160
+                  },
+                  "businessNameAr": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 160
+                  },
+                  "crNumber": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "pattern": "^\\d{10}$"
+                  }
+                },
+                "required": [
+                  "userId",
+                  "ownerType"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OwnerEnvelope"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "CONFLICT — user already has one",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {},
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/owners/{id}": {
+      "get": {
+        "tags": [
+          "owners"
+        ],
+        "summary": "Owner profile (own → global); nationalIdLast4 only for self or owners.pii.reveal",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OwnerEnvelope"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "NOT_FOUND",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {},
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "owners"
+        ],
+        "summary": "Business details, national id (encrypted), verticals, privacy; identity edits after approval → UNDER_REVIEW",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "ownerType": {
+                    "type": "string",
+                    "enum": [
+                      "INDIVIDUAL",
+                      "COMPANY"
+                    ]
+                  },
+                  "businessNameEn": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 160
+                  },
+                  "businessNameAr": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 160
+                  },
+                  "crNumber": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "pattern": "^\\d{10}$"
+                  },
+                  "vatNumber": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "pattern": "^3\\d{13}3$"
+                  },
+                  "isVatRegistered": {
+                    "type": "boolean"
+                  },
+                  "nationalId": {
+                    "type": "string",
+                    "pattern": "^[12]\\d{9}$"
+                  },
+                  "privacySettings": {
+                    "type": "object",
+                    "properties": {
+                      "showBusinessName": {
+                        "type": "boolean",
+                        "default": true
+                      },
+                      "showRating": {
+                        "type": "boolean",
+                        "default": true
+                      },
+                      "showFleetSize": {
+                        "type": "boolean",
+                        "default": false
+                      },
+                      "showCity": {
+                        "type": "boolean",
+                        "default": true
+                      },
+                      "showContactPhone": {
+                        "type": "boolean",
+                        "default": false
+                      }
+                    },
+                    "additionalProperties": false
+                  },
+                  "transportTypes": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "enum": [
+                        "PASSENGER",
+                        "GOODS"
+                      ]
+                    },
+                    "minItems": 1,
+                    "maxItems": 2
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OwnerEnvelope"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "OWNER_NOT_APPROVED (suspended)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {},
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/owners/{id}/submit-for-review": {
+      "post": {
+        "tags": [
+          "owners"
+        ],
+        "summary": "DRAFT / REJECTED → UNDER_REVIEW once mandatory documents are verified",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OwnerEnvelope"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "OWNER_DOCUMENTS_INCOMPLETE (details.missing) / OWNER_NOT_APPROVED",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {},
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/owners/{id}/approve": {
+      "post": {
+        "tags": [
+          "owners"
+        ],
+        "summary": "→ APPROVED, verticals approved (owners.approve)",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "notes": {
+                    "type": "string",
+                    "maxLength": 1000
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OwnerEnvelope"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "OWNER_NOT_APPROVED — not under review",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {},
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/owners/{id}/reject": {
+      "post": {
+        "tags": [
+          "owners"
+        ],
+        "summary": "→ REJECTED with a reason (owners.approve)",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "rejectionReason": {
+                    "type": "string",
+                    "maxLength": 1000
+                  }
+                },
+                "required": [
+                  "rejectionReason"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OwnerEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/owners/{id}/suspend": {
+      "post": {
+        "tags": [
+          "owners"
+        ],
+        "summary": "→ SUSPENDED; vehicles become non-dispatchable, live bookings untouched (owners.suspend)",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "reason": {
+                    "type": "string",
+                    "maxLength": 1000
+                  }
+                },
+                "required": [
+                  "reason"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OwnerEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/owners/{id}/service-areas": {
+      "put": {
+        "tags": [
+          "owners"
+        ],
+        "summary": "Replace the served cities",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "cityIds": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "minItems": 1,
+                    "maxItems": 50
+                  }
+                },
+                "required": [
+                  "cityIds"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OwnerEnvelope"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "VALIDATION_FAILED — unknown cities",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {},
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/owners/{id}/bank-accounts": {
+      "get": {
+        "tags": [
+          "owners"
+        ],
+        "summary": "Payout accounts — ibanLast4 only",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OwnerBankAccountListEnvelope"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "owners"
+        ],
+        "summary": "Add a payout account — step-up BANK_ACCOUNT required; activation after the cool-off setting",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "x-step-up-token",
+            "in": "header"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "accountHolderName": {
+                    "type": "string",
+                    "maxLength": 160
+                  },
+                  "bankName": {
+                    "type": "string",
+                    "maxLength": 120
+                  },
+                  "iban": {
+                    "type": "string",
+                    "pattern": "^SA\\d{2}[0-9A-Z]{20}$"
+                  },
+                  "makeDefault": {
+                    "type": "boolean",
+                    "default": false
+                  }
+                },
+                "required": [
+                  "accountHolderName",
+                  "bankName",
+                  "iban"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OwnerBankAccountEnvelope"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "PERM_DENIED with details.stepUpRequired",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {},
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "CONFLICT — IBAN already on the profile",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {},
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/drivers": {
+      "get": {
+        "tags": [
+          "drivers"
+        ],
+        "summary": "Own drivers (owner) / self (driver) / all with drivers.read_any",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "default": 1
+            },
+            "required": false,
+            "name": "page",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 20
+            },
+            "required": false,
+            "name": "pageSize",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "DRAFT",
+                "DOCUMENTS_SUBMITTED",
+                "UNDER_REVIEW",
+                "APPROVED",
+                "REJECTED",
+                "SUSPENDED"
+              ]
+            },
+            "required": false,
+            "name": "approvalStatus",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "OFF_DUTY",
+                "AVAILABLE",
+                "ON_TRIP"
+              ]
+            },
+            "required": false,
+            "name": "availabilityStatus",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": false,
+            "name": "ownerProfileId",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 365
+            },
+            "required": false,
+            "name": "licenseExpiringWithinDays",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "maxLength": 120
+            },
+            "required": false,
+            "name": "q",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK — paginated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DriverListEnvelope"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "drivers"
+        ],
+        "summary": "Create a driver under the acting owner: phone-only user + profile (drivers.create)",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "fullNameEn": {
+                    "type": "string",
+                    "maxLength": 160
+                  },
+                  "fullNameAr": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 160
+                  },
+                  "phoneE164": {
+                    "type": "string",
+                    "pattern": "^\\+[1-9]\\d{7,14}$"
+                  },
+                  "preferredLocale": {
+                    "type": "string",
+                    "enum": [
+                      "ar",
+                      "en"
+                    ],
+                    "default": "ar"
+                  },
+                  "idType": {
+                    "type": "string",
+                    "enum": [
+                      "NATIONAL_ID",
+                      "IQAMA"
+                    ]
+                  },
+                  "nationalId": {
+                    "type": "string",
+                    "pattern": "^[12]\\d{9}$"
+                  },
+                  "dateOfBirth": {
+                    "type": "string",
+                    "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                  },
+                  "licenseNumber": {
+                    "type": "string",
+                    "pattern": "^[0-9A-Z]{5,20}$"
+                  },
+                  "licenseExpiryDate": {
+                    "type": "string",
+                    "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                  },
+                  "licenseCategories": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "pattern": "^[A-Z0-9_]{1,16}$"
+                    },
+                    "minItems": 1,
+                    "maxItems": 10
+                  },
+                  "transportTypes": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "enum": [
+                        "PASSENGER",
+                        "GOODS"
+                      ]
+                    },
+                    "minItems": 1,
+                    "maxItems": 2,
+                    "default": [
+                      "PASSENGER"
+                    ]
+                  },
+                  "emergencyContactName": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 160
+                  },
+                  "emergencyContactPhone": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "pattern": "^\\+[1-9]\\d{7,14}$"
+                  },
+                  "ownerProfileId": {
+                    "type": "string",
+                    "format": "uuid"
+                  }
+                },
+                "required": [
+                  "fullNameEn",
+                  "phoneE164",
+                  "idType",
+                  "nationalId",
+                  "licenseNumber",
+                  "licenseExpiryDate",
+                  "licenseCategories"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DriverEnvelope"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "AUTH_IDENTIFIER_TAKEN",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {},
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "DRIVER_LICENSE_EXPIRED / OWNER_NOT_APPROVED",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {},
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/drivers/{id}": {
+      "get": {
+        "tags": [
+          "drivers"
+        ],
+        "summary": "Driver profile — last-4 identifiers only",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DriverEnvelope"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "NOT_FOUND",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {},
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "drivers"
+        ],
+        "summary": "Licence, categories, emergency contact (drivers.update)",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "idType": {
+                    "type": "string",
+                    "enum": [
+                      "NATIONAL_ID",
+                      "IQAMA"
+                    ]
+                  },
+                  "nationalId": {
+                    "type": "string",
+                    "pattern": "^[12]\\d{9}$"
+                  },
+                  "dateOfBirth": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                  },
+                  "licenseNumber": {
+                    "type": "string",
+                    "pattern": "^[0-9A-Z]{5,20}$"
+                  },
+                  "licenseExpiryDate": {
+                    "type": "string",
+                    "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                  },
+                  "licenseCategories": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "pattern": "^[A-Z0-9_]{1,16}$"
+                    },
+                    "minItems": 1,
+                    "maxItems": 10
+                  },
+                  "transportTypes": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "enum": [
+                        "PASSENGER",
+                        "GOODS"
+                      ]
+                    },
+                    "minItems": 1,
+                    "maxItems": 2
+                  },
+                  "emergencyContactName": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 160
+                  },
+                  "emergencyContactPhone": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "pattern": "^\\+[1-9]\\d{7,14}$"
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DriverEnvelope"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "drivers"
+        ],
+        "summary": "Deactivate (blocked on an active trip); sessions revoked",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Deactivated"
+          },
+          "409": {
+            "description": "DRIVER_ALREADY_ON_TRIP",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {},
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/drivers/{id}/approve": {
+      "post": {
+        "tags": [
+          "drivers"
+        ],
+        "summary": "Approve after verified mandatory documents and an unexpired licence (drivers.approve)",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "notes": {
+                    "type": "string",
+                    "maxLength": 1000
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DriverEnvelope"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "CONFLICT — already approved",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {},
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "OWNER_DOCUMENTS_INCOMPLETE (details.missing) / DRIVER_LICENSE_EXPIRED",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {},
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/drivers/{id}/reject": {
+      "post": {
+        "tags": [
+          "drivers"
+        ],
+        "summary": "Reject with a reason (drivers.approve)",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "rejectionReason": {
+                    "type": "string",
+                    "maxLength": 1000
+                  }
+                },
+                "required": [
+                  "rejectionReason"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DriverEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/drivers/{id}/availability": {
+      "post": {
+        "tags": [
+          "drivers"
+        ],
+        "summary": "OFF_DUTY | AVAILABLE (self → own); ON_TRIP is system-set",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "availabilityStatus": {
+                    "type": "string",
+                    "enum": [
+                      "OFF_DUTY",
+                      "AVAILABLE"
+                    ]
+                  }
+                },
+                "required": [
+                  "availabilityStatus"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DriverEnvelope"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "DRIVER_ALREADY_ON_TRIP",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {},
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "DRIVER_NOT_APPROVED / DRIVER_LICENSE_EXPIRED",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {},
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/drivers/{id}/assignments": {
+      "get": {
+        "tags": [
+          "drivers"
+        ],
+        "summary": "Vehicle assignment history, newest first",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DriverAssignmentListEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/spo/profiles": {
+      "get": {
+        "tags": [
+          "spo"
+        ],
+        "summary": "List SPOs (spo.read)",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "default": 1
+            },
+            "required": false,
+            "name": "page",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 20
+            },
+            "required": false,
+            "name": "pageSize",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": false,
+            "name": "regionId",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "true",
+                "false"
+              ]
+            },
+            "required": false,
+            "name": "isActive",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "maxLength": 120
+            },
+            "required": false,
+            "name": "q",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK — paginated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SpoProfileListEnvelope"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "spo"
+        ],
+        "summary": "Create an SPO profile on an existing user (spo.create)",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "userId": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "employeeCode": {
+                    "type": "string",
+                    "pattern": "^[A-Z0-9-]{2,32}$"
+                  },
+                  "regionId": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "managerUserId": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "commissionModelId": {
+                    "type": "string",
+                    "format": "uuid"
+                  }
+                },
+                "required": [
+                  "userId",
+                  "employeeCode"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SpoProfileEnvelope"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "CONFLICT",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {},
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/spo/profiles/{id}": {
+      "get": {
+        "tags": [
+          "spo"
+        ],
+        "summary": "One SPO",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SpoProfileEnvelope"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "NOT_FOUND",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {},
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "spo"
+        ],
+        "summary": "Update an SPO (spo.update)",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "employeeCode": {
+                    "type": "string",
+                    "pattern": "^[A-Z0-9-]{2,32}$"
+                  },
+                  "regionId": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "format": "uuid"
+                  },
+                  "managerUserId": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "format": "uuid"
+                  },
+                  "commissionModelId": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "format": "uuid"
+                  },
+                  "isActive": {
+                    "type": "boolean"
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SpoProfileEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/spo/profiles/{id}/customers": {
+      "get": {
+        "tags": [
+          "spo"
+        ],
+        "summary": "Active customer assignments (own → global)",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SpoCustomerAssignmentListEnvelope"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "spo"
+        ],
+        "summary": "Assign a customer (spo.update); closes any other live assignment",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "customerProfileId": {
+                    "type": "string",
+                    "format": "uuid"
+                  }
+                },
+                "required": [
+                  "customerProfileId"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SpoCustomerAssignmentEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/spo/profiles/{id}/customers/{customerProfileId}": {
+      "delete": {
+        "tags": [
+          "spo"
+        ],
+        "summary": "Unassign (spo.update)",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "name": "customerProfileId",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Unassigned"
+          },
+          "404": {
+            "description": "NOT_FOUND",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {},
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/spo/leads": {
+      "get": {
+        "tags": [
+          "spo"
+        ],
+        "summary": "Lead pipeline (spo.leads.manage; own → global)",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "default": 1
+            },
+            "required": false,
+            "name": "page",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 20
+            },
+            "required": false,
+            "name": "pageSize",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "NEW",
+                "CONTACTED",
+                "QUALIFIED",
+                "CONVERTED",
+                "LOST"
+              ]
+            },
+            "required": false,
+            "name": "status",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": false,
+            "name": "spoProfileId",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "maxLength": 120
+            },
+            "required": false,
+            "name": "q",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK — paginated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SpoLeadListEnvelope"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "spo"
+        ],
+        "summary": "Create a lead",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "contactName": {
+                    "type": "string",
+                    "maxLength": 160
+                  },
+                  "contactPhone": {
+                    "type": "string",
+                    "pattern": "^\\+[1-9]\\d{7,14}$"
+                  },
+                  "companyName": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 160
+                  },
+                  "notes": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 2000
+                  },
+                  "spoProfileId": {
+                    "type": "string",
+                    "format": "uuid"
+                  }
+                },
+                "required": [
+                  "contactName",
+                  "contactPhone"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SpoLeadEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/spo/leads/{id}": {
+      "patch": {
+        "tags": [
+          "spo"
+        ],
+        "summary": "Update a lead (CONVERTED is read-only)",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "contactName": {
+                    "type": "string",
+                    "maxLength": 160
+                  },
+                  "contactPhone": {
+                    "type": "string",
+                    "pattern": "^\\+[1-9]\\d{7,14}$"
+                  },
+                  "companyName": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 160
+                  },
+                  "status": {
+                    "type": "string",
+                    "enum": [
+                      "NEW",
+                      "CONTACTED",
+                      "QUALIFIED",
+                      "LOST"
+                    ]
+                  },
+                  "notes": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 2000
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SpoLeadEnvelope"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "CONFLICT",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {},
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/spo/leads/{id}/convert": {
+      "post": {
+        "tags": [
+          "spo"
+        ],
+        "summary": "QUALIFIED → CONVERTED: creates the customer with the attribution chain",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "customerType": {
+                    "type": "string",
+                    "enum": [
+                      "INDIVIDUAL",
+                      "CORPORATE"
+                    ]
+                  },
+                  "fullNameEn": {
+                    "type": "string",
+                    "maxLength": 160
+                  },
+                  "fullNameAr": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 160
+                  },
+                  "email": {
+                    "type": "string",
+                    "maxLength": 254,
+                    "format": "email"
+                  },
+                  "preferredLocale": {
+                    "type": "string",
+                    "enum": [
+                      "ar",
+                      "en"
+                    ],
+                    "default": "ar"
+                  }
+                },
+                "required": [
+                  "customerType",
+                  "fullNameEn"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SpoLeadConvertedEnvelope"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "AUTH_IDENTIFIER_TAKEN",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {},
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "VALIDATION_FAILED — not QUALIFIED",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {},
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/spo/commissions": {
+      "get": {
+        "tags": [
+          "spo"
+        ],
+        "summary": "Attributed commission lines from booking_financial_snapshots (spo.commissions.read; own → global)",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "default": 1
+            },
+            "required": false,
+            "name": "page",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 20
+            },
+            "required": false,
+            "name": "pageSize",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": false,
+            "name": "spoProfileId",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+            },
+            "required": false,
+            "name": "dateFrom",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+            },
+            "required": false,
+            "name": "dateTo",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK — paginated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SpoCommissionListEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/me/saved-locations": {
+      "get": {
+        "tags": [
+          "me"
+        ],
+        "summary": "Customer address book",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SavedLocationListEnvelope"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "me"
+        ],
+        "summary": "Add a saved location (customer profile required)",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "label": {
+                    "type": "string",
+                    "maxLength": 80
+                  },
+                  "addressLine": {
+                    "type": "string",
+                    "maxLength": 500
+                  },
+                  "cityId": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "latitude": {
+                    "type": "number",
+                    "minimum": -90,
+                    "maximum": 90
+                  },
+                  "longitude": {
+                    "type": "number",
+                    "minimum": -180,
+                    "maximum": 180
+                  },
+                  "placeId": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 255
+                  }
+                },
+                "required": [
+                  "label",
+                  "addressLine",
+                  "cityId",
+                  "latitude",
+                  "longitude"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SavedLocationEnvelope"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "VALIDATION_FAILED",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {},
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/me/saved-locations/{id}": {
+      "patch": {
+        "tags": [
+          "me"
+        ],
+        "summary": "Update a saved location",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "label": {
+                    "type": "string",
+                    "maxLength": 80
+                  },
+                  "addressLine": {
+                    "type": "string",
+                    "maxLength": 500
+                  },
+                  "cityId": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "latitude": {
+                    "type": "number",
+                    "minimum": -90,
+                    "maximum": 90
+                  },
+                  "longitude": {
+                    "type": "number",
+                    "minimum": -180,
+                    "maximum": 180
+                  },
+                  "placeId": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 255
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SavedLocationEnvelope"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "NOT_FOUND",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {},
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "me"
+        ],
+        "summary": "Remove a saved location",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Deleted"
+          },
+          "404": {
+            "description": "NOT_FOUND",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {},
+                  "$ref": "#/components/schemas/ErrorEnvelope"
                 }
               }
             }

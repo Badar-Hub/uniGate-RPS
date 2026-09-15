@@ -122,13 +122,18 @@ async function run(req: Request, optional: boolean): Promise<void> {
  * Layer 1 — permission (api.md §6.5). Asks only "may this actor do this kind of thing?".
  * Failure is 403 PERM_DENIED. Scope (which rows) is the repository's job.
  */
+/** `x.read_any` is the scope-lifting form of `x.read` (api.md §6.5): holding it satisfies the base code. */
+export function holdsPermission(permissions: ReadonlySet<string>, code: string): boolean {
+  return permissions.has(code) || permissions.has(`${code}_any`);
+}
+
 export function requirePermission(...codes: string[]): RequestHandler {
   return (req: Request, _res: Response, next: NextFunction) => {
     if (!isAuthenticated(req)) {
       next(new UnauthorizedError('AUTH_TOKEN_MISSING', 'Authentication required'));
       return;
     }
-    const missing = codes.filter((c) => !req.actor.permissions.has(c));
+    const missing = codes.filter((c) => !holdsPermission(req.actor.permissions, c));
     if (missing.length) {
       next(new ForbiddenError('PERM_DENIED', 'Permission denied', { required: codes }));
       return;
@@ -149,4 +154,25 @@ export function scopeFor(req: Request, globalPermission?: string, fallback: Excl
 
 export function selfScope(req: Request): ActorScope {
   return scopeFor(req, undefined, 'SELF');
+}
+
+/**
+ * Layer 1 for "own → global" rows (api.md §6.5): the staff code opens the GLOBAL scope, while
+ * an actor who merely holds the named profile passes with OWN/SELF scope applied by the
+ * repository. Neither → 403 PERM_DENIED. Roles are never compared here.
+ */
+export function requirePermissionOrProfile(code: string, profile: 'customer' | 'owner' | 'driver' | 'spo'): RequestHandler {
+  return (req: Request, _res: Response, next: NextFunction) => {
+    if (!isAuthenticated(req)) {
+      next(new UnauthorizedError('AUTH_TOKEN_MISSING', 'Authentication required'));
+      return;
+    }
+    const a = req.actor;
+    const hasProfile = profile === 'customer' ? a.customerProfileId : profile === 'owner' ? a.ownerProfileId : profile === 'driver' ? a.driverProfileId : a.spoProfileId;
+    if (holdsPermission(a.permissions, code) || hasProfile) {
+      next();
+      return;
+    }
+    next(new ForbiddenError('PERM_DENIED', 'Permission denied', { required: [code] }));
+  };
 }

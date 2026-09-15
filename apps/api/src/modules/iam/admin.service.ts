@@ -183,3 +183,8 @@ export async function createInitialAdmin(email: string, password: string): Promi
   });
   return id;
 }
+
+/** Cross-module session revocation (e.g. a driver deactivated by their owner). Repositories stay module-private. */
+export async function revokeSessionsOf(scope: AnyScope, userId: string, reason: string): Promise<number> {
+  return sessions.revokeAllSessions(scope, userId, reason);
+}
