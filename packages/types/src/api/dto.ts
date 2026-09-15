@@ -802,6 +802,12 @@ export interface BookingDto extends TimestampedDto {
   paymentDueBy: string | null;
   nonCircumventionUntil: string | null;
   confirmedAt: string | null;
+  cancelledAt: string | null;
+  completedAt: string | null;
+  /** Name of the assigned driver, once dispatch has happened. */
+  driverName: string | null;
+  trip: { id: string; tripNumber: string; status: string } | null;
+  cancellation: BookingCancellationDto | null;
   /** Present for the owner and staff; the customer never sees the split (api.md §8.14). */
   financial: {
     grossAmount: MoneyString;
@@ -823,4 +829,70 @@ export interface AcceptBidResultDto {
 export interface AwardResultDto {
   bookings: BookingDto[];
   tripRequest: TripRequestDto;
+}
+
+// ── bookings (Phase 8) ────────────────────────────────────────────────────────
+
+export interface BookingCancellationDto {
+  cancelledByRole: string;
+  eventType: string;
+  reasonCode: string;
+  reasonText: string | null;
+  hoursBeforePickup: string;
+  feePayer: string;
+  cancellationFeeAmount: MoneyString;
+  refundAmount: MoneyString;
+  currency: string;
+  feeSource: string;
+  feeRuleSnapshot: Record<string, unknown>;
+  feeWaivedAt: string | null;
+  feeWaivedReason: string | null;
+  cancelledAt: string;
+}
+
+/** Dry run of the fee under the currently effective policy (api.md §8.14 `cancellation-quote`). */
+export interface CancellationQuoteDto {
+  bookingId: string;
+  cancelledByRole: string;
+  hoursBeforePickup: string;
+  feeAmount: MoneyString;
+  refundAmount: MoneyString;
+  currency: string;
+  feeSource: string;
+  feeRuleSnapshot: Record<string, unknown>;
+  /** The no-cancel window applies: POST …/cancel would answer BOOKING_CANCELLATION_WINDOW_PASSED. */
+  windowPassed: boolean;
+  allowedReasonCodes: string[];
+}
+
+export interface CancelBookingResultDto {
+  booking: BookingDto;
+  cancellation: BookingCancellationDto;
+  /** A refund row is created only against a captured payment (Phase 9); null when nothing was paid. */
+  refund: { id: string; refundNumber: string; status: string; amount: MoneyString; currency: string } | null;
+  calendarEntryReleased: boolean;
+}
+
+export interface BookingStatusHistoryDto {
+  id: string;
+  fromStatus: string | null;
+  toStatus: string;
+  actorType: string;
+  changedByUserId: string | null;
+  reason: string | null;
+  metadata: Record<string, unknown>;
+  occurredAt: string;
+}
+
+/** `GET /bookings/{id}/financials`, projected by role: the customer sees the price, the owner their net, finance everything. */
+export interface BookingFinancialsDto {
+  bookingId: string;
+  grossAmount: MoneyString;
+  vatRate: RateString;
+  vatAmount: MoneyString;
+  netOfVatAmount: MoneyString;
+  currency: string;
+  computedAt: string;
+  owner: { commissionAmount: MoneyString; commissionVatAmount: MoneyString; paymentFeeAmount: MoneyString; ownerGrossAmount: MoneyString; ownerNetAmount: MoneyString; vatTreatment: string } | null;
+  finance: { commissionSource: string; commissionBasis: string | null; commissionRate: RateString | null; commissionRuleId: string | null; commissionRuleSnapshot: Record<string, unknown>; commissionOverrideSnapshot: Record<string, unknown> | null; spoCommissionAmount: MoneyString; ownerVatRegisteredSnapshot: boolean; calculationVersion: number } | null;
 }

@@ -10,6 +10,7 @@ import { ensureNextMonthPartitions, purgeExpired } from '@/jobs/maintenance.js';
 import { markExpiredDocuments, sweepPendingUploads } from '@/modules/documents/documents.service.js';
 import { expireStaleRequests } from '@/modules/demand/trip-request.service.js';
 import { expireStaleBids } from '@/modules/bidding/bid.service.js';
+import { expireUnpaidBookings } from '@/modules/bookings/booking.service.js';
 
 /**
  * Worker entrypoint — same image as the API, different process. Runs the outbox relay, the
@@ -66,9 +67,13 @@ async function main(): Promise<void> {
       })
       .then((n) => {
         if (n) log.info({ expired: n }, 'bids expired');
+        return expireUnpaidBookings();
+      })
+      .then((n) => {
+        if (n) log.info({ cancelled: n }, 'unpaid bookings expired');
       })
       .catch((err: unknown) => {
-        log.error({ err }, 'demand/bidding expiry failed');
+        log.error({ err }, 'demand/bidding/bookings expiry failed');
       });
   };
   runMaintenance();

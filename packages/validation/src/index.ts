@@ -8,3 +8,4 @@ export * from './fleet.js';
 export * from './reference.js';
 export * from './demand.js';
 export * from './bidding.js';
+export * from './bookings.js';

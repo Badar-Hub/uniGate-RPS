@@ -45,7 +45,7 @@
       "OWNER_NOT_APPROVED": "ملف المالك غير معتمد.",
       "DRIVER_NOT_APPROVED": "السائق المرشح غير معتمد.",
       "DRIVER_LICENSE_EXPIRED": "انتهت رخصة السائق المرشح.",
-      "DRIVER_ALREADY_ON_TRIP": "السائق في رحلة حاليًا.",
+      "DRIVER_ALREADY_ON_TRIP": "السائق مسند بالفعل على حجز متداخل.",
       "CONFLICT": "هذا موجود بالفعل أو لا يزال مستخدمًا.",
       "TRIP_REQUEST_DETAIL_MISMATCH": "تفاصيل الطلب لا تطابق نوع النقل.",
       "TRIP_REQUEST_INVALID_TRANSITION": "هذا الإجراء غير ممكن في حالة الطلب الحالية.",
@@ -67,7 +67,15 @@
       "RULE_CREDIT_LIMIT_EXCEEDED": "سيتجاوز هذا الحجز حدك الائتماني.",
       "RULE_CREDIT_NOT_APPROVED": "حسابك الائتماني غير معتمد للحجوزات الآجلة.",
       "VEHICLE_NOT_DISPATCHABLE": "لا يمكن تشغيل المركبة حالياً.",
-      "COMMISSION_OVERRIDE_FORBIDDEN": "لا يمكنك تجاوز العمولة."
+      "COMMISSION_OVERRIDE_FORBIDDEN": "لا يمكنك تجاوز العمولة.",
+      "BOOKING_INVALID_TRANSITION": "هذا الإجراء غير متاح في حالة الحجز الحالية.",
+      "BOOKING_ALREADY_CANCELLED": "هذا الحجز ملغى بالفعل.",
+      "BOOKING_CANCELLATION_WINDOW_PASSED": "لم يعد بالإمكان إلغاء هذا الحجز عبر المنصة.",
+      "BOOKING_PAYMENT_REQUIRED": "يجب دفع الحجز أولاً.",
+      "CANCELLATION_FEE_OVERRIDE_FORBIDDEN": "لا يمكنك تجاوز رسوم الإلغاء.",
+      "CANCELLATION_FEE_LOCKED": "لم يعد بالإمكان تغيير الرسوم.",
+      "CANCELLATION_REASON_NOT_ALLOWED": "هذا السبب غير متاح لك.",
+      "DRIVER_NOT_ASSIGNED_TO_VEHICLE": "السائق غير مسند لهذه المركبة."
     }
   },
   "home": {
@@ -132,7 +140,8 @@
       "vehicleApprovals": "اعتماد المركبات",
       "requests": "طلباتي",
       "opportunities": "الفرص",
-      "bids": "عروضي"
+      "bids": "عروضي",
+      "bookings": "الحجوزات"
     },
     "welcome": "مرحبًا، {name}",
     "roles": "الأدوار",
@@ -435,6 +444,85 @@
         }
       },
       "statusLabel": "الحالة"
+    },
+    "bookings": {
+      "title": "الحجوزات",
+      "subtitle": "المركبات المؤكدة من طلباتك وعروضك.",
+      "empty": "لا حجوزات بعد.",
+      "number": "الحجز",
+      "request": "الطلب",
+      "vehicle": "المركبة",
+      "when": "الانطلاق",
+      "total": "الإجمالي",
+      "statusLabel": "الحالة",
+      "payment": "الدفع",
+      "wave": "الدفعة {n}",
+      "status": {
+        "PENDING_PAYMENT": "بانتظار الدفع",
+        "CONFIRMED": "مؤكد",
+        "DRIVER_ASSIGNED": "تم إسناد السائق",
+        "READY": "جاهز",
+        "IN_PROGRESS": "قيد التنفيذ",
+        "COMPLETED": "مكتمل",
+        "CANCELLED": "ملغى",
+        "DISPUTED": "متنازع عليه",
+        "REFUNDED": "مسترد"
+      },
+      "paymentStatus": {
+        "UNPAID": "غير مدفوع",
+        "INVOICED": "مفوتر",
+        "PARTIALLY_PAID": "مدفوع جزئياً",
+        "PAID": "مدفوع",
+        "REFUNDED": "مسترد",
+        "PARTIALLY_REFUNDED": "مسترد جزئياً"
+      },
+      "detail": {
+        "schedule": "الموعد",
+        "route": "المسار",
+        "owner": "المالك",
+        "driver": "السائق",
+        "noDriver": "لم يُسند بعد",
+        "trip": "الرحلة",
+        "paymentDue": "الدفع قبل",
+        "financial": "أرباحك",
+        "gross": "الإجمالي",
+        "commission": "عمولة المنصة",
+        "commissionVat": "ضريبة العمولة",
+        "net": "صافي أرباحك",
+        "history": "السجل",
+        "cancel": "إلغاء الحجز",
+        "cancelTitle": "إلغاء {number}",
+        "cancelDescription": "الرسوم أدناه هي ما تفرضه السياسة الحالية عند الإلغاء قبل {hours} ساعة.",
+        "fee": "رسوم الإلغاء",
+        "refund": "المبلغ المسترد",
+        "windowPassed": "لم يعد بالإمكان إلغاء هذا الحجز عبر المنصة — تواصل مع الدعم.",
+        "reason": "السبب",
+        "reasonText": "التفاصيل",
+        "confirmCancel": "تأكيد الإلغاء",
+        "cancelled": "تم إلغاء الحجز. الرسوم {fee} ر.س، المسترد {refund} ر.س.",
+        "assignDriver": "إسناد سائق",
+        "selectDriver": "السائق",
+        "noDrivers": "لا يوجد سائقون مسندون لهذه المركبة — أضف سائقاً من صفحة المركبة أولاً.",
+        "assigned": "تم إسناد السائق — أُنشئت الرحلة {number}.",
+        "ready": "تحديد كجاهز",
+        "readyDone": "تم تحديد الحجز كجاهز.",
+        "cancellation": "الإلغاء",
+        "cancelledBy": "ألغاه {role}",
+        "feeWaived": "أُعفيت الرسوم"
+      },
+      "reasons": {
+        "CUSTOMER_PLANS_CHANGED": "تغيرت الخطط",
+        "CUSTOMER_FOUND_ALTERNATIVE": "وجدت بديلاً",
+        "PRICE": "السعر",
+        "OWNER_UNAVAILABLE": "المالك غير متاح",
+        "VEHICLE_BREAKDOWN": "عطل في المركبة",
+        "DRIVER_UNAVAILABLE": "السائق غير متاح",
+        "WEATHER": "الطقس",
+        "ADMIN_INTERVENTION": "تدخل إداري",
+        "PAYMENT_FAILED": "فشل الدفع",
+        "PAYMENT_WINDOW_EXPIRED": "انتهت مهلة الدفع",
+        "OTHER": "أخرى"
+      }
     }
   }
 }

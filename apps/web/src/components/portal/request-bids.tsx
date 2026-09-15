@@ -11,6 +11,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Link } from '@/lib/i18n/routing';
 import { BID_TONE } from './bids-list';
 
 /**
@@ -158,7 +159,11 @@ export function RequestBids({ request, canAccept, onChanged }: { request: TripRe
                             </Button>
                           </div>
                         )}
-                        {b.status === 'ACCEPTED' && <span className="text-xs text-muted-foreground">{t('booked')}</span>}
+                        {b.status === 'ACCEPTED' && b.bookingId && (
+                          <Link href={`/bookings/${b.bookingId}`} className="text-xs text-primary underline-offset-4 hover:underline">
+                            {t('booked')}
+                          </Link>
+                        )}
                       </TableCell>
                     </TableRow>
                   );

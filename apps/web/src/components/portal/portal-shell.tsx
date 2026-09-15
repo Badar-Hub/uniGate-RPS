@@ -2,7 +2,7 @@
 
 import { useEffect, type ReactNode } from 'react';
 import { useTranslations } from 'next-intl';
-import { CarFront, ClipboardList, FileCheck2, FileText, Gavel, LayoutDashboard, Loader2, LogOut, Sparkles, Truck, UserCircle2, Users } from 'lucide-react';
+import { CalendarCheck2, CarFront, ClipboardList, FileCheck2, FileText, Gavel, LayoutDashboard, Loader2, LogOut, Sparkles, Truck, UserCircle2, Users } from 'lucide-react';
 import { useSession } from '@/lib/auth/session-provider';
 import { Link, usePathname, useRouter } from '@/lib/i18n/routing';
 import { cn } from '@/lib/utils';
@@ -42,6 +42,7 @@ export function PortalShell({ children }: { children: ReactNode }) {
     { href: '/requests', label: t('requests'), icon: ClipboardList, show: Boolean(me.profiles.customer) || can('trip_requests.read_any') },
     { href: '/opportunities', label: t('opportunities'), icon: Sparkles, show: Boolean(me.profiles.owner) },
     { href: '/bids', label: t('bids'), icon: Gavel, show: Boolean(me.profiles.owner) || can('bids.read_any') },
+    { href: '/bookings', label: t('bookings'), icon: CalendarCheck2, show: can('bookings.read') },
     { href: '/fleet', label: t('fleet'), icon: CarFront, show: Boolean(me.profiles.owner) || can('vehicles.read_any') },
     { href: '/admin/owners', label: t('adminReview'), icon: FileCheck2, show: can('owners.approve') },
     { href: '/admin/vehicles', label: t('vehicleApprovals'), icon: Truck, show: can('vehicles.approve') },

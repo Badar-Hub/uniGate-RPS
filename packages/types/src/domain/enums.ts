@@ -603,3 +603,24 @@ export const PG_ENUMS = {
 } as const satisfies Record<string, readonly string[]>;
 
 export type PgEnumName = keyof typeof PG_ENUMS;
+
+/** Cancellation reason codes (api.md §6.4 `POST /bookings/{id}/cancel`); which are permitted depends on the canceller's role. */
+export const CANCELLATION_REASON_CODE = enumOf([
+  'CUSTOMER_PLANS_CHANGED',
+  'CUSTOMER_FOUND_ALTERNATIVE',
+  'PRICE',
+  'OWNER_UNAVAILABLE',
+  'VEHICLE_BREAKDOWN',
+  'DRIVER_UNAVAILABLE',
+  'WEATHER',
+  'ADMIN_INTERVENTION',
+  'PAYMENT_FAILED',
+  'PAYMENT_WINDOW_EXPIRED',
+  'OTHER',
+]);
+export type CancellationReasonCode = (typeof CANCELLATION_REASON_CODE)[number];
+export const CANCELLATION_REASONS_BY_ROLE: Readonly<Record<'CUSTOMER' | 'OWNER' | 'ADMIN', readonly CancellationReasonCode[]>> = {
+  CUSTOMER: ['CUSTOMER_PLANS_CHANGED', 'CUSTOMER_FOUND_ALTERNATIVE', 'PRICE', 'OTHER'],
+  OWNER: ['OWNER_UNAVAILABLE', 'VEHICLE_BREAKDOWN', 'DRIVER_UNAVAILABLE', 'WEATHER', 'OTHER'],
+  ADMIN: ['CUSTOMER_PLANS_CHANGED', 'CUSTOMER_FOUND_ALTERNATIVE', 'PRICE', 'OWNER_UNAVAILABLE', 'VEHICLE_BREAKDOWN', 'DRIVER_UNAVAILABLE', 'WEATHER', 'ADMIN_INTERVENTION', 'PAYMENT_FAILED', 'OTHER'],
+};

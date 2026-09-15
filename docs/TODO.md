@@ -78,15 +78,25 @@ All items delivered; residuals moved to Phase 3 below.
 - [x] Authorization matrix extended
 - [ ] `PATCH /trip-requests/{id}/commission-override` (admin; `COMMISSION_OVERRIDE_AFTER_BIDS`) — Phase 13 admin tooling; the award already honours the columns
 
-## Immediate — Phase 8 (Bookings)
+## Phase 8 — Bookings — COMPLETE 2026-09-15
 
-- [ ] `GET /bookings`, `GET /bookings/{id}` with the customer / owner / driver projections; filters incl. `tripRequestId` (dispatch waves)
-- [ ] Cancellation: `POST /bookings/{id}/cancel` with cancellation policies (NONE seeded), fee computation, reservation `RELEASED`, `vehicles_awarded--` and `FULLY_AWARDED → PARTIALLY_AWARDED` reopening the request (A-45), `vehicles_cancelled++`
-- [ ] Driver assignment on the booking (`bookings.assign_driver`), `READY` check, ops `POST /bookings/{id}/confirm`
-- [ ] Payment-window sweeper: `PENDING_PAYMENT` past `payment_due_by` → `CANCELLED` + reservation released (never INVOICED)
-- [ ] `operational_status` transitions (RESERVED) and the customer's PARTY scope on a booked vehicle
-- [ ] Web: customer and owner bookings list/detail; driver assignment
-- [ ] Extend the authorization matrix with the bookings surface
+- [x] Reads with per-party projections, filters, status history, financials by role
+- [x] Cancellation: quote = cancel, policy tiers + no-cancel window, role-gated reasons, admin override / waive, reservation RELEASED, order reopened (A-45)
+- [x] Ops confirm, assign-driver (→ trip row), ready; transition map enforced everywhere
+- [x] Payment-window sweeper
+- [x] Web: bookings list/detail, cancel dialog with quote, driver assignment
+- [x] Authorization matrix extended
+- [ ] `operational_status` (RESERVED/ON_TRIP) and the customer's PARTY scope on a booked vehicle — **Phase 10** (only meaningful once trips run)
+- [ ] `POST /bookings` (phone order), `PATCH /bookings/{id}`, dispute, no-show — Phases 10/13
+
+## Immediate — Phase 9 (Payments)
+
+- [ ] **Decide the gateway (OQ-03, M-PAY)** — the adapter is ~1–2 weeks once chosen; everything below runs against `MockGateway` until then
+- [ ] `PaymentGateway` port + `MockGateway`; `GET /payments/config`; `POST /payments` (booking **or** invoice, server-computed amount, `PAYMENT_AMOUNT_MISMATCH`), `GET /payments/{id}`, `POST /payments/{id}/sync`
+- [ ] Webhook pipeline: signature verification, `payment_webhook_events` idempotent by construction, capture → booking `PAID` + `PENDING_PAYMENT → CONFIRMED`, ledger postings (CASH_GATEWAY / CUSTOMER_RECEIVABLE / TRANSPORT_REVENUE / VAT_PAYABLE) — **never trust payment success reported by the frontend**
+- [ ] Refunds: `POST /refunds` (Σ ≤ captured under `FOR UPDATE`), the cancellation's `refundAmount` → `REQUESTED` refund row, approval flow, `CANCELLED → REFUNDED`
+- [ ] Web: pay-now flow on a PENDING_PAYMENT booking (mock redirect / return page), payment status
+- [ ] Extend the authorization matrix with the payments surface
 
 ## Deferred design work
 

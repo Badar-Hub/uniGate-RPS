@@ -1,7 +1,7 @@
 # UniGate — Implementation Status
 
 **Last updated:** 2026-09-15
-**Current phase:** **Phase 7 complete** (2026-09-15) → Phase 8 (Bookings) ready to start
+**Current phase:** **Phase 8 complete** (2026-09-15) → Phase 9 (Payments) ready to start — **gateway choice (OQ-03) is due now (M-PAY)**
 **Overall:** Foundation built and verified end to end: monorepo, typed packages, API core, full Prisma schema (82 tables) with hand-written constraints, seeds, migration-integrity test, web scaffold (shadcn/ui, ar/en RTL), CI. `pnpm ci` is green (20/20 tasks). See [development.md](development.md).
 
 > **Schema-blocking questions resolved 2026-09-14.**
@@ -30,7 +30,7 @@ Status values: `NOT_STARTED` · `IN_PROGRESS` · `BLOCKED` · `COMPLETE`
 | 5 | Vehicle management | **COMPLETE** 2026-09-15 | See *Phase 5 exit* below. VerticalPlugin seam introduced (ADR-010); calendar EXCLUDE guarantee proven under concurrency |
 | 6 | Trip requests | **COMPLETE** 2026-09-15 | See *Phase 6 exit* below. Core `demand` + passenger plugin; goods requests answer `501 VERTICAL_NOT_ENABLED` ([ADR-010](decisions/ADR-010-vertical-modules-over-a-shared-core.md)) |
 | 7 | Bidding | **COMPLETE** 2026-09-15 | See *Phase 7 exit* below. Acceptance transaction under the global lock order; **N-way concurrent acceptance test green** |
-| 8 | Bookings | `NOT_STARTED` | ~~Cancellation fee tiers pending OQ-05~~ answered 2026-09-15 (admin-configured policies + per-case override/waiver); no open blocker |
+| 8 | Bookings | **COMPLETE** 2026-09-15 | See *Phase 8 exit* below. ~~Cancellation fee tiers pending OQ-05~~ answered 2026-09-15 — admin-configured policies + per-case override/waiver, both implemented |
 | 9 | Payments | `NOT_STARTED` | Production gateway **BLOCKED** on OQ-03 — decision due at start of Phase 8 (**M-PAY**); MockGateway path is unblocked |
 | 10 | Trip execution & tracking | `NOT_STARTED` | ~~Hardware GPS pending OQ-11~~ none fitted — driver-app GPS at launch |
 | 11 | Finance | `NOT_STARTED` | ~~Commission rate OQ-01~~ answered 2026-09-15 (admin-configured + per-trip override); settlement cycle OQ-06, self-billing OQ-25/OQ-30, SPO OQ-09 |
@@ -169,6 +169,24 @@ Verified on 2026-09-15 with `pnpm turbo run typecheck lint test build --force` (
 
 ---
 
+## Phase 8 exit — what was verified
+
+Verified on 2026-09-15 with `pnpm turbo run typecheck lint test build --force` (20/20 tasks), 102 tests (88 API: 12 migration-integrity, 10 auth lifecycle, 38 authorization matrix, 6 profiles & documents, 6 fleet, 3 demand, 3 bidding, 3 bookings, 7 unit; 14 package), plus a live browser session: the booking page with the owner's earnings split, the cancellation dialog showing the quote (0.00 fee under the seed policy, 46.61 h notice, customer-only reason codes), the cancellation itself, and the parent request reopened as *partially awarded / open* on the Arabic page.
+
+| Area | Delivered | Proof |
+|---|---|---|
+| Reads | `GET /bookings` (filters incl. `tripRequestId` for an order's waves, repeatable/comma `status`), `GET /bookings/{id}` projected per party (customer and driver never see the split; owner and staff do), `status-history`, `financials` by role (customer → price; owner → net; staff → rule snapshot) | bookings test "reads…" |
+| Cancellation | `cancellation-quote` and `POST …/cancel` **share one assessment function**; `cancellation_policies` resolved like commission (specificity → priority → effective date) with **tiers by notice** and `no_cancel_window_hours`; reason codes gated by the canceller's role (`CANCELLATION_REASON_NOT_ALLOWED`); admin `feeOverride` (`CANCELLATION_FEE_OVERRIDE_FORBIDDEN` otherwise) and `waiveFee`, plus `POST …/cancellation/waive-fee` afterwards (`CANCELLATION_FEE_LOCKED` once processed) — all audited NOTICE with the policy/override **snapshotted** onto `booking_cancellations`; reservation set `RELEASED` (kept for audit, out of the EXCLUDE constraint — the vehicle is immediately bookable again, proven); the order's `vehicles_awarded--`, `vehicles_cancelled++`, `FULLY_AWARDED → PARTIALLY_AWARDED` (A-45); `BOOKING_ALREADY_CANCELLED` on repeat | bookings test "cancellation…" (≥72 h free, 30 h → 10 % = 115.00, inside 2 h refused, admin FIXED 50.00 override) |
+| Transition map | Every move asserted against `BOOKING_TRANSITIONS[billingMode]` and written to `booking_status_history` (`details.allowed` on refusal) | bookings test "dispatch…" |
+| Dispatch | Ops `confirm` (PENDING_PAYMENT → CONFIRMED, window cleared); `assign-driver` requires approved + licensed + **assigned to the vehicle** (`DRIVER_NOT_ASSIGNED_TO_VEHICLE`) + free for the window (`DRIVER_ALREADY_ON_TRIP`), creates the `trips` row with the driver snapshotted (`TP-YYYY-NNNNNN`); the driver becomes a PARTY and can read the booking; `ready` by owner or ops | same test |
+| Sweeper | `expireUnpaidBookings`: PENDING_PAYMENT past `payment_due_by` → CANCELLED by SYSTEM (`PAYMENT_WINDOW_EXPIRED`), reservation released, order reopened; INVOICED bookings have no window and are never touched | same test |
+| Web | Bookings list; booking page with schedule, parties, owner earnings, history, cancellation card; cancel dialog that fetches the quote first; owner driver assignment (native select over the vehicle's assigned drivers) and *ready*; bid list links to the booking | browser session |
+| OpenAPI | 121 paths / 143 schemas, diff-checked | `openapi:check` |
+
+**Carried forward:** `POST /bookings` (admin phone-order booking) and `PATCH /bookings/{id}` (ops corrections) are Phase 13 admin tooling; `dispute` / `resolve-dispute` land with complaints (13) and `no-show` with trip exceptions (10); the refund row on cancellation needs a captured payment (9) — `refund` is `null` today and `refundAmount` is recorded on the cancellation; the cancelled booking's `trips` row is left for Phase 10's trip cancellation path; `vehicles.operational_status` (`RESERVED`/`ON_TRIP`) is only meaningful once trips run and lands in Phase 10; the customer's PARTY scope on a booked vehicle (vehicle detail from the booking) is a Phase 10 tracking concern.
+
+---
+
 ## Module status
 
 | Module | Status | Backend | Frontend | Tests | Notes |
@@ -180,11 +198,11 @@ Verified on 2026-09-15 with `pnpm turbo run typecheck lint test build --force` (
 | `fleet` | **DONE (Phase 5)** | vehicle.repository (scope, raw tstzrange calendar), vehicle.policy (dispatchability), vehicle.service, routes, mapper, openapi | ✅ | db (fleet 6, matrix) | operational_status transitions arrive with bookings/trips/maintenance. |
 | `demand` | **DONE (Phase 6)** | trip-request.repository (OWN/PARTY/GLOBAL), service (lifecycle, matcher, opportunities, expiry job), mapper (redaction), routes, openapi; MapsProvider (`estimate`) | ✅ | db (demand 3, matrix) | Bids/award are Phase 7. |
 | `bidding` | **DONE (Phase 7)** | bid.repository (OWN/PARTY/GLOBAL, row locks), bid.service (submit/revise/withdraw/reject, totals, expiry), award.service (accept + group award), mapper, routes, openapi | ✅ | db (bidding 3, matrix) | Request-level override endpoint is Phase 13 admin tooling. |
-| `bookings` | IN_PROGRESS | booking.repository (scope, reservation insert, credit exposure), booking.service (`createAwardedBooking`, `getBooking`), mapper (customer never sees the split) | — | via bidding tests | Read surface, cancellation, driver assignment, payment-window sweeper: Phase 8. |
+| `bookings` | **DONE (Phase 8)** | repository (scope, filters, locks, reservation release, driver conflicts), service (award creation, reads by role, quote = cancel, waive, confirm, assign-driver → trip row, ready, payment-window sweeper), mapper, routes, openapi | ✅ | db (bookings 3, matrix) | Admin booking / PATCH, dispute, no-show: Phases 10/13. |
 | `trips` | NOT_STARTED | — | — | — | Phase 10. |
 | `tracking` | NOT_STARTED | — | — | — | Socket.IO + tiered storage. Phase 10. |
 | `payments` | NOT_STARTED | — | — | — | Gateway abstraction. Phase 9. |
-| `finance` | IN_PROGRESS | commission.repository + commission.service: rule resolution (priority → specificity), override precedence, `computeFinancials` (balanced split, per-owner VAT treatment) | — | via bidding tests | Ledger + settlements: Phase 11. |
+| `finance` | IN_PROGRESS | commission.repository + commission.service (rule resolution, override precedence, `computeFinancials`); cancellation-policy.service (policy resolution, tiers, no-cancel window, override) | — | via bidding + bookings tests | Ledger + settlements: Phase 11. |
 | `maintenance` | NOT_STARTED | — | — | — | Phase 12. |
 | `engagement` | NOT_STARTED | — | — | — | Ratings + complaints. Phase 13. |
 | `notifications` | NOT_STARTED | — | — | — | OTP path lands in Phase 3; full system Phase 13. |

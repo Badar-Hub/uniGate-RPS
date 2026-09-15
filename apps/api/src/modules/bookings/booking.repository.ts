@@ -16,8 +16,12 @@ export const bookingSelect = {
   pickupAddressLine: true, pickupCityId: true, pickupLatitude: true, pickupLongitude: true, dropoffAddressLine: true, dropoffCityId: true, dropoffLatitude: true, dropoffLongitude: true,
   scheduledStartAt: true, scheduledEndAt: true, agreedBaseAmount: true, agreedExtrasAmount: true, vatRate: true, vatAmount: true, totalAmount: true, currency: true, billingMode: true, creditTermsDaysSnapshot: true,
   fulfilmentSequence: true, status: true, paymentStatus: true, paymentDueBy: true, nonCircumventionUntil: true, confirmedAt: true, completedAt: true, cancelledAt: true, createdAt: true, updatedAt: true,
-  tripRequest: { select: { requestNumber: true } },
+  tripRequest: { select: { requestNumber: true, status: true, vehiclesRequired: true, vehiclesAwarded: true, vehiclesCancelled: true, vehicleCategoryId: true } },
   financialSnapshot: { select: { grossAmount: true, netOfVatAmount: true, commissionAmount: true, commissionVatAmount: true, commissionSource: true, paymentFeeAmount: true, ownerNetAmount: true, vatTreatment: true } },
+  driverProfile: { select: { user: { select: { fullNameEn: true } } } },
+  trip: { select: { id: true, tripNumber: true, status: true } },
+  cancellation: { select: { cancelledByRole: true, eventType: true, reasonCode: true, reasonText: true, hoursBeforePickup: true, feePayer: true, cancellationFeeAmount: true, refundAmount: true, currency: true, feeSource: true, feeRuleSnapshot: true, feeWaivedAt: true, feeWaivedReason: true, cancelledAt: true } },
+  calendarEntry: { select: { id: true, status: true } },
 } satisfies Prisma.BookingSelect;
 export type BookingRow = Prisma.BookingGetPayload<{ select: typeof bookingSelect }>;
 
@@ -70,4 +74,87 @@ export async function creditExposure(_scope: AnyScope, customerProfileId: string
           AND b.status NOT IN ('CANCELLED', 'REFUNDED')
           AND NOT EXISTS (SELECT 1 FROM invoice_line_bookings ilb WHERE ilb.booking_id = b.id)) AS uninvoiced`;
   return { receivable: rows[0]?.receivable ?? '0', uninvoiced: rows[0]?.uninvoiced ?? '0' };
+}
+
+export interface BookingFilters {
+  status?: string[] | undefined;
+  paymentStatus?: string | undefined;
+  billingMode?: string | undefined;
+  transportType?: string | undefined;
+  customerProfileId?: string | undefined;
+  ownerProfileId?: string | undefined;
+  vehicleId?: string | undefined;
+  driverProfileId?: string | undefined;
+  tripRequestId?: string | undefined;
+  fulfilmentSequence?: number | undefined;
+  dateFrom?: string | undefined;
+  dateTo?: string | undefined;
+  q?: string | undefined;
+}
+
+export async function listBookings(scope: AnyScope, f: BookingFilters, page: { page: number; pageSize: number }): Promise<{ items: BookingRow[]; total: number }> {
+  const where: Prisma.BookingWhereInput = {
+    AND: [
+      scopeWhere(scope),
+      ...(f.status?.length ? [{ status: { in: f.status as BookingRow['status'][] } }] : []),
+      ...(f.paymentStatus ? [{ paymentStatus: f.paymentStatus as BookingRow['paymentStatus'] }] : []),
+      ...(f.billingMode ? [{ billingMode: f.billingMode as BookingRow['billingMode'] }] : []),
+      ...(f.transportType ? [{ transportType: f.transportType as BookingRow['transportType'] }] : []),
+      ...(f.customerProfileId ? [{ customerProfileId: f.customerProfileId }] : []),
+      ...(f.ownerProfileId ? [{ ownerProfileId: f.ownerProfileId }] : []),
+      ...(f.vehicleId ? [{ vehicleId: f.vehicleId }] : []),
+      ...(f.driverProfileId ? [{ driverProfileId: f.driverProfileId }] : []),
+      ...(f.tripRequestId ? [{ tripRequestId: f.tripRequestId }] : []),
+      ...(f.fulfilmentSequence ? [{ fulfilmentSequence: f.fulfilmentSequence }] : []),
+      ...(f.dateFrom || f.dateTo ? [{ scheduledStartAt: { ...(f.dateFrom ? { gte: new Date(f.dateFrom) } : {}), ...(f.dateTo ? { lte: new Date(f.dateTo) } : {}) } }] : []),
+      ...(f.q ? [{ bookingNumber: { contains: f.q, mode: 'insensitive' as const } }] : []),
+    ],
+  };
+  const [items, total] = await Promise.all([
+    prisma().booking.findMany({ where, select: bookingSelect, orderBy: { scheduledStartAt: 'desc' }, skip: (page.page - 1) * page.pageSize, take: page.pageSize }),
+    prisma().booking.count({ where }),
+  ]);
+  return { items, total };
+}
+
+export async function lockBooking(_scope: AnyScope, id: string, tx: Prisma.TransactionClient): Promise<boolean> {
+  const rows = await tx.$queryRaw<{ id: string }[]>`SELECT id FROM bookings WHERE id = ${id}::uuid FOR UPDATE`;
+  return rows.length === 1;
+}
+
+export const historySelect = { id: true, fromStatus: true, toStatus: true, changedByUserId: true, actorType: true, reason: true, metadata: true, occurredAt: true } satisfies Prisma.BookingStatusHistorySelect;
+export type HistoryRow = Prisma.BookingStatusHistoryGetPayload<{ select: typeof historySelect }>;
+
+export async function listStatusHistory(scope: AnyScope, bookingId: string): Promise<HistoryRow[] | null> {
+  const b = await prisma().booking.findFirst({ where: { AND: [{ id: bookingId }, scopeWhere(scope)] }, select: { id: true } });
+  if (!b) return null;
+  return prisma().bookingStatusHistory.findMany({ where: { bookingId }, select: historySelect, orderBy: { occurredAt: 'asc' } });
+}
+
+export async function findFinancialSnapshot(scope: AnyScope, bookingId: string) {
+  return prisma().booking.findFirst({ where: { AND: [{ id: bookingId }, scopeWhere(scope)] }, select: { id: true, ownerProfileId: true, customerProfileId: true, financialSnapshot: true } });
+}
+
+/** Releases the reservation: retained for audit, excluded from the EXCLUDE constraint (status <> 'RELEASED'). */
+export async function releaseReservation(_scope: AnyScope, bookingId: string, tx: Prisma.TransactionClient): Promise<boolean> {
+  const r = await tx.vehicleCalendarEntry.updateMany({ where: { bookingId, status: { not: 'RELEASED' } }, data: { status: 'RELEASED' } });
+  return r.count > 0;
+}
+
+/** Bookings the driver is already dispatched on whose window overlaps [from, to). */
+export async function driverConflicts(_scope: AnyScope, driverProfileId: string, from: Date, to: Date, exceptBookingId: string, tx: Prisma.TransactionClient | null = null): Promise<{ id: string; bookingNumber: string }[]> {
+  const db = tx ?? prisma();
+  return db.booking.findMany({
+    where: { driverProfileId, id: { not: exceptBookingId }, status: { in: ['DRIVER_ASSIGNED', 'READY', 'IN_PROGRESS'] }, scheduledStartAt: { lt: to }, scheduledEndAt: { gt: from } },
+    select: { id: true, bookingNumber: true },
+  });
+}
+
+export async function nextTripNumber(_scope: AnyScope, tx: Prisma.TransactionClient): Promise<string> {
+  const rows = await tx.$queryRaw<{ n: bigint }[]>`SELECT nextval('seq_trip_number') AS n`;
+  return `TP-${new Date().getUTCFullYear()}-${String(rows[0]?.n ?? 0).padStart(6, '0')}`;
+}
+
+export async function listPaymentExpired(_scope: AnyScope, at: Date, take = 200): Promise<{ id: string; bookingNumber: string }[]> {
+  return prisma().booking.findMany({ where: { status: 'PENDING_PAYMENT', paymentDueBy: { lt: at } }, select: { id: true, bookingNumber: true }, take });
 }

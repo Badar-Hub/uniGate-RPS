@@ -6574,6 +6574,581 @@
           "message",
           "meta"
         ]
+      },
+      "BookingListEnvelope": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "enum": [
+              true
+            ]
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {},
+              "$ref": "#/components/schemas/Booking"
+            }
+          },
+          "message": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "meta": {
+            "type": "object",
+            "additionalProperties": {}
+          }
+        },
+        "required": [
+          "success",
+          "data",
+          "message",
+          "meta"
+        ]
+      },
+      "BookingEnvelope": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "enum": [
+              true
+            ]
+          },
+          "data": {
+            "type": "object",
+            "properties": {},
+            "$ref": "#/components/schemas/Booking"
+          },
+          "message": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "meta": {
+            "type": "object",
+            "additionalProperties": {}
+          }
+        },
+        "required": [
+          "success",
+          "data",
+          "message",
+          "meta"
+        ]
+      },
+      "BookingStatusHistoryEntry": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "fromStatus": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "toStatus": {
+            "type": "string"
+          },
+          "actorType": {
+            "type": "string"
+          },
+          "changedByUserId": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid"
+          },
+          "reason": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "metadata": {
+            "type": "object",
+            "additionalProperties": {}
+          },
+          "occurredAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "fromStatus",
+          "toStatus",
+          "actorType",
+          "changedByUserId",
+          "reason",
+          "metadata",
+          "occurredAt"
+        ]
+      },
+      "BookingStatusHistoryEnvelope": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "enum": [
+              true
+            ]
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/BookingStatusHistoryEntry"
+            }
+          },
+          "message": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "meta": {
+            "type": "object",
+            "additionalProperties": {}
+          }
+        },
+        "required": [
+          "success",
+          "data",
+          "message",
+          "meta"
+        ]
+      },
+      "BookingFinancials": {
+        "type": "object",
+        "properties": {
+          "bookingId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "grossAmount": {
+            "type": "string",
+            "pattern": "^-?\\d+\\.\\d{2}$"
+          },
+          "vatRate": {
+            "type": "string",
+            "pattern": "^\\d+\\.\\d{4}$"
+          },
+          "vatAmount": {
+            "type": "string",
+            "pattern": "^-?\\d+\\.\\d{2}$"
+          },
+          "netOfVatAmount": {
+            "type": "string",
+            "pattern": "^-?\\d+\\.\\d{2}$"
+          },
+          "currency": {
+            "type": "string"
+          },
+          "computedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "owner": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "properties": {
+              "commissionAmount": {
+                "type": "string",
+                "pattern": "^-?\\d+\\.\\d{2}$"
+              },
+              "commissionVatAmount": {
+                "type": "string",
+                "pattern": "^-?\\d+\\.\\d{2}$"
+              },
+              "paymentFeeAmount": {
+                "type": "string",
+                "pattern": "^-?\\d+\\.\\d{2}$"
+              },
+              "ownerGrossAmount": {
+                "type": "string",
+                "pattern": "^-?\\d+\\.\\d{2}$"
+              },
+              "ownerNetAmount": {
+                "type": "string",
+                "pattern": "^-?\\d+\\.\\d{2}$"
+              },
+              "vatTreatment": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "commissionAmount",
+              "commissionVatAmount",
+              "paymentFeeAmount",
+              "ownerGrossAmount",
+              "ownerNetAmount",
+              "vatTreatment"
+            ],
+            "description": "Owner and staff projection"
+          },
+          "finance": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "properties": {
+              "commissionSource": {
+                "type": "string"
+              },
+              "commissionBasis": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "commissionRate": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "pattern": "^\\d+\\.\\d{4}$"
+              },
+              "commissionRuleId": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "format": "uuid"
+              },
+              "commissionRuleSnapshot": {
+                "type": "object",
+                "additionalProperties": {}
+              },
+              "commissionOverrideSnapshot": {
+                "type": [
+                  "object",
+                  "null"
+                ],
+                "additionalProperties": {}
+              },
+              "spoCommissionAmount": {
+                "type": "string",
+                "pattern": "^-?\\d+\\.\\d{2}$"
+              },
+              "ownerVatRegisteredSnapshot": {
+                "type": "boolean"
+              },
+              "calculationVersion": {
+                "type": "integer"
+              }
+            },
+            "required": [
+              "commissionSource",
+              "commissionBasis",
+              "commissionRate",
+              "commissionRuleId",
+              "commissionRuleSnapshot",
+              "commissionOverrideSnapshot",
+              "spoCommissionAmount",
+              "ownerVatRegisteredSnapshot",
+              "calculationVersion"
+            ],
+            "description": "Staff with commissions.read_any only"
+          }
+        },
+        "required": [
+          "bookingId",
+          "grossAmount",
+          "vatRate",
+          "vatAmount",
+          "netOfVatAmount",
+          "currency",
+          "computedAt",
+          "owner",
+          "finance"
+        ]
+      },
+      "BookingFinancialsEnvelope": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "enum": [
+              true
+            ]
+          },
+          "data": {
+            "$ref": "#/components/schemas/BookingFinancials"
+          },
+          "message": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "meta": {
+            "type": "object",
+            "additionalProperties": {}
+          }
+        },
+        "required": [
+          "success",
+          "data",
+          "message",
+          "meta"
+        ]
+      },
+      "CancellationQuote": {
+        "type": "object",
+        "properties": {
+          "bookingId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "cancelledByRole": {
+            "type": "string"
+          },
+          "hoursBeforePickup": {
+            "type": "string"
+          },
+          "feeAmount": {
+            "type": "string",
+            "pattern": "^-?\\d+\\.\\d{2}$"
+          },
+          "refundAmount": {
+            "type": "string",
+            "pattern": "^-?\\d+\\.\\d{2}$"
+          },
+          "currency": {
+            "type": "string"
+          },
+          "feeSource": {
+            "type": "string"
+          },
+          "feeRuleSnapshot": {
+            "type": "object",
+            "additionalProperties": {}
+          },
+          "windowPassed": {
+            "type": "boolean"
+          },
+          "allowedReasonCodes": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "bookingId",
+          "cancelledByRole",
+          "hoursBeforePickup",
+          "feeAmount",
+          "refundAmount",
+          "currency",
+          "feeSource",
+          "feeRuleSnapshot",
+          "windowPassed",
+          "allowedReasonCodes"
+        ]
+      },
+      "CancellationQuoteEnvelope": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "enum": [
+              true
+            ]
+          },
+          "data": {
+            "$ref": "#/components/schemas/CancellationQuote"
+          },
+          "message": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "meta": {
+            "type": "object",
+            "additionalProperties": {}
+          }
+        },
+        "required": [
+          "success",
+          "data",
+          "message",
+          "meta"
+        ]
+      },
+      "BookingCancellation": {
+        "type": "object",
+        "properties": {
+          "cancelledByRole": {
+            "type": "string"
+          },
+          "eventType": {
+            "type": "string"
+          },
+          "reasonCode": {
+            "type": "string"
+          },
+          "reasonText": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "hoursBeforePickup": {
+            "type": "string"
+          },
+          "feePayer": {
+            "type": "string"
+          },
+          "cancellationFeeAmount": {
+            "type": "string",
+            "pattern": "^-?\\d+\\.\\d{2}$"
+          },
+          "refundAmount": {
+            "type": "string",
+            "pattern": "^-?\\d+\\.\\d{2}$"
+          },
+          "currency": {
+            "type": "string"
+          },
+          "feeSource": {
+            "type": "string"
+          },
+          "feeRuleSnapshot": {
+            "type": "object",
+            "additionalProperties": {}
+          },
+          "feeWaivedAt": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "feeWaivedReason": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "cancelledAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "cancelledByRole",
+          "eventType",
+          "reasonCode",
+          "reasonText",
+          "hoursBeforePickup",
+          "feePayer",
+          "cancellationFeeAmount",
+          "refundAmount",
+          "currency",
+          "feeSource",
+          "feeRuleSnapshot",
+          "feeWaivedAt",
+          "feeWaivedReason",
+          "cancelledAt"
+        ]
+      },
+      "CancelBookingResult": {
+        "type": "object",
+        "properties": {
+          "booking": {
+            "type": "object",
+            "properties": {},
+            "$ref": "#/components/schemas/Booking"
+          },
+          "cancellation": {
+            "$ref": "#/components/schemas/BookingCancellation"
+          },
+          "refund": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "properties": {
+              "id": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "refundNumber": {
+                "type": "string"
+              },
+              "status": {
+                "type": "string"
+              },
+              "amount": {
+                "type": "string",
+                "pattern": "^-?\\d+\\.\\d{2}$"
+              },
+              "currency": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "id",
+              "refundNumber",
+              "status",
+              "amount",
+              "currency"
+            ],
+            "description": "Created only against a captured payment (Phase 9); null when nothing was paid"
+          },
+          "calendarEntryReleased": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "booking",
+          "cancellation",
+          "refund",
+          "calendarEntryReleased"
+        ]
+      },
+      "CancelBookingResultEnvelope": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "enum": [
+              true
+            ]
+          },
+          "data": {
+            "$ref": "#/components/schemas/CancelBookingResult"
+          },
+          "message": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "meta": {
+            "type": "object",
+            "additionalProperties": {}
+          }
+        },
+        "required": [
+          "success",
+          "data",
+          "message",
+          "meta"
+        ]
       }
     },
     "parameters": {}
@@ -17536,6 +18111,808 @@
           },
           "422": {
             "description": "RULE_AWARD_SET_INCOMPLETE / RULE_CREDIT_NOT_APPROVED / RULE_CREDIT_LIMIT_EXCEEDED / BID_EXPIRED / VALIDATION_FAILED (duplicate vehicle)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {},
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/bookings": {
+      "get": {
+        "tags": [
+          "bookings"
+        ],
+        "summary": "Own bookings (customer / owner / assigned driver) or all with bookings.read_any; ?tripRequestId renders one order’s dispatch waves",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "default": 1
+            },
+            "required": false,
+            "name": "page",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 20
+            },
+            "required": false,
+            "name": "pageSize",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "enum": [
+                  "PENDING_PAYMENT",
+                  "CONFIRMED",
+                  "DRIVER_ASSIGNED",
+                  "READY",
+                  "IN_PROGRESS",
+                  "COMPLETED",
+                  "CANCELLED",
+                  "DISPUTED",
+                  "REFUNDED"
+                ]
+              },
+              "minItems": 1
+            },
+            "required": false,
+            "name": "status",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "UNPAID",
+                "INVOICED",
+                "PARTIALLY_PAID",
+                "PAID",
+                "REFUNDED",
+                "PARTIALLY_REFUNDED"
+              ]
+            },
+            "required": false,
+            "name": "paymentStatus",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "PREPAID",
+                "INVOICED"
+              ]
+            },
+            "required": false,
+            "name": "billingMode",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "PASSENGER",
+                "GOODS"
+              ]
+            },
+            "required": false,
+            "name": "transportType",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": false,
+            "name": "customerProfileId",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": false,
+            "name": "ownerProfileId",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": false,
+            "name": "vehicleId",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": false,
+            "name": "driverProfileId",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": false,
+            "name": "tripRequestId",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "required": false,
+            "name": "fulfilmentSequence",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "date-time",
+              "description": "ISO-8601 UTC timestamp, e.g. 2026-09-14T11:02:44.817Z"
+            },
+            "required": false,
+            "description": "ISO-8601 UTC timestamp, e.g. 2026-09-14T11:02:44.817Z",
+            "name": "dateFrom",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "date-time",
+              "description": "ISO-8601 UTC timestamp, e.g. 2026-09-14T11:02:44.817Z"
+            },
+            "required": false,
+            "description": "ISO-8601 UTC timestamp, e.g. 2026-09-14T11:02:44.817Z",
+            "name": "dateTo",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "maxLength": 24
+            },
+            "required": false,
+            "name": "q",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK — paginated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BookingListEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/bookings/{id}": {
+      "get": {
+        "tags": [
+          "bookings"
+        ],
+        "summary": "One booking, projected per party (the customer never sees the financial split)",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BookingEnvelope"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "NOT_FOUND",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {},
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/bookings/{id}/status-history": {
+      "get": {
+        "tags": [
+          "bookings"
+        ],
+        "summary": "Append-only status history with actor and reason",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BookingStatusHistoryEnvelope"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "NOT_FOUND",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {},
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/bookings/{id}/financials": {
+      "get": {
+        "tags": [
+          "bookings"
+        ],
+        "summary": "The financial snapshot, projected by role",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BookingFinancialsEnvelope"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "NOT_FOUND",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {},
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/bookings/{id}/cancellation-quote": {
+      "get": {
+        "tags": [
+          "bookings"
+        ],
+        "summary": "Dry run of the cancellation fee under the currently effective policy — shares the cancel’s function, so they cannot disagree",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CancellationQuoteEnvelope"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "BOOKING_INVALID_TRANSITION",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {},
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/bookings/{id}/cancel": {
+      "post": {
+        "tags": [
+          "bookings"
+        ],
+        "summary": "Cancel: fee from the admin policy (or an admin override), reservation released, order reopened; Idempotency-Key required",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "name": "idempotency-key",
+            "in": "header"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "reasonCode": {
+                    "type": "string",
+                    "enum": [
+                      "CUSTOMER_PLANS_CHANGED",
+                      "CUSTOMER_FOUND_ALTERNATIVE",
+                      "PRICE",
+                      "OWNER_UNAVAILABLE",
+                      "VEHICLE_BREAKDOWN",
+                      "DRIVER_UNAVAILABLE",
+                      "WEATHER",
+                      "ADMIN_INTERVENTION",
+                      "PAYMENT_FAILED",
+                      "PAYMENT_WINDOW_EXPIRED",
+                      "OTHER"
+                    ]
+                  },
+                  "reasonText": {
+                    "type": "string",
+                    "maxLength": 1000
+                  },
+                  "requestRefund": {
+                    "type": "boolean",
+                    "default": true
+                  },
+                  "waiveFee": {
+                    "type": "boolean"
+                  },
+                  "feeOverride": {
+                    "type": "object",
+                    "properties": {
+                      "type": {
+                        "type": "string",
+                        "enum": [
+                          "NONE",
+                          "PERCENTAGE",
+                          "FIXED"
+                        ]
+                      },
+                      "value": {
+                        "type": "string",
+                        "pattern": "^\\d{1,12}\\.\\d{2}$"
+                      },
+                      "reason": {
+                        "type": "string",
+                        "maxLength": 500
+                      }
+                    },
+                    "required": [
+                      "type",
+                      "reason"
+                    ],
+                    "additionalProperties": false
+                  }
+                },
+                "required": [
+                  "reasonCode"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CancelBookingResultEnvelope"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "CANCELLATION_FEE_OVERRIDE_FORBIDDEN / PERM_DENIED",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {},
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "BOOKING_ALREADY_CANCELLED",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {},
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "BOOKING_INVALID_TRANSITION / BOOKING_CANCELLATION_WINDOW_PASSED / CANCELLATION_REASON_NOT_ALLOWED",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {},
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/bookings/{id}/cancellation/waive-fee": {
+      "post": {
+        "tags": [
+          "bookings"
+        ],
+        "summary": "Admin: waive a computed fee before the refund / settlement line is processed (audited NOTICE)",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "reason": {
+                    "type": "string",
+                    "maxLength": 500
+                  }
+                },
+                "required": [
+                  "reason"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CancelBookingResultEnvelope"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "CANCELLATION_FEE_LOCKED",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {},
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/bookings/{id}/confirm": {
+      "post": {
+        "tags": [
+          "bookings"
+        ],
+        "summary": "Ops override PENDING_PAYMENT → CONFIRMED (offline payment reconciled)",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "reason": {
+                    "type": "string",
+                    "maxLength": 500
+                  }
+                },
+                "required": [
+                  "reason"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BookingEnvelope"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "BOOKING_INVALID_TRANSITION",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {},
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/bookings/{id}/assign-driver": {
+      "post": {
+        "tags": [
+          "bookings"
+        ],
+        "summary": "CONFIRMED → DRIVER_ASSIGNED; driver approved, licensed, assigned to the vehicle and free for the window; creates the trip row",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "driverProfileId": {
+                    "type": "string",
+                    "format": "uuid"
+                  }
+                },
+                "required": [
+                  "driverProfileId"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BookingEnvelope"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "BOOKING_INVALID_TRANSITION / DRIVER_NOT_APPROVED / DRIVER_LICENSE_EXPIRED / DRIVER_NOT_ASSIGNED_TO_VEHICLE / DRIVER_ALREADY_ON_TRIP",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {},
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/bookings/{id}/ready": {
+      "post": {
+        "tags": [
+          "bookings"
+        ],
+        "summary": "DRIVER_ASSIGNED → READY (owner or ops)",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "notes": {
+                    "type": "string",
+                    "maxLength": 500
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BookingEnvelope"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "BOOKING_INVALID_TRANSITION",
             "content": {
               "application/json": {
                 "schema": {

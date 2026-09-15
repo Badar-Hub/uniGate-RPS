@@ -1,6 +1,6 @@
-import type { BookingDto } from '@unigate/types';
+import type { BookingCancellationDto, BookingDto, BookingStatusHistoryDto } from '@unigate/types';
 import { toMoneyString, toRateString } from '@/common/money.js';
-import type { BookingRow } from './booking.repository.js';
+import type { BookingRow, HistoryRow } from './booking.repository.js';
 
 const iso = (d: Date | null): string | null => (d ? d.toISOString() : null);
 
@@ -43,6 +43,11 @@ export function toBookingDto(b: BookingRow, showFinancial: boolean): BookingDto 
     paymentDueBy: iso(b.paymentDueBy),
     nonCircumventionUntil: iso(b.nonCircumventionUntil),
     confirmedAt: iso(b.confirmedAt),
+    cancelledAt: iso(b.cancelledAt),
+    completedAt: iso(b.completedAt),
+    driverName: b.driverProfile?.user.fullNameEn ?? null,
+    trip: b.trip ? { id: b.trip.id, tripNumber: b.trip.tripNumber, status: b.trip.status } : null,
+    cancellation: b.cancellation ? toCancellationDto(b.cancellation) : null,
     financial:
       showFinancial && f
         ? {
@@ -59,4 +64,27 @@ export function toBookingDto(b: BookingRow, showFinancial: boolean): BookingDto 
     createdAt: b.createdAt.toISOString(),
     updatedAt: b.updatedAt.toISOString(),
   };
+}
+
+export function toCancellationDto(c: NonNullable<BookingRow['cancellation']>): BookingCancellationDto {
+  return {
+    cancelledByRole: c.cancelledByRole,
+    eventType: c.eventType,
+    reasonCode: c.reasonCode,
+    reasonText: c.reasonText,
+    hoursBeforePickup: c.hoursBeforePickup.toFixed(2),
+    feePayer: c.feePayer,
+    cancellationFeeAmount: toMoneyString(c.cancellationFeeAmount),
+    refundAmount: toMoneyString(c.refundAmount),
+    currency: c.currency,
+    feeSource: c.feeSource,
+    feeRuleSnapshot: (c.feeRuleSnapshot ?? {}) as Record<string, unknown>,
+    feeWaivedAt: iso(c.feeWaivedAt),
+    feeWaivedReason: c.feeWaivedReason,
+    cancelledAt: c.cancelledAt.toISOString(),
+  };
+}
+
+export function toHistoryDto(h: HistoryRow): BookingStatusHistoryDto {
+  return { id: h.id, fromStatus: h.fromStatus, toStatus: h.toStatus, actorType: h.actorType, changedByUserId: h.changedByUserId, reason: h.reason, metadata: (h.metadata ?? {}) as Record<string, unknown>, occurredAt: h.occurredAt.toISOString() };
 }

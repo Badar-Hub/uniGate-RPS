@@ -408,3 +408,9 @@ export async function vehicleForAward(id: string, at?: Date): Promise<VehicleFor
   const description = [v.make?.name, v.model?.name, String(v.modelYear), '—', v.category.nameEn].filter(Boolean).join(' ');
   return { id: v.id, ownerProfileId: v.ownerProfileId, vehicleCategoryId: v.vehicleCategoryId, categoryCode: v.category.code, plateNumberEn: v.plateNumberEn, description, dispatch: await dispatchableNow(v, at) };
 }
+
+/** Is the driver currently assigned to this vehicle (an open vehicle_driver_assignments row)? */
+export async function isDriverAssignedToVehicle(vehicleId: string, driverProfileId: string): Promise<boolean> {
+  const rows = await repo.listAssignments(systemScope('bookings.dispatch'), vehicleId);
+  return rows.some((a) => a.driverProfileId === driverProfileId && a.assignedTo === null);
+}

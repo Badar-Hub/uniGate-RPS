@@ -45,7 +45,7 @@
       "OWNER_NOT_APPROVED": "The owner profile is not approved.",
       "DRIVER_NOT_APPROVED": "The nominated driver is not approved.",
       "DRIVER_LICENSE_EXPIRED": "The nominated driver’s licence has expired.",
-      "DRIVER_ALREADY_ON_TRIP": "The driver is on a trip.",
+      "DRIVER_ALREADY_ON_TRIP": "The driver is already dispatched on an overlapping booking.",
       "CONFLICT": "This already exists or is still in use.",
       "TRIP_REQUEST_DETAIL_MISMATCH": "The request details do not match the transport type.",
       "TRIP_REQUEST_INVALID_TRANSITION": "This action is not possible in the request’s current state.",
@@ -67,7 +67,15 @@
       "RULE_CREDIT_LIMIT_EXCEEDED": "This booking would exceed your credit limit.",
       "RULE_CREDIT_NOT_APPROVED": "Your credit account is not approved for invoiced bookings.",
       "VEHICLE_NOT_DISPATCHABLE": "The vehicle cannot be dispatched right now.",
-      "COMMISSION_OVERRIDE_FORBIDDEN": "You may not override the commission."
+      "COMMISSION_OVERRIDE_FORBIDDEN": "You may not override the commission.",
+      "BOOKING_INVALID_TRANSITION": "This action is not available in the booking’s current state.",
+      "BOOKING_ALREADY_CANCELLED": "This booking is already cancelled.",
+      "BOOKING_CANCELLATION_WINDOW_PASSED": "This booking can no longer be cancelled online.",
+      "BOOKING_PAYMENT_REQUIRED": "The booking must be paid first.",
+      "CANCELLATION_FEE_OVERRIDE_FORBIDDEN": "You may not override the cancellation fee.",
+      "CANCELLATION_FEE_LOCKED": "The fee can no longer be changed.",
+      "CANCELLATION_REASON_NOT_ALLOWED": "That reason is not available to you.",
+      "DRIVER_NOT_ASSIGNED_TO_VEHICLE": "The driver is not assigned to this vehicle."
     }
   },
   "home": {
@@ -132,7 +140,8 @@
       "vehicleApprovals": "Vehicle approvals",
       "requests": "My requests",
       "opportunities": "Opportunities",
-      "bids": "My bids"
+      "bids": "My bids",
+      "bookings": "Bookings"
     },
     "welcome": "Welcome, {name}",
     "roles": "Roles",
@@ -435,6 +444,85 @@
         }
       },
       "statusLabel": "Status"
+    },
+    "bookings": {
+      "title": "Bookings",
+      "subtitle": "Confirmed vehicles from your requests and bids.",
+      "empty": "No bookings yet.",
+      "number": "Booking",
+      "request": "Request",
+      "vehicle": "Vehicle",
+      "when": "Pickup",
+      "total": "Total",
+      "statusLabel": "Status",
+      "payment": "Payment",
+      "wave": "Wave {n}",
+      "status": {
+        "PENDING_PAYMENT": "Awaiting payment",
+        "CONFIRMED": "Confirmed",
+        "DRIVER_ASSIGNED": "Driver assigned",
+        "READY": "Ready",
+        "IN_PROGRESS": "In progress",
+        "COMPLETED": "Completed",
+        "CANCELLED": "Cancelled",
+        "DISPUTED": "Disputed",
+        "REFUNDED": "Refunded"
+      },
+      "paymentStatus": {
+        "UNPAID": "Unpaid",
+        "INVOICED": "Invoiced",
+        "PARTIALLY_PAID": "Partially paid",
+        "PAID": "Paid",
+        "REFUNDED": "Refunded",
+        "PARTIALLY_REFUNDED": "Partially refunded"
+      },
+      "detail": {
+        "schedule": "Schedule",
+        "route": "Route",
+        "owner": "Owner",
+        "driver": "Driver",
+        "noDriver": "Not yet assigned",
+        "trip": "Trip",
+        "paymentDue": "Pay by",
+        "financial": "Your earnings",
+        "gross": "Gross",
+        "commission": "Platform commission",
+        "commissionVat": "VAT on commission",
+        "net": "Your net",
+        "history": "History",
+        "cancel": "Cancel booking",
+        "cancelTitle": "Cancel {number}",
+        "cancelDescription": "The fee below is what the current policy charges for {hours} hours of notice.",
+        "fee": "Cancellation fee",
+        "refund": "Refund",
+        "windowPassed": "This booking can no longer be cancelled online — contact support.",
+        "reason": "Reason",
+        "reasonText": "Details",
+        "confirmCancel": "Confirm cancellation",
+        "cancelled": "Booking cancelled. Fee {fee} SAR, refund {refund} SAR.",
+        "assignDriver": "Assign driver",
+        "selectDriver": "Driver",
+        "noDrivers": "No drivers are assigned to this vehicle — add one on the vehicle page first.",
+        "assigned": "Driver assigned — trip {number} created.",
+        "ready": "Mark ready",
+        "readyDone": "Booking marked ready.",
+        "cancellation": "Cancellation",
+        "cancelledBy": "Cancelled by {role}",
+        "feeWaived": "Fee waived"
+      },
+      "reasons": {
+        "CUSTOMER_PLANS_CHANGED": "Plans changed",
+        "CUSTOMER_FOUND_ALTERNATIVE": "Found an alternative",
+        "PRICE": "Price",
+        "OWNER_UNAVAILABLE": "Owner unavailable",
+        "VEHICLE_BREAKDOWN": "Vehicle breakdown",
+        "DRIVER_UNAVAILABLE": "Driver unavailable",
+        "WEATHER": "Weather",
+        "ADMIN_INTERVENTION": "Admin intervention",
+        "PAYMENT_FAILED": "Payment failed",
+        "PAYMENT_WINDOW_EXPIRED": "Payment window expired",
+        "OTHER": "Other"
+      }
     }
   }
 }

@@ -18,6 +18,7 @@ import { profilesRouter } from '@/modules/profiles/profiles.routes.js';
 import { fleetRouter } from '@/modules/fleet/fleet.routes.js';
 import { demandRouter } from '@/modules/demand/demand.routes.js';
 import { biddingRouter } from '@/modules/bidding/bidding.routes.js';
+import { bookingsRouter } from '@/modules/bookings/bookings.routes.js';
 import '@/docs/all.js';
 
 /**
@@ -82,6 +83,7 @@ export function createApp(cfg: AppConfig): Express {
   v1.use(fleetRouter());
   v1.use(demandRouter());
   v1.use(biddingRouter());
+  v1.use(bookingsRouter());
   if (cfg.apiDocsEnabled) v1.use(docsRouter(cfg.apiUrl, cfg.version));
   app.use('/api/v1', v1);
 
