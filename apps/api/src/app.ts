@@ -19,6 +19,7 @@ import { fleetRouter } from '@/modules/fleet/fleet.routes.js';
 import { demandRouter } from '@/modules/demand/demand.routes.js';
 import { biddingRouter } from '@/modules/bidding/bidding.routes.js';
 import { bookingsRouter } from '@/modules/bookings/bookings.routes.js';
+import { paymentsRouter } from '@/modules/payments/payments.routes.js';
 import '@/docs/all.js';
 
 /**
@@ -57,7 +58,12 @@ export function createApp(cfg: AppConfig): Express {
       maxAge: 600,
     }),
   );
-  app.use(express.json({ limit: '1mb', type: 'application/json' }));
+  // Webhooks verify an HMAC over the RAW body (api.md §10); their route mounts its own raw parser.
+  const json = express.json({ limit: '1mb', type: 'application/json' });
+  app.use((req, res, next) => {
+    if (req.path.startsWith('/api/v1/webhooks/')) next();
+    else json(req, res, next);
+  });
   app.use(cookieParser());
   app.use(
     pinoHttp({
@@ -84,6 +90,7 @@ export function createApp(cfg: AppConfig): Express {
   v1.use(demandRouter());
   v1.use(biddingRouter());
   v1.use(bookingsRouter());
+  v1.use(paymentsRouter());
   if (cfg.apiDocsEnabled) v1.use(docsRouter(cfg.apiUrl, cfg.version));
   app.use('/api/v1', v1);
 

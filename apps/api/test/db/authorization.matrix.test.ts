@@ -198,6 +198,32 @@ describeDb('authorization matrix', () => {
       call: (t) => bearer(request(h.app).post('/api/v1/bookings/0192f3c1-0000-7000-8000-000000000000/ready'), t).send({}),
       expect: { SUPER_ADMIN: 404, ADMIN: 404, OPS_MANAGER: 404, FINANCE_OFFICER: 403, SUPPORT_AGENT: 403, CUSTOMER: 403, VEHICLE_OWNER: 404, DRIVER: 403, SPO: 403 },
     },
+    // ── Phase 9: payments ──────────────────────────────────────────────────────
+    {
+      name: 'GET /payments (payments.read own → read_any; owners learn payment state from the booking)',
+      call: (t) => bearer(request(h.app).get('/api/v1/payments'), t),
+      expect: { SUPER_ADMIN: 200, ADMIN: 200, OPS_MANAGER: 403, FINANCE_OFFICER: 200, SUPPORT_AGENT: 200, CUSTOMER: 200, VEHICLE_OWNER: 403, DRIVER: 403, SPO: 403 },
+    },
+    {
+      name: 'POST /payments (payments.create; key required → 400 before validation)',
+      call: (t) => bearer(request(h.app).post('/api/v1/payments'), t).send({}),
+      expect: { SUPER_ADMIN: 400, ADMIN: 400, OPS_MANAGER: 403, FINANCE_OFFICER: 400, SUPPORT_AGENT: 403, CUSTOMER: 400, VEHICLE_OWNER: 403, DRIVER: 403, SPO: 403 },
+    },
+    {
+      name: 'POST /payments/{id}/sync (payments.manage — reconciliation is staff-only)',
+      call: (t) => bearer(request(h.app).post('/api/v1/payments/0192f3c1-0000-7000-8000-000000000000/sync'), t),
+      expect: { SUPER_ADMIN: 404, ADMIN: 404, OPS_MANAGER: 403, FINANCE_OFFICER: 404, SUPPORT_AGENT: 403, CUSTOMER: 403, VEHICLE_OWNER: 403, DRIVER: 403, SPO: 403 },
+    },
+    {
+      name: 'POST /refunds (payments.refund; empty body → 422 for holders)',
+      call: (t) => bearer(request(h.app).post('/api/v1/refunds'), t).send({}),
+      expect: { SUPER_ADMIN: 422, ADMIN: 422, OPS_MANAGER: 403, FINANCE_OFFICER: 422, SUPPORT_AGENT: 403, CUSTOMER: 403, VEHICLE_OWNER: 403, DRIVER: 403, SPO: 403 },
+    },
+    {
+      name: 'POST /webhooks/payments/mock — no session, signature only (unsigned → 401 for everyone)',
+      call: () => request(h.app).post('/api/v1/webhooks/payments/mock').set('Content-Type', 'application/json').send('{"id":"evt_x","type":"payment.captured"}'),
+      expect: { SUPER_ADMIN: 401, ADMIN: 401, OPS_MANAGER: 401, FINANCE_OFFICER: 401, SUPPORT_AGENT: 401, CUSTOMER: 401, VEHICLE_OWNER: 401, DRIVER: 401, SPO: 401 },
+    },
   ];
 
   for (const row of MATRIX) {

@@ -89,14 +89,25 @@ All items delivered; residuals moved to Phase 3 below.
 - [ ] `operational_status` (RESERVED/ON_TRIP) and the customer's PARTY scope on a booked vehicle — **Phase 10** (only meaningful once trips run)
 - [ ] `POST /bookings` (phone order), `PATCH /bookings/{id}`, dispute, no-show — Phases 10/13
 
-## Immediate — Phase 9 (Payments)
+## Phase 9 — Payments — COMPLETE 2026-09-15 (MockGateway)
 
-- [ ] **Decide the gateway (OQ-03, M-PAY)** — the adapter is ~1–2 weeks once chosen; everything below runs against `MockGateway` until then
-- [ ] `PaymentGateway` port + `MockGateway`; `GET /payments/config`; `POST /payments` (booking **or** invoice, server-computed amount, `PAYMENT_AMOUNT_MISMATCH`), `GET /payments/{id}`, `POST /payments/{id}/sync`
-- [ ] Webhook pipeline: signature verification, `payment_webhook_events` idempotent by construction, capture → booking `PAID` + `PENDING_PAYMENT → CONFIRMED`, ledger postings (CASH_GATEWAY / CUSTOMER_RECEIVABLE / TRANSPORT_REVENUE / VAT_PAYABLE) — **never trust payment success reported by the frontend**
-- [ ] Refunds: `POST /refunds` (Σ ≤ captured under `FOR UPDATE`), the cancellation's `refundAmount` → `REQUESTED` refund row, approval flow, `CANCELLED → REFUNDED`
-- [ ] Web: pay-now flow on a PENDING_PAYMENT booking (mock redirect / return page), payment status
-- [ ] Extend the authorization matrix with the payments surface
+- [x] `PaymentGateway` port + `MockGateway` (full implementation incl. signed webhooks and scripted outcomes); registry keyed on `PAYMENT_PROVIDER`
+- [x] Intent, status poll, transactions log, sync, cancel; `finance.payment_methods_enabled`
+- [x] Webhook pipeline: raw-body HMAC → persist (unique) → 200 → job; forged deliveries stored as evidence; duplicates and out-of-order events harmless
+- [x] Capture → booking CONFIRMED + balanced ledger postings; refunds with four-eyes, gateway processing, pro-rata reversal
+- [x] Web: pay-now, mock hosted checkout, return-page polling
+- [x] Authorization matrix extended
+- [ ] **Real gateway adapter — waits for UniGate to name the provider (OQ-03)**; one class + one registry line
+- [ ] Fare-VAT posting under the deemed-supplier model — waits for ADR-008 / the tax advisor (OQ-24)
+- [ ] Saved instruments and invoice payments — Phase 11; refunds admin screen — Phase 13
+
+## Immediate — Phase 10 (Trips & tracking)
+
+- [ ] `trips` module: `GET /trips`, `GET /trips/{id}`, driver status updates `POST /trips/{id}/status` through the vertical's transition map (DRIVER_EN_ROUTE → ARRIVED_AT_PICKUP → IN_PROGRESS → COMPLETED, with proofs), `trip_status_history`; booking `READY → IN_PROGRESS → COMPLETED`; request counters `vehicles_dispatched` / `vehicles_completed`; `vehicles.operational_status` ON_TRIP/IDLE; trip cancellation from IN_PROGRESS (`trips.manage`)
+- [ ] `tracking` module: `POST /tracking/ping` (+ batch) with the tracking authorization rules, Socket.IO rooms per trip with the same authorization, tiered storage (hot Redis, cold `tracking_points`), customer tracking page
+- [ ] No-show path (`POST /bookings/{id}/no-show`) from trip exceptions (OQ-05)
+- [ ] Web: driver trip screen (status buttons), customer live-tracking page; owner trip list
+- [ ] Extend the authorization matrix with the trips/tracking surface
 
 ## Deferred design work
 

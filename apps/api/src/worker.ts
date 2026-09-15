@@ -11,6 +11,9 @@ import { markExpiredDocuments, sweepPendingUploads } from '@/modules/documents/d
 import { expireStaleRequests } from '@/modules/demand/trip-request.service.js';
 import { expireStaleBids } from '@/modules/bidding/bid.service.js';
 import { expireUnpaidBookings } from '@/modules/bookings/booking.service.js';
+import { reconcilePendingPayments } from '@/modules/payments/payment.service.js';
+import { startPaymentsWorker } from '@/modules/payments/payments.jobs.js';
+import { processPendingWebhooks } from '@/modules/payments/webhook.service.js';
 
 /**
  * Worker entrypoint — same image as the API, different process. Runs the outbox relay, the
@@ -30,6 +33,7 @@ async function main(): Promise<void> {
 
   const stopRelay = startOutboxRelay(1000);
   const eventWorker = startEventWorker();
+  const paymentsWorker = startPaymentsWorker();
 
   const runMaintenance = () => {
     ensureNextMonthPartitions().catch((err: unknown) => {
@@ -76,14 +80,30 @@ async function main(): Promise<void> {
         log.error({ err }, 'demand/bidding/bookings expiry failed');
       });
   };
+  // Payments: reconcile stale PENDING payments against the gateway and sweep unprocessed webhook rows.
+  const runPayments = () => {
+    reconcilePendingPayments()
+      .then((r) => {
+        if (r.synced || r.expired) log.info(r, 'payments reconciled');
+        return processPendingWebhooks();
+      })
+      .then((n) => {
+        if (n) log.info({ processed: n }, 'webhook rows swept');
+      })
+      .catch((err: unknown) => {
+        log.error({ err }, 'payments reconciliation failed');
+      });
+  };
   runMaintenance();
   runPurge();
+  runPayments();
   runDocuments();
   runDemand();
   const t1 = setInterval(runMaintenance, 60 * 60_000);
   const t2 = setInterval(runPurge, 6 * 60 * 60_000);
   const t3 = setInterval(runDocuments, 60 * 60_000);
   const t4 = setInterval(runDemand, 5 * 60_000);
+  const t5 = setInterval(runPayments, 5 * 60_000);
   log.info('worker started: outbox relay, event consumer, maintenance');
 
   const shutdown = async (signal: string) => {
@@ -92,8 +112,10 @@ async function main(): Promise<void> {
     clearInterval(t2);
     clearInterval(t3);
     clearInterval(t4);
+    clearInterval(t5);
     stopRelay();
     await eventWorker.close();
+    await paymentsWorker.close();
     await closeQueues();
     await disconnectPrisma();
     await disconnectRedis();

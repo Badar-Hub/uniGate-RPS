@@ -16,11 +16,12 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { BOOKING_TONE } from './bookings-list';
+import { PayNow } from './pay-now';
 
 const CANCELLABLE = ['PENDING_PAYMENT', 'CONFIRMED', 'DRIVER_ASSIGNED', 'READY'];
 
 /** One booking: schedule, route, parties, the owner's split, history, and the party-specific actions. */
-export function BookingDetail({ id }: { id: string }) {
+export function BookingDetail({ id, returnedPaymentId = null }: { id: string; returnedPaymentId?: string | null }) {
   const t = useTranslations('portal.bookings');
   const tc = useTranslations('common');
   const { me, can } = useSession();
@@ -195,6 +196,10 @@ export function BookingDetail({ id }: { id: string }) {
           </Card>
         )}
       </div>
+
+      {isCustomer && b.billingMode === 'PREPAID' && (b.status === 'PENDING_PAYMENT' || returnedPaymentId) && (
+        <PayNow booking={b} returnedPaymentId={returnedPaymentId} onPaid={() => void load()} />
+      )}
 
       {(isCustomer || isOwner || staff) && (
         <Card>

@@ -107,6 +107,16 @@ ADMIN_EMAIL=ops@example.com ADMIN_PASSWORD='<12+ chars>' pnpm --filter @unigate/
 The password is read from the environment only (never argv), must meet the staff policy, and the
 command refuses to add a second `SUPER_ADMIN` unless `ADMIN_ALLOW_ADDITIONAL=true`.
 
+## 4b. Paying locally (MockGateway)
+
+`PAYMENT_PROVIDER=mock` (the default) selects the development gateway — a full implementation of the `PaymentGateway` port, not a stub (ADR-005). There is no real provider integration; the adapter is added once UniGate names the gateway (OQ-03), and production refuses to boot with the mock selected.
+
+1. On a `PENDING_PAYMENT` booking click **Pay now** → `POST /payments` creates the intent and redirects to the mock's hosted page at `/{locale}/pay/mock/{providerPaymentId}`.
+2. Choose **Simulate successful payment** or **Simulate declined card**. The page calls `POST /payments/mock/checkout/{providerPaymentId}` (dev-only, 404 in production), which makes the gateway deliver its HMAC-signed webhook to the API's real `/webhooks/payments/mock` route — signature verification, persist-first and processing all run exactly as they would for a real provider.
+3. The browser returns to the booking with `?payment=…` and polls `GET /payments/{id}/status`. Nothing the browser does marks a payment paid.
+
+To exercise reconciliation instead of webhooks, post to the checkout endpoint with `{ "outcome": "SUCCESS", "deliverWebhook": false }` and then `POST /payments/{id}/sync` as staff. The webhook secret for the mock is `PAYMENT_WEBHOOK_SECRET` when set, otherwise derived from `OTP_PEPPER` so a fresh `.env` works without configuration.
+
 ## 5. Database workflow
 
 Prisma owns structure it can express; a hand-written migration owns the rest

@@ -91,6 +91,7 @@ Where a value varies by scope (global → category → customer/owner → per ca
 |---|---|---|---|---|---|---|
 | `finance.vat_rate_pct` | decimal | `15` | 0–100 | PUBLIC | **yes** → `bids.vat_rate`, `booking_financial_snapshots.vat_rate`, invoices | existing |
 | `finance.currency` | ISO-4217 | `SAR` | code-managed at MVP (single currency) | PUBLIC | yes everywhere | — |
+| `finance.payment_methods_enabled` | enum[] | all but `CASH` | non-empty; intersected with the active gateway's supported methods | PUBLIC | no — `GET /payments/config` reads live | ADR-005 |
 | `finance.invoice_line_granularity` | enum `ORDER` \| `BOOKING` | `ORDER` | — | INTERNAL | **yes** → `invoices.line_granularity_snapshot`; overridable per corporate customer | A-58 |
 | `finance.commission_basis_default` | enum `GROSS` \| `NET_OF_VAT` | `NET_OF_VAT` | — | INTERNAL | yes — via the rule snapshot | OQ-01 |
 | `finance.rounding_mode` | enum | `HALF_UP` | code-managed | INTERNAL | — | — |

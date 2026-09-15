@@ -16,6 +16,7 @@ import { initLogger } from '@/logging/logger.js';
 import { setOtpProviderForTests, type OtpProvider } from '@/integrations/otp/otp.provider.js';
 import { prisma, disconnectPrisma } from '@/database/prisma.js';
 import { redis, disconnectRedis } from '@/database/redis.js';
+import { closeQueues } from '@/jobs/queues.js';
 
 export const TEST_DB = process.env['TEST_DATABASE_URL'] ?? '';
 if (TEST_DB && TEST_DB === process.env['DATABASE_URL']) throw new Error('TEST_DATABASE_URL must not equal DATABASE_URL');
@@ -82,6 +83,7 @@ export async function clearThrottles(): Promise<void> {
 
 export async function teardownHarness(): Promise<void> {
   setOtpProviderForTests(null);
+  await closeQueues();
   await disconnectPrisma();
   await disconnectRedis();
 }

@@ -29,6 +29,9 @@ export interface AppConfig {
     encryptionKeyId: string;
     blindIndexPepper: string;
     otpPepper: string;
+    /** Gateway credentials — server-side only, never in a DTO or log (ADR-005). */
+    paymentApiKey: string | null;
+    paymentWebhookSecret: string | null;
   };
   storage: {
     endpoint: string;
@@ -79,6 +82,8 @@ export function buildConfig(env: Env): AppConfig {
       encryptionKeyId: env.ENCRYPTION_KEY_ID,
       blindIndexPepper: env.BLIND_INDEX_PEPPER,
       otpPepper: env.OTP_PEPPER,
+      paymentApiKey: env.PAYMENT_API_KEY ?? null,
+      paymentWebhookSecret: env.PAYMENT_WEBHOOK_SECRET ?? null,
     },
     storage: {
       endpoint: env.STORAGE_ENDPOINT,

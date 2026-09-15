@@ -78,8 +78,9 @@ export async function hasLiveBidForVehicle(_scope: AnyScope, tripRequestId: stri
   return (await prisma().bid.count({ where: { tripRequestId, vehicleId, status: 'SUBMITTED' } })) > 0;
 }
 
+/** The owner's live bid: SUBMITTED, or ACCEPTED with a booking that still stands (a cancelled booking frees the owner to bid again). */
 export async function findOwnerBidOnRequest(_scope: AnyScope, tripRequestId: string, ownerProfileId: string): Promise<{ id: string; status: BidRow['status'] } | null> {
-  return prisma().bid.findFirst({ where: { tripRequestId, ownerProfileId, status: { in: ['SUBMITTED', 'ACCEPTED'] } }, orderBy: { submittedAt: 'desc' }, select: { id: true, status: true } });
+  return prisma().bid.findFirst({ where: { tripRequestId, ownerProfileId, OR: [{ status: 'SUBMITTED' }, { status: 'ACCEPTED', booking: { status: { notIn: ['CANCELLED', 'REFUNDED'] } } }] }, orderBy: { submittedAt: 'desc' }, select: { id: true, status: true } });
 }
 
 export async function ownerHasAcceptedBid(_scope: AnyScope, tripRequestId: string, ownerProfileId: string): Promise<boolean> {

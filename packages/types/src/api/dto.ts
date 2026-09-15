@@ -896,3 +896,99 @@ export interface BookingFinancialsDto {
   owner: { commissionAmount: MoneyString; commissionVatAmount: MoneyString; paymentFeeAmount: MoneyString; ownerGrossAmount: MoneyString; ownerNetAmount: MoneyString; vatTreatment: string } | null;
   finance: { commissionSource: string; commissionBasis: string | null; commissionRate: RateString | null; commissionRuleId: string | null; commissionRuleSnapshot: Record<string, unknown>; commissionOverrideSnapshot: Record<string, unknown> | null; spoCommissionAmount: MoneyString; ownerVatRegisteredSnapshot: boolean; calculationVersion: number } | null;
 }
+
+// ── payments (Phase 9) ────────────────────────────────────────────────────────
+
+export interface PaymentDto extends TimestampedDto {
+  id: string;
+  paymentNumber: string;
+  bookingId: string | null;
+  bookingNumber: string | null;
+  invoiceId: string | null;
+  customerProfileId: string;
+  purpose: string;
+  amount: MoneyString;
+  currency: string;
+  status: string;
+  providerCode: string;
+  /** Gateway reference; never a token, never a PAN. */
+  providerPaymentId: string | null;
+  paymentMethodType: string | null;
+  paymentMethodLast4: string | null;
+  authorizedAt: string | null;
+  paidAt: string | null;
+  failedAt: string | null;
+  failureCode: string | null;
+  expiresAt: string | null;
+  refundedAmount: MoneyString;
+}
+
+/** What the client must do next. Opaque to the client (api.md §6.4). */
+export interface PaymentActionDto {
+  type: 'REDIRECT' | 'FORM_POST' | 'SDK' | 'NONE';
+  url: string | null;
+  method: 'GET' | 'POST' | null;
+  fields: Record<string, string> | null;
+  clientPayload: Record<string, unknown> | null;
+}
+
+export interface CreatePaymentResultDto {
+  payment: PaymentDto;
+  action: PaymentActionDto;
+}
+
+export interface PaymentStatusDto {
+  id: string;
+  status: string;
+  paidAt: string | null;
+  failureCode: string | null;
+  /** The booking's own state, so the return page can stop polling. */
+  bookingStatus: string | null;
+}
+
+export interface PaymentTransactionDto {
+  id: string;
+  type: string;
+  amount: MoneyString;
+  currency: string;
+  status: string;
+  providerTransactionId: string | null;
+  providerResponseCode: string | null;
+  requestPayloadRedacted: Record<string, unknown> | null;
+  responsePayloadRedacted: Record<string, unknown> | null;
+  occurredAt: string;
+}
+
+/** Client-safe gateway configuration — never a secret. */
+export interface PaymentConfigDto {
+  providerCode: string;
+  methodTypes: string[];
+  currency: string;
+  publishableKey: string | null;
+  /** True for the development gateway: the checkout page is the app's own mock page. */
+  isMock: boolean;
+}
+
+export interface RefundDto extends TimestampedDto {
+  id: string;
+  refundNumber: string;
+  paymentId: string;
+  paymentNumber: string;
+  bookingId: string | null;
+  bookingNumber: string | null;
+  amount: MoneyString;
+  currency: string;
+  reasonCode: string;
+  reasonText: string | null;
+  status: string;
+  requestedByUserId: string | null;
+  approvedByUserId: string | null;
+  providerRefundId: string | null;
+  processedAt: string | null;
+}
+
+export interface WebhookReceiptDto {
+  received: boolean;
+  eventId: string;
+  duplicate: boolean;
+}

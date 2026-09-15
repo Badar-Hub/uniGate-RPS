@@ -75,7 +75,22 @@
       "CANCELLATION_FEE_OVERRIDE_FORBIDDEN": "لا يمكنك تجاوز رسوم الإلغاء.",
       "CANCELLATION_FEE_LOCKED": "لم يعد بالإمكان تغيير الرسوم.",
       "CANCELLATION_REASON_NOT_ALLOWED": "هذا السبب غير متاح لك.",
-      "DRIVER_NOT_ASSIGNED_TO_VEHICLE": "السائق غير مسند لهذه المركبة."
+      "DRIVER_NOT_ASSIGNED_TO_VEHICLE": "السائق غير مسند لهذه المركبة.",
+      "PAYMENT_ALREADY_CAPTURED": "هذا الحجز مدفوع بالفعل.",
+      "PAYMENT_ALREADY_PENDING": "هناك عملية دفع جارية لهذا الحجز.",
+      "PAYMENT_AMOUNT_MISMATCH": "السعر المعروض قديم — أعد تحميل الصفحة وحاول مجدداً.",
+      "PAYMENT_DECLINED": "تم رفض الدفع.",
+      "PAYMENT_METHOD_UNSUPPORTED": "طريقة الدفع هذه غير متاحة.",
+      "PAYMENT_NOT_REFUNDABLE": "لا يمكن استرداد هذه الدفعة.",
+      "PAYMENT_EXPIRED": "انتهت جلسة الدفع. ابدأ عملية دفع جديدة.",
+      "PAYMENT_INVALID_TRANSITION": "هذا الإجراء غير متاح في حالة الدفع الحالية.",
+      "PAYMENT_RETURN_URL_NOT_ALLOWED": "عنوان العودة غير مسموح به.",
+      "PAYMENT_GATEWAY_ERROR": "بوابة الدفع لا تستجيب. لم يُحصَّل أي مبلغ؛ حاول مجدداً بعد قليل.",
+      "INVOICE_PAYMENTS_NOT_AVAILABLE": "دفع الفواتير غير متاح بعد.",
+      "REFUND_EXCEEDS_CAPTURED": "المبلغ المسترد يتجاوز المبلغ المحصَّل.",
+      "REFUND_ALREADY_PROCESSED": "هذا الاسترداد قيد المعالجة بالفعل.",
+      "REFUND_INVALID_TRANSITION": "هذا الإجراء غير متاح في حالة الاسترداد الحالية.",
+      "REFUND_FOUR_EYES": "يجب أن يعتمد الاسترداد شخص غير مقدّم الطلب."
     }
   },
   "home": {
@@ -522,6 +537,35 @@
         "PAYMENT_FAILED": "فشل الدفع",
         "PAYMENT_WINDOW_EXPIRED": "انتهت مهلة الدفع",
         "OTHER": "أخرى"
+      }
+    },
+    "payments": {
+      "payNow": "ادفع الآن",
+      "method": "طريقة الدفع",
+      "pay": "ادفع {amount} {currency}",
+      "redirecting": "جارٍ نقلك إلى صفحة الدفع…",
+      "confirming": "جارٍ تأكيد الدفع مع بوابة الدفع…",
+      "confirmed": "تم استلام الدفع — حجزك مؤكد.",
+      "failed": "لم تكتمل عملية الدفع ({code}). يمكنك المحاولة مجدداً.",
+      "stillPending": "لم نتلقَّ رداً من بوابة الدفع بعد. يبقى حجزك محجوزاً حتى {due}؛ ستواصل هذه الصفحة التحقق.",
+      "bankTransfer": "تحويل بنكي: اذكر المرجع {reference}. يُؤكَّد الحجز بعد أن يطابق فريقنا التحويل.",
+      "methods": {
+        "MADA": "مدى",
+        "VISA": "فيزا",
+        "MASTERCARD": "ماستركارد",
+        "STC_PAY": "STC Pay",
+        "APPLE_PAY": "Apple Pay",
+        "BANK_TRANSFER": "تحويل بنكي",
+        "CASH": "نقداً"
+      },
+      "mock": {
+        "title": "بوابة الدفع التجريبية",
+        "subtitle": "هذه صفحة دفع تجريبية. لا يُحصَّل أي مبلغ فعلي؛ تُرسل النتيجة التي تختارها إلى يونيجيت كإشعار موقّع تماماً كما تفعل البوابة الحقيقية.",
+        "amount": "المبلغ",
+        "succeed": "محاكاة دفع ناجح",
+        "decline": "محاكاة بطاقة مرفوضة",
+        "done": "تم إرسال النتيجة. جارٍ العودة إلى يونيجيت…",
+        "unknown": "جلسة الدفع هذه غير معروفة أو اكتملت بالفعل."
       }
     }
   }

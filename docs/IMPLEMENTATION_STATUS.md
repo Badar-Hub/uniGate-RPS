@@ -1,7 +1,7 @@
 # UniGate — Implementation Status
 
 **Last updated:** 2026-09-15
-**Current phase:** **Phase 8 complete** (2026-09-15) → Phase 9 (Payments) ready to start — **gateway choice (OQ-03) is due now (M-PAY)**
+**Current phase:** **Phase 9 complete** (2026-09-15, on `MockGateway` by UniGate’s decision — real adapter later) → Phase 10 (Trips & tracking) ready to start
 **Overall:** Foundation built and verified end to end: monorepo, typed packages, API core, full Prisma schema (82 tables) with hand-written constraints, seeds, migration-integrity test, web scaffold (shadcn/ui, ar/en RTL), CI. `pnpm ci` is green (20/20 tasks). See [development.md](development.md).
 
 > **Schema-blocking questions resolved 2026-09-14.**
@@ -31,7 +31,7 @@ Status values: `NOT_STARTED` · `IN_PROGRESS` · `BLOCKED` · `COMPLETE`
 | 6 | Trip requests | **COMPLETE** 2026-09-15 | See *Phase 6 exit* below. Core `demand` + passenger plugin; goods requests answer `501 VERTICAL_NOT_ENABLED` ([ADR-010](decisions/ADR-010-vertical-modules-over-a-shared-core.md)) |
 | 7 | Bidding | **COMPLETE** 2026-09-15 | See *Phase 7 exit* below. Acceptance transaction under the global lock order; **N-way concurrent acceptance test green** |
 | 8 | Bookings | **COMPLETE** 2026-09-15 | See *Phase 8 exit* below. ~~Cancellation fee tiers pending OQ-05~~ answered 2026-09-15 — admin-configured policies + per-case override/waiver, both implemented |
-| 9 | Payments | `NOT_STARTED` | Production gateway **BLOCKED** on OQ-03 — decision due at start of Phase 8 (**M-PAY**); MockGateway path is unblocked |
+| 9 | Payments | **COMPLETE** 2026-09-15 | See *Phase 9 exit* below. `MockGateway` behind the `PaymentGateway` port; the real adapter is a later swap (OQ-03) |
 | 10 | Trip execution & tracking | `NOT_STARTED` | ~~Hardware GPS pending OQ-11~~ none fitted — driver-app GPS at launch |
 | 11 | Finance | `NOT_STARTED` | ~~Commission rate OQ-01~~ answered 2026-09-15 (admin-configured + per-trip override); settlement cycle OQ-06, self-billing OQ-25/OQ-30, SPO OQ-09 |
 | 11b | **Goods vertical** | `NOT_STARTED` | New phase per [ADR-010](decisions/ADR-010-vertical-modules-over-a-shared-core.md): goods request/validation, goods trip state machine, freight checklist, Bayan hook, zero-rating decision, goods portal sections. **Gated on OQ-13 (freight) and OQ-29 only** |
@@ -187,6 +187,28 @@ Verified on 2026-09-15 with `pnpm turbo run typecheck lint test build --force` (
 
 ---
 
+## Phase 9 exit — what was verified
+
+Verified on 2026-09-15 with `pnpm turbo run typecheck lint test build --force` (20/20 tasks), 111 tests (97 API: 12 migration-integrity, 10 auth lifecycle, 43 authorization matrix, 6 profiles & documents, 6 fleet, 3 demand, 3 bidding, 3 bookings, 4 payments, 7 unit; 14 package), plus a live browser session: *Pay now* on a PENDING_PAYMENT booking → the mock hosted checkout → *simulate success* → the gateway's signed webhook lands on the real `/webhooks/payments/mock` route → the return page polls `/payments/{id}/status` and shows *Payment received* with the booking **Confirmed / Paid** and a balanced posting in the ledger.
+
+**The gateway is `MockGateway` by UniGate's decision (2026-09-15): the real adapter is swapped in later.** Everything below runs behind the `PaymentGateway` port (ADR-005); the production adapter is one class implementing `createPayment · getPaymentStatus · refundPayment · verifyWebhook · parseWebhook` and one line in the registry. Environment validation refuses to boot production with `PAYMENT_PROVIDER=mock`.
+
+| Area | Delivered | Proof |
+|---|---|---|
+| Port + mock | `integrations/payments/gateway.ts` (the port), `mock.gateway.ts` (a full implementation: hosted-page redirect, `BANK_TRANSFER` → `NONE` action, HMAC-SHA256 over `timestamp.rawBody` with constant-time compare and a ±5 min replay window, scriptable SUCCESS / DECLINE / AUTHORIZE_ONLY / silent settle / refund outcomes), registry keyed on `PAYMENT_PROVIDER` | payments test |
+| Intent | `POST /payments` (Idempotency-Key required): exactly one of booking/invoice (form-level error, mirrors `ck_payments_single_target`), **the client's amount is compared only to catch a stale price** (`PAYMENT_AMOUNT_MISMATCH`) — the charged amount is the server's; method gate from `finance.payment_methods_enabled` ∩ gateway support (new setting); return-URL allow-list (app origin + CORS origins); one live intent per booking (`PAYMENT_ALREADY_PENDING`); INVOICED bookings refused (A-46); adapter error → `502 PAYMENT_GATEWAY_ERROR` with the row left PENDING and a FAILED `AUTHORIZE` transaction — "unknown", not "did not happen" | test "intent…" |
+| Webhooks | Raw body (the global JSON parser is bypassed for `/webhooks/*`); verify → **persist first** (unique `(provider, event id)`) → 200 → job (`unigate-payments` BullMQ queue, job id = event row id) with a sweeper for rows whose job never ran; forged signature → **stored as evidence under its own key and answered 401** (a forged delivery carrying a genuine event id must not block the genuine one — found and fixed in the test); redelivery → `duplicate: true`, nothing reprocessed; a late `authorized` after `captured` is recorded `IGNORED` — the state machine, not arrival order, decides; unknown provider → 404 | test "webhooks…" |
+| Capture | Under the payment's row lock: PAID, `CAPTURE` transaction with redacted payloads, audit, booking `payment_status = PAID` and `PENDING_PAYMENT → CONFIRMED`, ledger `DEBIT CASH_GATEWAY gross / CREDIT OWNER_PAYABLE ownerNet / CREDIT PLATFORM_COMMISSION_REVENUE / CREDIT VAT_PAYABLE commissionVat` following the frozen booking split; every group asserted balanced before write (`LEDGER_UNBALANCED` is a 500); `ownerPayableBalance` = credits − debits | same test |
+| Reconciliation | `POST /payments/{id}/sync` (payments.manage) applies `getPaymentStatus()` server-to-server; the worker reconciles PENDING payments older than 10 min and cancels expired ones; `POST …/cancel` for an abandoned checkout; `GET …/status` reads local state only | test "decline → FAILED; /sync…" |
+| Refunds | Cancelling a paid booking **requests** a refund for the refundable amount (never moves money in the cancellation); `POST /refunds` with Σ ≤ captured under the lock (`REFUND_EXCEEDS_CAPTURED`); four-eyes approval (`REFUND_FOUR_EYES`); `process` → 202, `PaymentGateway.refundPayment()`, PROCESSING; the gateway's refund webhook → COMPLETED, payment REFUNDED / PARTIALLY_REFUNDED, booking `CANCELLED → REFUNDED`, **pro-rata reversing postings** that balance | test "refunds…" |
+| Web | Pay-now panel (method select from `/payments/config`, redirect to the gateway action, bank-transfer reference for `NONE`), the mock hosted checkout page (`/pay/mock/{id}`), return page with bounded-backoff status polling that never assumes success from the return itself | browser session |
+| Also | BullMQ 6 rejects `:` in queue names — the pre-existing `unigate:events` / `unigate:maintenance` names would have failed at worker boot; renamed; the test harness now closes queues on teardown | worker |
+| OpenAPI | 135 paths / 156 schemas, diff-checked | `openapi:check` |
+
+**Carried forward:** the real gateway adapter (OQ-03 — UniGate will name the provider; ~1–2 weeks); fare VAT under the deemed-supplier model is recorded in the snapshot but not yet split out of the owner payable in the postings (ADR-008 pending the advisor); `paymentFeeAmount` stays 0 until the provider reports fees; saved instruments (`/payments/methods/saved`) and invoice payments land with invoicing (Phase 11); a refunds admin screen is Phase 13 (the API is complete); `PUT /payments/config` is the settings API (`finance.payment_methods_enabled`).
+
+---
+
 ## Module status
 
 | Module | Status | Backend | Frontend | Tests | Notes |
@@ -201,8 +223,8 @@ Verified on 2026-09-15 with `pnpm turbo run typecheck lint test build --force` (
 | `bookings` | **DONE (Phase 8)** | repository (scope, filters, locks, reservation release, driver conflicts), service (award creation, reads by role, quote = cancel, waive, confirm, assign-driver → trip row, ready, payment-window sweeper), mapper, routes, openapi | ✅ | db (bookings 3, matrix) | Admin booking / PATCH, dispute, no-show: Phases 10/13. |
 | `trips` | NOT_STARTED | — | — | — | Phase 10. |
 | `tracking` | NOT_STARTED | — | — | — | Socket.IO + tiered storage. Phase 10. |
-| `payments` | NOT_STARTED | — | — | — | Gateway abstraction. Phase 9. |
-| `finance` | IN_PROGRESS | commission.repository + commission.service (rule resolution, override precedence, `computeFinancials`); cancellation-policy.service (policy resolution, tiers, no-cancel window, override) | — | via bidding + bookings tests | Ledger + settlements: Phase 11. |
+| `payments` | **DONE (Phase 9, MockGateway)** | payment.repository, payment.service (intent, state machine, capture postings, sync, reconciliation), webhook.service (verify → persist → 200 → job), refund.service (four-eyes, process, pro-rata reversal), jobs, routes, openapi; `integrations/payments` port + mock | ✅ | db (payments 4, matrix) | Real adapter when UniGate names the provider (OQ-03). |
+| `finance` | IN_PROGRESS | commission.service, cancellation-policy.service, **ledger.service** (balanced transaction groups, `ownerPayableBalance`) | — | via bidding, bookings, payments tests | Settlements, invoices: Phase 11. |
 | `maintenance` | NOT_STARTED | — | — | — | Phase 12. |
 | `engagement` | NOT_STARTED | — | — | — | Ratings + complaints. Phase 13. |
 | `notifications` | NOT_STARTED | — | — | — | OTP path lands in Phase 3; full system Phase 13. |

@@ -75,7 +75,22 @@
       "CANCELLATION_FEE_OVERRIDE_FORBIDDEN": "You may not override the cancellation fee.",
       "CANCELLATION_FEE_LOCKED": "The fee can no longer be changed.",
       "CANCELLATION_REASON_NOT_ALLOWED": "That reason is not available to you.",
-      "DRIVER_NOT_ASSIGNED_TO_VEHICLE": "The driver is not assigned to this vehicle."
+      "DRIVER_NOT_ASSIGNED_TO_VEHICLE": "The driver is not assigned to this vehicle.",
+      "PAYMENT_ALREADY_CAPTURED": "This booking is already paid.",
+      "PAYMENT_ALREADY_PENDING": "A payment is already in progress for this booking.",
+      "PAYMENT_AMOUNT_MISMATCH": "The price shown was out of date — please reload and try again.",
+      "PAYMENT_DECLINED": "The payment was declined.",
+      "PAYMENT_METHOD_UNSUPPORTED": "That payment method is not available.",
+      "PAYMENT_NOT_REFUNDABLE": "This payment cannot be refunded.",
+      "PAYMENT_EXPIRED": "The checkout expired. Start a new payment.",
+      "PAYMENT_INVALID_TRANSITION": "This action is not available for the payment’s current state.",
+      "PAYMENT_RETURN_URL_NOT_ALLOWED": "The return address is not allowed.",
+      "PAYMENT_GATEWAY_ERROR": "The payment gateway is not responding. Nothing was charged; please try again shortly.",
+      "INVOICE_PAYMENTS_NOT_AVAILABLE": "Invoice payments are not available yet.",
+      "REFUND_EXCEEDS_CAPTURED": "The refund exceeds the captured amount.",
+      "REFUND_ALREADY_PROCESSED": "This refund is already being processed.",
+      "REFUND_INVALID_TRANSITION": "This action is not available for the refund’s current state.",
+      "REFUND_FOUR_EYES": "A refund must be approved by someone other than the requester."
     }
   },
   "home": {
@@ -522,6 +537,35 @@
         "PAYMENT_FAILED": "Payment failed",
         "PAYMENT_WINDOW_EXPIRED": "Payment window expired",
         "OTHER": "Other"
+      }
+    },
+    "payments": {
+      "payNow": "Pay now",
+      "method": "Payment method",
+      "pay": "Pay {amount} {currency}",
+      "redirecting": "Taking you to the payment page…",
+      "confirming": "Confirming your payment with the gateway…",
+      "confirmed": "Payment received — your booking is confirmed.",
+      "failed": "The payment was not completed ({code}). You can try again.",
+      "stillPending": "We have not heard back from the gateway yet. Your booking stays reserved until {due}; this page will keep checking.",
+      "bankTransfer": "Bank transfer: quote reference {reference}. The booking is confirmed once our team reconciles the transfer.",
+      "methods": {
+        "MADA": "mada",
+        "VISA": "Visa",
+        "MASTERCARD": "Mastercard",
+        "STC_PAY": "STC Pay",
+        "APPLE_PAY": "Apple Pay",
+        "BANK_TRANSFER": "Bank transfer",
+        "CASH": "Cash"
+      },
+      "mock": {
+        "title": "Development gateway",
+        "subtitle": "This is the mock checkout. No real payment is taken; the outcome you choose is delivered to UniGate as a signed webhook, exactly as a real gateway would.",
+        "amount": "Amount",
+        "succeed": "Simulate successful payment",
+        "decline": "Simulate declined card",
+        "done": "Outcome delivered. Returning to UniGate…",
+        "unknown": "This checkout session is unknown or has already completed."
       }
     }
   }

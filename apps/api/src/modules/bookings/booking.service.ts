@@ -12,6 +12,7 @@ import { recordBookingCancellation } from '@/modules/demand/trip-request.service
 import { computeFee, resolvePolicy, type FeeOverride, type FeeVerdict } from '@/modules/finance/cancellation-policy.service.js';
 import { CALCULATION_VERSION, computeFinancials, ruleSnapshot, type ResolvedCommission } from '@/modules/finance/commission.service.js';
 import { isDriverAssignedToVehicle } from '@/modules/fleet/vehicle.service.js';
+import { requestRefundForCancellation } from '@/modules/payments/refund.service.js';
 import { writeAudit } from '@/modules/platform/audit.service.js';
 import { driverNominationCheck } from '@/modules/profiles/driver.service.js';
 import { toBookingDto, toCancellationDto, toHistoryDto } from './bookings.mapper.js';
@@ -226,13 +227,15 @@ export async function cancelBooking(scope: ActorScope, id: string, body: z.infer
     await transition(scope, b, 'CANCELLED', body.reasonCode, { cancelledAt: now }, tx, { role, feeAmount: fee.toFixed(2), actedFor: role === 'ADMIN' ? 'staff' : 'self' });
     await repo.releaseReservation(scope, b.id, tx);
     await recordBookingCancellation(scope, b.tripRequestId, tx);
-    // A refund row needs a captured payment to refund against; that path lands with payments (Phase 9).
-    await writeAudit({ ...audit(scope), action: 'booking.cancelled', entityType: 'booking', entityId: b.id, severity: waived || override ? 'NOTICE' : 'INFO', beforeValue: { status: b.status }, afterValue: { status: 'CANCELLED', role, reasonCode: body.reasonCode, feeAmount: fee.toFixed(2), refundAmount: refund.toFixed(2), feeSource: waived ? 'NONE' : verdict.feeSource, waived, override: verdict.overrideSnapshot } }, tx);
+    // A captured payment gets a REQUESTED refund for the refundable amount; it is processed through the refund approval flow, never here.
+    const refundRow = body.requestRefund ? await requestRefundForCancellation(scope, b.id, refund, scope.actor.userId, tx) : null;
+    await writeAudit({ ...audit(scope), action: 'booking.cancelled', entityType: 'booking', entityId: b.id, severity: waived || override ? 'NOTICE' : 'INFO', beforeValue: { status: b.status }, afterValue: { status: 'CANCELLED', role, reasonCode: body.reasonCode, feeAmount: fee.toFixed(2), refundAmount: refund.toFixed(2), feeSource: waived ? 'NONE' : verdict.feeSource, waived, override: verdict.overrideSnapshot, refundRequested: refundRow?.refundNumber ?? null } }, tx);
     await publishEvent('booking', b.id, 'booking.cancelled', { bookingNumber: b.bookingNumber, tripRequestId: b.tripRequestId, customerProfileId: b.customerProfileId, ownerProfileId: b.ownerProfileId, driverProfileId: b.driverProfileId, role, reasonCode: body.reasonCode, feeAmount: fee.toFixed(2), refundAmount: refund.toFixed(2) }, tx);
   });
   const after = await repo.findBooking(scope, id);
   if (!after?.cancellation) throw new NotFoundError();
-  return { booking: bookingDtoFor(scope, after), cancellation: toCancellationDto(after.cancellation), refund: null, calendarEntryReleased: after.calendarEntry?.status === 'RELEASED' };
+  const refundRow = await prisma().refund.findFirst({ where: { bookingId: id, reasonCode: 'BOOKING_CANCELLED' }, orderBy: { createdAt: 'desc' }, select: { id: true, refundNumber: true, status: true, amount: true, currency: true } });
+  return { booking: bookingDtoFor(scope, after), cancellation: toCancellationDto(after.cancellation), refund: refundRow ? { id: refundRow.id, refundNumber: refundRow.refundNumber, status: refundRow.status, amount: toMoneyString(refundRow.amount), currency: refundRow.currency } : null, calendarEntryReleased: after.calendarEntry?.status === 'RELEASED' };
 }
 
 /** POST /bookings/{id}/cancellation/waive-fee — admin, before the refund/settlement line is processed. */
@@ -326,4 +329,53 @@ export async function expireUnpaidBookings(): Promise<number> {
     });
   }
   return n;
+}
+
+// ── payment integration (Phase 9) ────────────────────────────────────────────
+
+export interface BookingPaymentView {
+  id: string;
+  bookingNumber: string;
+  customerProfileId: string;
+  ownerProfileId: string;
+  status: Status;
+  paymentStatus: repo.BookingRow['paymentStatus'];
+  billingMode: repo.BookingRow['billingMode'];
+  totalAmount: Decimal;
+  currency: string;
+  paymentDueBy: Date | null;
+  /** The frozen split the ledger postings follow; null only for a booking created before snapshots existed. */
+  split: { grossAmount: Decimal; vatAmount: Decimal; commissionAmount: Decimal; commissionVatAmount: Decimal; paymentFeeAmount: Decimal; ownerNetAmount: Decimal; vatTreatment: string } | null;
+}
+
+/** The booking as the payments module sees it (scoped). */
+export async function bookingForPayment(scope: AnyScope, id: string, tx: Prisma.TransactionClient | null = null): Promise<BookingPaymentView | null> {
+  const b = await repo.findBooking(scope, id, tx);
+  if (!b) return null;
+  const f = b.financialSnapshot;
+  return {
+    id: b.id, bookingNumber: b.bookingNumber, customerProfileId: b.customerProfileId, ownerProfileId: b.ownerProfileId, status: b.status, paymentStatus: b.paymentStatus, billingMode: b.billingMode, totalAmount: b.totalAmount, currency: b.currency, paymentDueBy: b.paymentDueBy,
+    split: f ? { grossAmount: f.grossAmount, vatAmount: b.vatAmount, commissionAmount: f.commissionAmount, commissionVatAmount: f.commissionVatAmount, paymentFeeAmount: f.paymentFeeAmount, ownerNetAmount: f.ownerNetAmount, vatTreatment: f.vatTreatment } : null,
+  };
+}
+
+/** The gateway confirmed capture: payment_status PAID and PENDING_PAYMENT → CONFIRMED (the normal PREPAID path). Idempotent. */
+export async function applyPaymentCaptured(scope: AnyScope, bookingId: string, tx: Prisma.TransactionClient): Promise<{ confirmedNow: boolean }> {
+  await repo.lockBooking(scope, bookingId, tx);
+  const b = await repo.findBooking(scope, bookingId, tx);
+  if (!b) throw new NotFoundError();
+  if (b.paymentStatus !== 'PAID') await tx.booking.update({ where: { id: bookingId }, data: { paymentStatus: 'PAID' } });
+  if (b.status !== 'PENDING_PAYMENT') return { confirmedNow: false };
+  await transition(scope, b, 'CONFIRMED', 'payment captured', { confirmedAt: new Date(), paymentDueBy: null }, tx, { source: 'gateway' });
+  await publishEvent('booking', bookingId, 'booking.confirmed', { bookingNumber: b.bookingNumber, customerProfileId: b.customerProfileId, ownerProfileId: b.ownerProfileId, opsOverride: false }, tx);
+  return { confirmedNow: true };
+}
+
+/** A refund settled: payment_status REFUNDED / PARTIALLY_REFUNDED; a fully refunded CANCELLED booking moves to REFUNDED. */
+export async function applyRefundCompleted(scope: AnyScope, bookingId: string, fullyRefunded: boolean, tx: Prisma.TransactionClient): Promise<void> {
+  await repo.lockBooking(scope, bookingId, tx);
+  const b = await repo.findBooking(scope, bookingId, tx);
+  if (!b) throw new NotFoundError();
+  await tx.booking.update({ where: { id: bookingId }, data: { paymentStatus: fullyRefunded ? 'REFUNDED' : 'PARTIALLY_REFUNDED' } });
+  if (fullyRefunded && b.status === 'CANCELLED') await transition(scope, b, 'REFUNDED', 'refund completed', {}, tx, { source: 'gateway' });
 }
