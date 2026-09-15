@@ -19,6 +19,7 @@ Vehicle Hiring & Management Platform (passenger + goods transport), Kingdom of S
 | 6a | [open-questions-for-unigate.md](open-questions-for-unigate.md) | The same 18 questions written for the client — plain language, grouped by urgency, ready to send |
 | 7 | [IMPLEMENTATION_STATUS.md](IMPLEMENTATION_STATUS.md) | Progress by phase and module |
 | 8 | [TODO.md](TODO.md) | Outstanding engineering work |
+| 9 | [uat-checklist.md](uat-checklist.md) | Hands-on test script for every module on a running dev stack |
 
 ## Architecture decision records
 
