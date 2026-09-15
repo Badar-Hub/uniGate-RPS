@@ -46,7 +46,10 @@
       "DRIVER_NOT_APPROVED": "The driver is not approved yet.",
       "DRIVER_LICENSE_EXPIRED": "The driver’s licence has expired.",
       "DRIVER_ALREADY_ON_TRIP": "The driver is on a trip.",
-      "CONFLICT": "This already exists or is still in use."
+      "CONFLICT": "This already exists or is still in use.",
+      "TRIP_REQUEST_DETAIL_MISMATCH": "The request details do not match the transport type.",
+      "TRIP_REQUEST_INVALID_TRANSITION": "This action is not possible in the request’s current state.",
+      "VERTICAL_NOT_ENABLED": "Goods transport is not available yet."
     }
   },
   "home": {
@@ -108,7 +111,9 @@
       "adminReview": "Approvals",
       "settings": "Settings",
       "fleet": "Fleet",
-      "vehicleApprovals": "Vehicle approvals"
+      "vehicleApprovals": "Vehicle approvals",
+      "requests": "My requests",
+      "opportunities": "Opportunities"
     },
     "welcome": "Welcome, {name}",
     "roles": "Roles",
@@ -265,6 +270,94 @@
         "SUSPENDED": "Suspended",
         "ARCHIVED": "Archived"
       }
+    },
+    "requests": {
+      "title": "My requests",
+      "subtitle": "Raise a request, publish it to matching owners, and compare their bids.",
+      "newRequest": "New request",
+      "empty": "No requests yet.",
+      "number": "Request",
+      "route": "Route",
+      "pickup": "Pickup",
+      "vehicles": "Vehicles",
+      "status": {
+        "DRAFT": "Draft",
+        "PUBLISHED": "Published",
+        "PARTIALLY_AWARDED": "Partially awarded",
+        "FULLY_AWARDED": "Fully awarded",
+        "CLOSED_PARTIAL": "Closed (partial)",
+        "COMPLETED": "Completed",
+        "CANCELLED": "Cancelled",
+        "EXPIRED": "Expired"
+      },
+      "bidding": "Bidding",
+      "open": "Open",
+      "closed": "Closed",
+      "invited": "{count} owners invited",
+      "form": {
+        "title": "New passenger request",
+        "category": "Vehicle category",
+        "vehiclesRequired": "Vehicles needed",
+        "partial": "Can we send these in batches, or do you need them all together?",
+        "partialYes": "Batches are fine",
+        "partialNo": "All together",
+        "direction": "Direction",
+        "oneWay": "One way",
+        "roundTrip": "Round trip",
+        "pickupAddress": "Pickup address",
+        "pickupCity": "Pickup city",
+        "dropoffAddress": "Drop-off address",
+        "dropoffCity": "Drop-off city",
+        "savedLocation": "Use a saved location",
+        "pickupAt": "Pickup time",
+        "returnAt": "Return time",
+        "passengers": "Passengers",
+        "luggage": "Luggage pieces",
+        "purpose": "Purpose",
+        "wheelchair": "Wheelchair access needed",
+        "femaleDriver": "Female driver required",
+        "childSeats": "Child seats",
+        "budget": "Budget (SAR, optional)",
+        "instructions": "Special instructions (shown to the awarded owner only)",
+        "publishNow": "Publish now",
+        "saveDraft": "Save as draft",
+        "created": "Request created.",
+        "published": "Request published to {count} matching owners."
+      },
+      "detail": {
+        "publish": "Publish",
+        "cancel": "Cancel request",
+        "cancelReason": "Reason",
+        "delete": "Delete draft",
+        "estimate": "Estimate",
+        "distance": "{km} km",
+        "duration": "{min} min",
+        "deadline": "Bids close",
+        "invitations": "Invited owners",
+        "noInvitations": "No owner has a matching vehicle available yet."
+      },
+      "purpose": {
+        "AIRPORT_TRANSFER": "Airport transfer",
+        "INTERCITY": "Intercity",
+        "CITY_TOUR": "City tour",
+        "EMPLOYEE_TRANSPORT": "Employee transport",
+        "HAJJ_UMRAH": "Hajj / Umrah",
+        "EVENT": "Event",
+        "OTHER": "Other"
+      }
+    },
+    "opportunities": {
+      "title": "Opportunities",
+      "subtitle": "Requests that match your fleet and service areas. Contact details are shared once your bid is accepted.",
+      "empty": "No open opportunities right now.",
+      "match": "Match",
+      "eligible": "Your eligible vehicles",
+      "dismiss": "Dismiss",
+      "undo": "Restore",
+      "showDismissed": "Show dismissed",
+      "passengers": "{count} passengers",
+      "bidSoon": "Bidding opens in Phase 7",
+      "closes": "Bids close {date}"
     }
   }
 }

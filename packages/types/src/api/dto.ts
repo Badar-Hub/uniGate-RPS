@@ -608,3 +608,117 @@ export interface VehicleAssignmentDto {
   unassignedReason: string | null;
   assignedByUserId: string | null;
 }
+
+// ── Demand (api.md §8.11–§8.12) ───────────────────────────────────────────────
+
+export interface TripLocationDto {
+  addressLine: string;
+  cityId: string;
+  latitude: number;
+  longitude: number;
+  placeId: string | null;
+}
+
+export interface PassengerDetailsDto {
+  passengerCount: number;
+  luggageCount: number;
+  luggageNotes: string | null;
+  tripPurpose: string;
+  requiresFemaleDriver: boolean;
+  requiresWheelchairAccess: boolean;
+  childSeatsRequired: number;
+  waitingTimeMinutes: number;
+  isMultiDay: boolean;
+  driverLanguagePreference: string[];
+}
+
+export interface GoodsDetailsDto {
+  cargoType: string;
+  cargoDescription: string;
+  cargoWeightKg: MoneyString;
+  cargoVolumeM3: MoneyString | null;
+  packageCount: number | null;
+  requiresRefrigeration: boolean;
+  requiredTemperatureMinC: number | null;
+  requiredTemperatureMaxC: number | null;
+  requiresTailLift: boolean;
+  requiresCrane: boolean;
+  loadingResponsibility: string;
+  unloadingResponsibility: string;
+  loadingInstructions: string | null;
+  unloadingInstructions: string | null;
+  declaredValueAmount: MoneyString | null;
+  requiresInsurance: boolean;
+  hazmatClass: string | null;
+  /** Redacted for owners until they hold an accepted bid. */
+  shipperContactName: string | null;
+  shipperContactPhone: string | null;
+  consigneeContactName: string | null;
+  consigneeContactPhone: string | null;
+}
+
+export interface TripRequestDto extends TimestampedDto {
+  id: string;
+  requestNumber: string;
+  customerProfileId: string;
+  status: string;
+  transportType: string;
+  vehicleCategory: { id: string; code: string; nameEn: string; nameAr: string } | null;
+  vehiclesRequired: number;
+  allowPartialFulfilment: boolean;
+  vehiclesAwarded: number;
+  vehiclesDispatched: number;
+  vehiclesCompleted: number;
+  vehiclesCancelled: number;
+  tripDirection: string;
+  pickup: TripLocationDto;
+  dropoff: TripLocationDto;
+  pickupAt: string;
+  returnAt: string | null;
+  biddingClosesAt: string;
+  remainderClosesAt: string | null;
+  /** Deadline property (api.md §4.4): bids are accepted while this is true. */
+  biddingOpen: boolean;
+  estimatedDistanceKm: MoneyString | null;
+  estimatedDurationMinutes: number | null;
+  budgetAmount: MoneyString | null;
+  currency: string;
+  /** Redacted (null) in the owner projection until an accepted bid. */
+  specialInstructions: string | null;
+  cancellationReason: string | null;
+  passengerDetails: PassengerDetailsDto | null;
+  goodsDetails: GoodsDetailsDto | null;
+  invitedOwnerCount: number;
+  /** True when the caller sees the owner projection (contacts redacted). */
+  redacted: boolean;
+}
+
+export interface InvitationDto {
+  id: string;
+  tripRequestId: string;
+  ownerProfileId: string;
+  ownerName: string;
+  vehicleId: string | null;
+  vehiclePlate: string | null;
+  matchScore: string | null;
+  matchReason: Record<string, unknown>;
+  notifiedAt: string | null;
+  viewedAt: string | null;
+  dismissedAt: string | null;
+  createdAt: string;
+}
+
+/** The owner's view of demand — an invitation joined to its (redacted) request. */
+export interface OpportunityDto {
+  id: string;
+  request: TripRequestDto;
+  matchScore: string | null;
+  matchReason: Record<string, unknown>;
+  viewedAt: string | null;
+  dismissedAt: string | null;
+  /** Vehicles of the owner that satisfy the request (dispatchable, category, capacity). */
+  eligibleVehicles: { id: string; plateNumberEn: string; categoryCode: string; passengerCapacity: number | null; payloadCapacityKg: MoneyString | null }[];
+  /** The owner's live bid on this request, if any (Phase 7). */
+  ownBidId: string | null;
+  createdAt: string;
+}

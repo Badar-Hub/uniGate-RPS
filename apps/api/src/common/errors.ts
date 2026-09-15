@@ -66,6 +66,11 @@ export class ConflictError extends AppError {
   readonly status = ERROR_CLASS_STATUS.ConflictError;
 }
 
+/** A vertical or feature that exists in the contract but is not enabled on this deployment (ADR-010: VERTICAL_NOT_ENABLED). */
+export class NotImplementedError extends AppError {
+  readonly status = ERROR_CLASS_STATUS.NotImplementedError;
+}
+
 /** The request violates a domain rule; retrying the identical request will never succeed. */
 export class BusinessRuleError extends AppError {
   readonly status = ERROR_CLASS_STATUS.BusinessRuleError;

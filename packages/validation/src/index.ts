@@ -6,3 +6,4 @@ export * from './profiles.js';
 export * from './documents.js';
 export * from './fleet.js';
 export * from './reference.js';
+export * from './demand.js';

@@ -5109,6 +5109,758 @@
           "message",
           "meta"
         ]
+      },
+      "TripLocation": {
+        "type": "object",
+        "properties": {
+          "addressLine": {
+            "type": "string"
+          },
+          "cityId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "latitude": {
+            "type": "number"
+          },
+          "longitude": {
+            "type": "number"
+          },
+          "placeId": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "addressLine",
+          "cityId",
+          "latitude",
+          "longitude",
+          "placeId"
+        ]
+      },
+      "PassengerDetails": {
+        "type": [
+          "object",
+          "null"
+        ],
+        "properties": {
+          "passengerCount": {
+            "type": "integer"
+          },
+          "luggageCount": {
+            "type": "integer"
+          },
+          "luggageNotes": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "tripPurpose": {
+            "type": "string"
+          },
+          "requiresFemaleDriver": {
+            "type": "boolean"
+          },
+          "requiresWheelchairAccess": {
+            "type": "boolean"
+          },
+          "childSeatsRequired": {
+            "type": "integer"
+          },
+          "waitingTimeMinutes": {
+            "type": "integer"
+          },
+          "isMultiDay": {
+            "type": "boolean"
+          },
+          "driverLanguagePreference": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "passengerCount",
+          "luggageCount",
+          "luggageNotes",
+          "tripPurpose",
+          "requiresFemaleDriver",
+          "requiresWheelchairAccess",
+          "childSeatsRequired",
+          "waitingTimeMinutes",
+          "isMultiDay",
+          "driverLanguagePreference"
+        ]
+      },
+      "GoodsDetails": {
+        "type": [
+          "object",
+          "null"
+        ],
+        "properties": {
+          "cargoType": {
+            "type": "string"
+          },
+          "cargoDescription": {
+            "type": "string"
+          },
+          "cargoWeightKg": {
+            "type": "string"
+          },
+          "cargoVolumeM3": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "pattern": "^-?\\d+\\.\\d{2}$"
+          },
+          "packageCount": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "requiresRefrigeration": {
+            "type": "boolean"
+          },
+          "requiredTemperatureMinC": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "requiredTemperatureMaxC": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "requiresTailLift": {
+            "type": "boolean"
+          },
+          "requiresCrane": {
+            "type": "boolean"
+          },
+          "loadingResponsibility": {
+            "type": "string"
+          },
+          "unloadingResponsibility": {
+            "type": "string"
+          },
+          "loadingInstructions": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "unloadingInstructions": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "declaredValueAmount": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "pattern": "^-?\\d+\\.\\d{2}$"
+          },
+          "requiresInsurance": {
+            "type": "boolean"
+          },
+          "hazmatClass": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "shipperContactName": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "shipperContactPhone": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "consigneeContactName": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "consigneeContactPhone": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "cargoType",
+          "cargoDescription",
+          "cargoWeightKg",
+          "cargoVolumeM3",
+          "packageCount",
+          "requiresRefrigeration",
+          "requiredTemperatureMinC",
+          "requiredTemperatureMaxC",
+          "requiresTailLift",
+          "requiresCrane",
+          "loadingResponsibility",
+          "unloadingResponsibility",
+          "loadingInstructions",
+          "unloadingInstructions",
+          "declaredValueAmount",
+          "requiresInsurance",
+          "hazmatClass",
+          "shipperContactName",
+          "shipperContactPhone",
+          "consigneeContactName",
+          "consigneeContactPhone"
+        ]
+      },
+      "TripRequest": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "requestNumber": {
+            "type": "string"
+          },
+          "customerProfileId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "status": {
+            "type": "string"
+          },
+          "transportType": {
+            "type": "string",
+            "enum": [
+              "PASSENGER",
+              "GOODS"
+            ]
+          },
+          "vehicleCategory": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "properties": {
+              "id": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "code": {
+                "type": "string"
+              },
+              "nameEn": {
+                "type": "string"
+              },
+              "nameAr": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "id",
+              "code",
+              "nameEn",
+              "nameAr"
+            ]
+          },
+          "vehiclesRequired": {
+            "type": "integer"
+          },
+          "allowPartialFulfilment": {
+            "type": "boolean"
+          },
+          "vehiclesAwarded": {
+            "type": "integer"
+          },
+          "vehiclesDispatched": {
+            "type": "integer"
+          },
+          "vehiclesCompleted": {
+            "type": "integer"
+          },
+          "vehiclesCancelled": {
+            "type": "integer"
+          },
+          "tripDirection": {
+            "type": "string"
+          },
+          "pickup": {
+            "$ref": "#/components/schemas/TripLocation"
+          },
+          "dropoff": {
+            "$ref": "#/components/schemas/TripLocation"
+          },
+          "pickupAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "returnAt": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "biddingClosesAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "remainderClosesAt": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "biddingOpen": {
+            "type": "boolean",
+            "description": "deadline property, not a status — bids are accepted while true"
+          },
+          "estimatedDistanceKm": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "pattern": "^-?\\d+\\.\\d{2}$"
+          },
+          "estimatedDurationMinutes": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "budgetAmount": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "pattern": "^-?\\d+\\.\\d{2}$"
+          },
+          "currency": {
+            "type": "string"
+          },
+          "specialInstructions": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "cancellationReason": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "passengerDetails": {
+            "$ref": "#/components/schemas/PassengerDetails"
+          },
+          "goodsDetails": {
+            "$ref": "#/components/schemas/GoodsDetails"
+          },
+          "invitedOwnerCount": {
+            "type": "integer"
+          },
+          "redacted": {
+            "type": "boolean",
+            "description": "true for the owner projection: instructions, contacts and street addresses withheld until an accepted bid"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "requestNumber",
+          "customerProfileId",
+          "status",
+          "transportType",
+          "vehicleCategory",
+          "vehiclesRequired",
+          "allowPartialFulfilment",
+          "vehiclesAwarded",
+          "vehiclesDispatched",
+          "vehiclesCompleted",
+          "vehiclesCancelled",
+          "tripDirection",
+          "pickup",
+          "dropoff",
+          "pickupAt",
+          "returnAt",
+          "biddingClosesAt",
+          "remainderClosesAt",
+          "biddingOpen",
+          "estimatedDistanceKm",
+          "estimatedDurationMinutes",
+          "budgetAmount",
+          "currency",
+          "specialInstructions",
+          "cancellationReason",
+          "passengerDetails",
+          "goodsDetails",
+          "invitedOwnerCount",
+          "redacted",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
+      "TripRequestListEnvelope": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "enum": [
+              true
+            ]
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TripRequest"
+            }
+          },
+          "message": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "meta": {
+            "type": "object",
+            "additionalProperties": {}
+          }
+        },
+        "required": [
+          "success",
+          "data",
+          "message",
+          "meta"
+        ]
+      },
+      "TripRequestEnvelope": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "enum": [
+              true
+            ]
+          },
+          "data": {
+            "$ref": "#/components/schemas/TripRequest"
+          },
+          "message": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "meta": {
+            "type": "object",
+            "additionalProperties": {}
+          }
+        },
+        "required": [
+          "success",
+          "data",
+          "message",
+          "meta"
+        ]
+      },
+      "Invitation": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "tripRequestId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "ownerProfileId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "ownerName": {
+            "type": "string"
+          },
+          "vehicleId": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid"
+          },
+          "vehiclePlate": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "matchScore": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "matchReason": {
+            "type": "object",
+            "additionalProperties": {}
+          },
+          "notifiedAt": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "viewedAt": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "dismissedAt": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "tripRequestId",
+          "ownerProfileId",
+          "ownerName",
+          "vehicleId",
+          "vehiclePlate",
+          "matchScore",
+          "matchReason",
+          "notifiedAt",
+          "viewedAt",
+          "dismissedAt",
+          "createdAt"
+        ]
+      },
+      "InvitationListEnvelope": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "enum": [
+              true
+            ]
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Invitation"
+            }
+          },
+          "message": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "meta": {
+            "type": "object",
+            "additionalProperties": {}
+          }
+        },
+        "required": [
+          "success",
+          "data",
+          "message",
+          "meta"
+        ]
+      },
+      "Opportunity": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "request": {
+            "$ref": "#/components/schemas/TripRequest"
+          },
+          "matchScore": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "matchReason": {
+            "type": "object",
+            "additionalProperties": {}
+          },
+          "viewedAt": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "dismissedAt": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "eligibleVehicles": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                "plateNumberEn": {
+                  "type": "string"
+                },
+                "categoryCode": {
+                  "type": "string"
+                },
+                "passengerCapacity": {
+                  "type": [
+                    "integer",
+                    "null"
+                  ]
+                },
+                "payloadCapacityKg": {
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "pattern": "^-?\\d+\\.\\d{2}$"
+                }
+              },
+              "required": [
+                "id",
+                "plateNumberEn",
+                "categoryCode",
+                "passengerCapacity",
+                "payloadCapacityKg"
+              ]
+            }
+          },
+          "ownBidId": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "request",
+          "matchScore",
+          "matchReason",
+          "viewedAt",
+          "dismissedAt",
+          "eligibleVehicles",
+          "ownBidId",
+          "createdAt"
+        ]
+      },
+      "OpportunityListEnvelope": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "enum": [
+              true
+            ]
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Opportunity"
+            }
+          },
+          "message": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "meta": {
+            "type": "object",
+            "additionalProperties": {}
+          }
+        },
+        "required": [
+          "success",
+          "data",
+          "message",
+          "meta"
+        ]
+      },
+      "OpportunityEnvelope": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "enum": [
+              true
+            ]
+          },
+          "data": {
+            "$ref": "#/components/schemas/Opportunity"
+          },
+          "message": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "meta": {
+            "type": "object",
+            "additionalProperties": {}
+          }
+        },
+        "required": [
+          "success",
+          "data",
+          "message",
+          "meta"
+        ]
       }
     },
     "parameters": {}
@@ -13522,6 +14274,1619 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/EnumCatalogueEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/trip-requests": {
+      "get": {
+        "tags": [
+          "trip-requests"
+        ],
+        "summary": "Own requests (customer) or all with trip_requests.read_any",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "default": 1
+            },
+            "required": false,
+            "name": "page",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 20
+            },
+            "required": false,
+            "name": "pageSize",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "DRAFT",
+                "PUBLISHED",
+                "PARTIALLY_AWARDED",
+                "FULLY_AWARDED",
+                "CLOSED_PARTIAL",
+                "COMPLETED",
+                "CANCELLED",
+                "EXPIRED"
+              ]
+            },
+            "required": false,
+            "name": "status",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "PASSENGER",
+                "GOODS"
+              ]
+            },
+            "required": false,
+            "name": "transportType",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": false,
+            "name": "vehicleCategoryId",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": false,
+            "name": "pickupCityId",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "true",
+                "false"
+              ]
+            },
+            "required": false,
+            "name": "allowPartialFulfilment",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "true",
+                "false"
+              ]
+            },
+            "required": false,
+            "name": "hasOpenRemainder",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "date-time",
+              "description": "ISO-8601 UTC timestamp, e.g. 2026-09-14T11:02:44.817Z"
+            },
+            "required": false,
+            "description": "ISO-8601 UTC timestamp, e.g. 2026-09-14T11:02:44.817Z",
+            "name": "dateFrom",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "date-time",
+              "description": "ISO-8601 UTC timestamp, e.g. 2026-09-14T11:02:44.817Z"
+            },
+            "required": false,
+            "description": "ISO-8601 UTC timestamp, e.g. 2026-09-14T11:02:44.817Z",
+            "name": "dateTo",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "maxLength": 40
+            },
+            "required": false,
+            "name": "q",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK — paginated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TripRequestListEnvelope"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "trip-requests"
+        ],
+        "summary": "Create (optionally publish) with the vertical’s detail block — Idempotency-Key required",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "name": "idempotency-key",
+            "in": "header"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "transportType": {
+                    "type": "string",
+                    "enum": [
+                      "PASSENGER",
+                      "GOODS"
+                    ]
+                  },
+                  "vehicleCategoryId": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "vehiclesRequired": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 200,
+                    "default": 1
+                  },
+                  "allowPartialFulfilment": {
+                    "type": "boolean"
+                  },
+                  "tripDirection": {
+                    "type": "string",
+                    "enum": [
+                      "ONE_WAY",
+                      "ROUND_TRIP"
+                    ]
+                  },
+                  "pickup": {
+                    "type": "object",
+                    "properties": {
+                      "addressLine": {
+                        "type": "string",
+                        "maxLength": 500
+                      },
+                      "cityId": {
+                        "type": "string",
+                        "format": "uuid"
+                      },
+                      "latitude": {
+                        "type": "number",
+                        "minimum": -90,
+                        "maximum": 90
+                      },
+                      "longitude": {
+                        "type": "number",
+                        "minimum": -180,
+                        "maximum": 180
+                      },
+                      "placeId": {
+                        "type": "string",
+                        "maxLength": 255
+                      }
+                    },
+                    "required": [
+                      "addressLine",
+                      "cityId",
+                      "latitude",
+                      "longitude"
+                    ],
+                    "additionalProperties": false
+                  },
+                  "dropoff": {
+                    "type": "object",
+                    "properties": {
+                      "addressLine": {
+                        "type": "string",
+                        "maxLength": 500
+                      },
+                      "cityId": {
+                        "type": "string",
+                        "format": "uuid"
+                      },
+                      "latitude": {
+                        "type": "number",
+                        "minimum": -90,
+                        "maximum": 90
+                      },
+                      "longitude": {
+                        "type": "number",
+                        "minimum": -180,
+                        "maximum": 180
+                      },
+                      "placeId": {
+                        "type": "string",
+                        "maxLength": 255
+                      }
+                    },
+                    "required": [
+                      "addressLine",
+                      "cityId",
+                      "latitude",
+                      "longitude"
+                    ],
+                    "additionalProperties": false
+                  },
+                  "pickupAt": {
+                    "type": "string",
+                    "format": "date-time",
+                    "description": "ISO-8601 UTC timestamp, e.g. 2026-09-14T11:02:44.817Z"
+                  },
+                  "returnAt": {
+                    "type": "string",
+                    "format": "date-time",
+                    "description": "ISO-8601 UTC timestamp, e.g. 2026-09-14T11:02:44.817Z"
+                  },
+                  "biddingClosesAt": {
+                    "type": "string",
+                    "format": "date-time",
+                    "description": "ISO-8601 UTC timestamp, e.g. 2026-09-14T11:02:44.817Z"
+                  },
+                  "remainderClosesAt": {
+                    "type": "string",
+                    "format": "date-time",
+                    "description": "ISO-8601 UTC timestamp, e.g. 2026-09-14T11:02:44.817Z"
+                  },
+                  "budgetAmount": {
+                    "type": "string",
+                    "pattern": "^\\d{1,12}\\.\\d{2}$"
+                  },
+                  "currency": {
+                    "type": "string",
+                    "enum": [
+                      "SAR"
+                    ],
+                    "default": "SAR"
+                  },
+                  "specialInstructions": {
+                    "type": "string",
+                    "maxLength": 2000
+                  },
+                  "passengerDetails": {
+                    "type": "object",
+                    "properties": {
+                      "passengerCount": {
+                        "type": "integer",
+                        "minimum": 1,
+                        "maximum": 500
+                      },
+                      "luggageCount": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 1000,
+                        "default": 0
+                      },
+                      "luggageNotes": {
+                        "type": "string",
+                        "maxLength": 500
+                      },
+                      "tripPurpose": {
+                        "type": "string",
+                        "enum": [
+                          "AIRPORT_TRANSFER",
+                          "INTERCITY",
+                          "CITY_TOUR",
+                          "EMPLOYEE_TRANSPORT",
+                          "HAJJ_UMRAH",
+                          "EVENT",
+                          "OTHER"
+                        ]
+                      },
+                      "requiresFemaleDriver": {
+                        "type": "boolean",
+                        "default": false
+                      },
+                      "requiresWheelchairAccess": {
+                        "type": "boolean",
+                        "default": false
+                      },
+                      "childSeatsRequired": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 20,
+                        "default": 0
+                      },
+                      "waitingTimeMinutes": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 1440,
+                        "default": 0
+                      },
+                      "isMultiDay": {
+                        "type": "boolean",
+                        "default": false
+                      },
+                      "driverLanguagePreference": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "enum": [
+                            "ar",
+                            "en",
+                            "ur",
+                            "hi",
+                            "bn",
+                            "fil"
+                          ]
+                        },
+                        "maxItems": 4,
+                        "default": []
+                      }
+                    },
+                    "required": [
+                      "passengerCount",
+                      "tripPurpose"
+                    ],
+                    "additionalProperties": false
+                  },
+                  "goodsDetails": {
+                    "type": "object",
+                    "properties": {
+                      "cargoType": {
+                        "type": "string",
+                        "enum": [
+                          "GENERAL",
+                          "FRAGILE",
+                          "PERISHABLE",
+                          "HAZARDOUS",
+                          "LIVESTOCK",
+                          "VEHICLE",
+                          "BULK",
+                          "CONTAINER",
+                          "OTHER"
+                        ]
+                      },
+                      "cargoDescription": {
+                        "type": "string",
+                        "maxLength": 2000
+                      },
+                      "cargoWeightKg": {
+                        "type": "string",
+                        "pattern": "^\\d{1,12}\\.\\d{2}$"
+                      },
+                      "cargoVolumeM3": {
+                        "type": "string",
+                        "pattern": "^\\d{1,12}\\.\\d{2}$"
+                      },
+                      "packageCount": {
+                        "type": "integer",
+                        "minimum": 1,
+                        "maximum": 100000
+                      },
+                      "packageLengthCm": {
+                        "type": "integer",
+                        "exclusiveMinimum": 0,
+                        "maximum": 3000
+                      },
+                      "packageWidthCm": {
+                        "type": "integer",
+                        "exclusiveMinimum": 0,
+                        "maximum": 500
+                      },
+                      "packageHeightCm": {
+                        "type": "integer",
+                        "exclusiveMinimum": 0,
+                        "maximum": 500
+                      },
+                      "requiresRefrigeration": {
+                        "type": "boolean",
+                        "default": false
+                      },
+                      "requiredTemperatureMinC": {
+                        "type": "number",
+                        "minimum": -40,
+                        "maximum": 40
+                      },
+                      "requiredTemperatureMaxC": {
+                        "type": "number",
+                        "minimum": -40,
+                        "maximum": 40
+                      },
+                      "requiresTailLift": {
+                        "type": "boolean",
+                        "default": false
+                      },
+                      "requiresCrane": {
+                        "type": "boolean",
+                        "default": false
+                      },
+                      "loadingResponsibility": {
+                        "type": "string",
+                        "enum": [
+                          "CUSTOMER",
+                          "DRIVER",
+                          "THIRD_PARTY"
+                        ]
+                      },
+                      "unloadingResponsibility": {
+                        "type": "string",
+                        "enum": [
+                          "CUSTOMER",
+                          "DRIVER",
+                          "THIRD_PARTY"
+                        ]
+                      },
+                      "loadingInstructions": {
+                        "type": "string",
+                        "maxLength": 1000
+                      },
+                      "unloadingInstructions": {
+                        "type": "string",
+                        "maxLength": 1000
+                      },
+                      "declaredValueAmount": {
+                        "type": "string",
+                        "pattern": "^\\d{1,12}\\.\\d{2}$"
+                      },
+                      "requiresInsurance": {
+                        "type": "boolean",
+                        "default": false
+                      },
+                      "hazmatClass": {
+                        "type": "string",
+                        "maxLength": 16
+                      },
+                      "shipperContactName": {
+                        "type": "string",
+                        "maxLength": 160
+                      },
+                      "shipperContactPhone": {
+                        "type": "string",
+                        "pattern": "^\\+[1-9]\\d{7,14}$"
+                      },
+                      "consigneeContactName": {
+                        "type": "string",
+                        "maxLength": 160
+                      },
+                      "consigneeContactPhone": {
+                        "type": "string",
+                        "pattern": "^\\+[1-9]\\d{7,14}$"
+                      }
+                    },
+                    "required": [
+                      "cargoType",
+                      "cargoDescription",
+                      "cargoWeightKg",
+                      "loadingResponsibility",
+                      "unloadingResponsibility"
+                    ],
+                    "additionalProperties": false
+                  },
+                  "publish": {
+                    "type": "boolean",
+                    "default": false
+                  },
+                  "customerProfileId": {
+                    "type": "string",
+                    "format": "uuid"
+                  }
+                },
+                "required": [
+                  "transportType",
+                  "vehicleCategoryId",
+                  "tripDirection",
+                  "pickup",
+                  "dropoff",
+                  "pickupAt"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Created (meta.degraded = [\"maps\"] when the estimate was unavailable)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TripRequestEnvelope"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "AUTH_PHONE_NOT_VERIFIED",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {},
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "TRIP_REQUEST_DETAIL_MISMATCH / VALIDATION_FAILED",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {},
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "501": {
+            "description": "VERTICAL_NOT_ENABLED",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {},
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/trip-requests/{id}": {
+      "get": {
+        "tags": [
+          "trip-requests"
+        ],
+        "summary": "Full request (own) / redacted projection (invited owner) / global",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TripRequestEnvelope"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "NOT_FOUND",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {},
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "trip-requests"
+        ],
+        "summary": "Edit a DRAFT",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "vehicleCategoryId": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "vehiclesRequired": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 200
+                  },
+                  "allowPartialFulfilment": {
+                    "type": "boolean"
+                  },
+                  "tripDirection": {
+                    "type": "string",
+                    "enum": [
+                      "ONE_WAY",
+                      "ROUND_TRIP"
+                    ]
+                  },
+                  "pickup": {
+                    "type": "object",
+                    "properties": {
+                      "addressLine": {
+                        "type": "string",
+                        "maxLength": 500
+                      },
+                      "cityId": {
+                        "type": "string",
+                        "format": "uuid"
+                      },
+                      "latitude": {
+                        "type": "number",
+                        "minimum": -90,
+                        "maximum": 90
+                      },
+                      "longitude": {
+                        "type": "number",
+                        "minimum": -180,
+                        "maximum": 180
+                      },
+                      "placeId": {
+                        "type": "string",
+                        "maxLength": 255
+                      }
+                    },
+                    "required": [
+                      "addressLine",
+                      "cityId",
+                      "latitude",
+                      "longitude"
+                    ],
+                    "additionalProperties": false
+                  },
+                  "dropoff": {
+                    "type": "object",
+                    "properties": {
+                      "addressLine": {
+                        "type": "string",
+                        "maxLength": 500
+                      },
+                      "cityId": {
+                        "type": "string",
+                        "format": "uuid"
+                      },
+                      "latitude": {
+                        "type": "number",
+                        "minimum": -90,
+                        "maximum": 90
+                      },
+                      "longitude": {
+                        "type": "number",
+                        "minimum": -180,
+                        "maximum": 180
+                      },
+                      "placeId": {
+                        "type": "string",
+                        "maxLength": 255
+                      }
+                    },
+                    "required": [
+                      "addressLine",
+                      "cityId",
+                      "latitude",
+                      "longitude"
+                    ],
+                    "additionalProperties": false
+                  },
+                  "pickupAt": {
+                    "type": "string",
+                    "format": "date-time",
+                    "description": "ISO-8601 UTC timestamp, e.g. 2026-09-14T11:02:44.817Z"
+                  },
+                  "returnAt": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "format": "date-time",
+                    "description": "ISO-8601 UTC timestamp, e.g. 2026-09-14T11:02:44.817Z"
+                  },
+                  "biddingClosesAt": {
+                    "type": "string",
+                    "format": "date-time",
+                    "description": "ISO-8601 UTC timestamp, e.g. 2026-09-14T11:02:44.817Z"
+                  },
+                  "remainderClosesAt": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "format": "date-time",
+                    "description": "ISO-8601 UTC timestamp, e.g. 2026-09-14T11:02:44.817Z"
+                  },
+                  "budgetAmount": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "pattern": "^\\d{1,12}\\.\\d{2}$"
+                  },
+                  "specialInstructions": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 2000
+                  },
+                  "passengerDetails": {
+                    "type": "object",
+                    "properties": {
+                      "passengerCount": {
+                        "type": "integer",
+                        "minimum": 1,
+                        "maximum": 500
+                      },
+                      "luggageCount": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 1000,
+                        "default": 0
+                      },
+                      "luggageNotes": {
+                        "type": "string",
+                        "maxLength": 500
+                      },
+                      "tripPurpose": {
+                        "type": "string",
+                        "enum": [
+                          "AIRPORT_TRANSFER",
+                          "INTERCITY",
+                          "CITY_TOUR",
+                          "EMPLOYEE_TRANSPORT",
+                          "HAJJ_UMRAH",
+                          "EVENT",
+                          "OTHER"
+                        ]
+                      },
+                      "requiresFemaleDriver": {
+                        "type": "boolean",
+                        "default": false
+                      },
+                      "requiresWheelchairAccess": {
+                        "type": "boolean",
+                        "default": false
+                      },
+                      "childSeatsRequired": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 20,
+                        "default": 0
+                      },
+                      "waitingTimeMinutes": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 1440,
+                        "default": 0
+                      },
+                      "isMultiDay": {
+                        "type": "boolean",
+                        "default": false
+                      },
+                      "driverLanguagePreference": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "enum": [
+                            "ar",
+                            "en",
+                            "ur",
+                            "hi",
+                            "bn",
+                            "fil"
+                          ]
+                        },
+                        "maxItems": 4,
+                        "default": []
+                      }
+                    },
+                    "required": [
+                      "passengerCount",
+                      "tripPurpose"
+                    ],
+                    "additionalProperties": false
+                  },
+                  "goodsDetails": {
+                    "type": "object",
+                    "properties": {
+                      "cargoType": {
+                        "type": "string",
+                        "enum": [
+                          "GENERAL",
+                          "FRAGILE",
+                          "PERISHABLE",
+                          "HAZARDOUS",
+                          "LIVESTOCK",
+                          "VEHICLE",
+                          "BULK",
+                          "CONTAINER",
+                          "OTHER"
+                        ]
+                      },
+                      "cargoDescription": {
+                        "type": "string",
+                        "maxLength": 2000
+                      },
+                      "cargoWeightKg": {
+                        "type": "string",
+                        "pattern": "^\\d{1,12}\\.\\d{2}$"
+                      },
+                      "cargoVolumeM3": {
+                        "type": "string",
+                        "pattern": "^\\d{1,12}\\.\\d{2}$"
+                      },
+                      "packageCount": {
+                        "type": "integer",
+                        "minimum": 1,
+                        "maximum": 100000
+                      },
+                      "packageLengthCm": {
+                        "type": "integer",
+                        "exclusiveMinimum": 0,
+                        "maximum": 3000
+                      },
+                      "packageWidthCm": {
+                        "type": "integer",
+                        "exclusiveMinimum": 0,
+                        "maximum": 500
+                      },
+                      "packageHeightCm": {
+                        "type": "integer",
+                        "exclusiveMinimum": 0,
+                        "maximum": 500
+                      },
+                      "requiresRefrigeration": {
+                        "type": "boolean",
+                        "default": false
+                      },
+                      "requiredTemperatureMinC": {
+                        "type": "number",
+                        "minimum": -40,
+                        "maximum": 40
+                      },
+                      "requiredTemperatureMaxC": {
+                        "type": "number",
+                        "minimum": -40,
+                        "maximum": 40
+                      },
+                      "requiresTailLift": {
+                        "type": "boolean",
+                        "default": false
+                      },
+                      "requiresCrane": {
+                        "type": "boolean",
+                        "default": false
+                      },
+                      "loadingResponsibility": {
+                        "type": "string",
+                        "enum": [
+                          "CUSTOMER",
+                          "DRIVER",
+                          "THIRD_PARTY"
+                        ]
+                      },
+                      "unloadingResponsibility": {
+                        "type": "string",
+                        "enum": [
+                          "CUSTOMER",
+                          "DRIVER",
+                          "THIRD_PARTY"
+                        ]
+                      },
+                      "loadingInstructions": {
+                        "type": "string",
+                        "maxLength": 1000
+                      },
+                      "unloadingInstructions": {
+                        "type": "string",
+                        "maxLength": 1000
+                      },
+                      "declaredValueAmount": {
+                        "type": "string",
+                        "pattern": "^\\d{1,12}\\.\\d{2}$"
+                      },
+                      "requiresInsurance": {
+                        "type": "boolean",
+                        "default": false
+                      },
+                      "hazmatClass": {
+                        "type": "string",
+                        "maxLength": 16
+                      },
+                      "shipperContactName": {
+                        "type": "string",
+                        "maxLength": 160
+                      },
+                      "shipperContactPhone": {
+                        "type": "string",
+                        "pattern": "^\\+[1-9]\\d{7,14}$"
+                      },
+                      "consigneeContactName": {
+                        "type": "string",
+                        "maxLength": 160
+                      },
+                      "consigneeContactPhone": {
+                        "type": "string",
+                        "pattern": "^\\+[1-9]\\d{7,14}$"
+                      }
+                    },
+                    "required": [
+                      "cargoType",
+                      "cargoDescription",
+                      "cargoWeightKg",
+                      "loadingResponsibility",
+                      "unloadingResponsibility"
+                    ],
+                    "additionalProperties": false
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TripRequestEnvelope"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "TRIP_REQUEST_INVALID_TRANSITION / VALIDATION_FAILED",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {},
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "trip-requests"
+        ],
+        "summary": "Delete a DRAFT (trip_requests.cancel)",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Deleted"
+          },
+          "422": {
+            "description": "TRIP_REQUEST_INVALID_TRANSITION",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {},
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/trip-requests/{id}/publish": {
+      "post": {
+        "tags": [
+          "trip-requests"
+        ],
+        "summary": "DRAFT → PUBLISHED: matcher runs, invitations written, event emitted — one transaction",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TripRequestEnvelope"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "TRIP_REQUEST_INVALID_TRANSITION / VALIDATION_FAILED",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {},
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "501": {
+            "description": "VERTICAL_NOT_ENABLED",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {},
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/trip-requests/{id}/cancel": {
+      "post": {
+        "tags": [
+          "trip-requests"
+        ],
+        "summary": "→ CANCELLED; refused once anything is awarded",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "reason": {
+                    "type": "string",
+                    "maxLength": 1000
+                  }
+                },
+                "required": [
+                  "reason"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TripRequestEnvelope"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "TRIP_REQUEST_INVALID_TRANSITION",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {},
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/trip-requests/{id}/close-remainder": {
+      "post": {
+        "tags": [
+          "trip-requests"
+        ],
+        "summary": "PARTIALLY_AWARDED → CLOSED_PARTIAL — customer or admin acting for them (A-45)",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "reason": {
+                    "type": "string",
+                    "maxLength": 1000
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TripRequestEnvelope"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "TRIP_REQUEST_INVALID_TRANSITION",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {},
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/trip-requests/{id}/remainder": {
+      "patch": {
+        "tags": [
+          "trip-requests"
+        ],
+        "summary": "Adjust vehiclesRequired / remainderClosesAt while PARTIALLY_AWARDED",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "vehiclesRequired": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 200
+                  },
+                  "remainderClosesAt": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "format": "date-time",
+                    "description": "ISO-8601 UTC timestamp, e.g. 2026-09-14T11:02:44.817Z"
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TripRequestEnvelope"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "RULE_VEHICLES_REQUIRED_BELOW_AWARDED / TRIP_REQUEST_INVALID_TRANSITION",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {},
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/trip-requests/{id}/invitations": {
+      "get": {
+        "tags": [
+          "trip-requests"
+        ],
+        "summary": "Who was matched and why (trip_requests.read_any)",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InvitationListEnvelope"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "NOT_FOUND",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {},
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/opportunities": {
+      "get": {
+        "tags": [
+          "opportunities"
+        ],
+        "summary": "Open invitations for the acting owner (redacted requests, best match per request)",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "default": 1
+            },
+            "required": false,
+            "name": "page",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 20
+            },
+            "required": false,
+            "name": "pageSize",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "PASSENGER",
+                "GOODS"
+              ]
+            },
+            "required": false,
+            "name": "transportType",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": false,
+            "name": "vehicleCategoryId",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": false,
+            "name": "pickupCityId",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "date-time",
+              "description": "ISO-8601 UTC timestamp, e.g. 2026-09-14T11:02:44.817Z"
+            },
+            "required": false,
+            "description": "ISO-8601 UTC timestamp, e.g. 2026-09-14T11:02:44.817Z",
+            "name": "pickupFrom",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "date-time",
+              "description": "ISO-8601 UTC timestamp, e.g. 2026-09-14T11:02:44.817Z"
+            },
+            "required": false,
+            "description": "ISO-8601 UTC timestamp, e.g. 2026-09-14T11:02:44.817Z",
+            "name": "pickupTo",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "true",
+                "false"
+              ]
+            },
+            "required": false,
+            "name": "hasBid",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 720
+            },
+            "required": false,
+            "name": "closingWithinHours",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "true",
+                "false"
+              ]
+            },
+            "required": false,
+            "name": "includeDismissed",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK — paginated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OpportunityListEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/opportunities/{id}": {
+      "get": {
+        "tags": [
+          "opportunities"
+        ],
+        "summary": "Opportunity detail with the owner’s eligible vehicles; marks viewed_at",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OpportunityEnvelope"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "NOT_FOUND",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {},
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/opportunities/{id}/dismiss": {
+      "post": {
+        "tags": [
+          "opportunities"
+        ],
+        "summary": "Dismiss (or ?undo=true) an opportunity (opportunities.dismiss)",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "true",
+                "false"
+              ]
+            },
+            "required": false,
+            "name": "undo",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OpportunityEnvelope"
                 }
               }
             }

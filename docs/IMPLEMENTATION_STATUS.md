@@ -1,7 +1,7 @@
 # UniGate — Implementation Status
 
 **Last updated:** 2026-09-15
-**Current phase:** **Phase 5 complete** (2026-09-15) → Phase 6 (Trip requests — core `demand` + passenger vertical) ready to start
+**Current phase:** **Phase 6 complete** (2026-09-15) → Phase 7 (Bidding) ready to start
 **Overall:** Foundation built and verified end to end: monorepo, typed packages, API core, full Prisma schema (82 tables) with hand-written constraints, seeds, migration-integrity test, web scaffold (shadcn/ui, ar/en RTL), CI. `pnpm ci` is green (20/20 tasks). See [development.md](development.md).
 
 > **Schema-blocking questions resolved 2026-09-14.**
@@ -28,7 +28,7 @@ Status values: `NOT_STARTED` · `IN_PROGRESS` · `BLOCKED` · `COMPLETE`
 | 3 | Authentication & RBAC | **COMPLETE** 2026-09-15 | See *Phase 3 exit* below. Production OTP delivery still needs **procurement B-9**; `ConsoleOtpProvider` refuses to run in production |
 | 4 | User profiles & documents | **COMPLETE** 2026-09-15 | See *Phase 4 exit* below. Malware scanning runs with `SCAN_PROVIDER=none` until a scanner is procured (A-25) |
 | 5 | Vehicle management | **COMPLETE** 2026-09-15 | See *Phase 5 exit* below. VerticalPlugin seam introduced (ADR-010); calendar EXCLUDE guarantee proven under concurrency |
-| 6 | Trip requests | `NOT_STARTED` | Core `demand` + **`passenger` vertical**; goods tables migrated, goods endpoints `501 VERTICAL_NOT_ENABLED` ([ADR-010](decisions/ADR-010-vertical-modules-over-a-shared-core.md)) |
+| 6 | Trip requests | **COMPLETE** 2026-09-15 | See *Phase 6 exit* below. Core `demand` + passenger plugin; goods requests answer `501 VERTICAL_NOT_ENABLED` ([ADR-010](decisions/ADR-010-vertical-modules-over-a-shared-core.md)) |
 | 7 | Bidding | `NOT_STARTED` | ~~Bid window pending OQ-02~~ settings (ADR-009); ~~OQ-16~~ answered |
 | 8 | Bookings | `NOT_STARTED` | ~~Cancellation fee tiers pending OQ-05~~ answered 2026-09-15 (admin-configured policies + per-case override/waiver); no open blocker |
 | 9 | Payments | `NOT_STARTED` | Production gateway **BLOCKED** on OQ-03 — decision due at start of Phase 8 (**M-PAY**); MockGateway path is unblocked |
@@ -130,6 +130,25 @@ Verified on 2026-09-15 with `pnpm turbo run typecheck lint test build --force` (
 
 ---
 
+## Phase 6 exit — what was verified
+
+Verified on 2026-09-15 with `pnpm turbo run typecheck lint test build --force` (20/20 tasks), 86 tests (72 API: 12 migration-integrity, 10 auth lifecycle, 28 authorization matrix, 6 profiles & documents, 6 fleet, 3 demand, 7 unit; 14 package), plus a live browser session: a published request on the customer's page with full details, and the same request on the owner's Arabic opportunity card with only the cities shown, match score 95.00.
+
+| Area | Delivered | Proof |
+|---|---|---|
+| VerticalPlugin (demand) | `demand` contract on the plugin: `detailKey`, `detailCreate/Update` (the vertical owns its detail table), `validateRequest`, `matchVehicle`, `partialFulfilmentDefault`. **The core demand service contains no `transport_type` branch** — the lint rule caught eight on the first pass and each moved into the plugin | lint + demand test |
+| Trip requests | `POST /trip-requests` (Idempotency-Key required) with the passenger block; `TRIP_REQUEST_DETAIL_MISMATCH` on the wrong block; goods → `501 VERTICAL_NOT_ENABLED`; bidding deadline from `bidding.close_before_pickup_hours` / `bidding.max_window_hours`; `allowPartialFulfilment` defaults per vertical (A-45) and is forced false for one vehicle; route estimate snapshotted from the `MapsProvider` (`estimate` = great-circle × road factor, honestly named; a provider adapter waits for a server key) with `meta.degraded` on outage; `TR-YYYY-NNNNNN` numbering from the sequence | demand test "validates…" |
+| Lifecycle | DRAFT edit/delete; publish; cancel (refused once anything is awarded); `close-remainder` and `PATCH …/remainder` (`RULE_VEHICLES_REQUIRED_BELOW_AWARDED`, `vehiclesRequired = vehiclesAwarded` → FULLY_AWARDED); the expiry job expires only `PUBLISHED` requests with nothing awarded — **partially awarded orders never expire** (A-45); `biddingOpen` is a deadline property on the DTO, not a status | demand test "remainder rules…" |
+| Matching | On publish, in one transaction: fleet supplies structural candidates (approved + active, category, owner approved for the vertical **and** serving the pickup city, calendar free for the occupancy window), dispatchability predicate applied, then the vertical's `matchVehicle` (seats ≥ passengers, snug fit scores higher); `trip_request_invitations` written per vehicle with an auditable `match_reason`; outbox event carries the invited owners | demand test "publish runs the matcher…" (45-seat bus invited, 20-seat and out-of-area owner not) |
+| Redaction | Owners reach an invited request through PARTY scope and get the **redacted projection**: street addresses reduced to the city, instructions and contact fields null, `redacted: true`; strangers get 404 | same test + browser |
+| Opportunities | `GET /opportunities` (best invitation per request, redacted, with the owner's currently eligible vehicles), `GET /{id}` marks `viewed_at`, dismiss / `?undo=true` | same test |
+| Web | Customer: requests list, new-request form (categories, cities, saved locations, the partial-fulfilment question in plain words), request page with estimate, deadline, publish/cancel/delete and — for staff — the invitation list; Owner: opportunities feed with match score, eligible vehicles, dismiss/restore | browser session |
+| OpenAPI | 104 paths / 124 schemas, diff-checked | `openapi:check` |
+
+**Carried forward:** bids and the award paths (`POST /bids`, `/trip-requests/{id}/award`, `/bids` listing on a request) are Phase 7 — the opportunity card says so; maps autocomplete/geocoding needs a provider key (the form uses city-centre coordinates when no saved location is chosen); `ownBidId` on opportunities is null until Phase 7; the Radix selects are hard to drive with the automated browser (typeahead lands on the wrong item) — not a product defect, but worth a native `<select>` fallback for accessibility review in Phase 15.
+
+---
+
 ## Module status
 
 | Module | Status | Backend | Frontend | Tests | Notes |
@@ -139,7 +158,7 @@ Verified on 2026-09-15 with `pnpm turbo run typecheck lint test build --force` (
 | `reference` | **DONE (Phase 5)** | settings (Phase 2/3) + catalogue.service/routes: public cacheable reads, managed writes; makes/models seed | ✅ | db (fleet + settings) | — |
 | `documents` | **DONE (Phase 4)** | repository (ownership from typed FKs), service (presigned two-step, hash + sniff, scan hook, requirements, expiry/sweep jobs), controller, routes, openapi; `StorageProvider` (S3/MinIO), `ScanProvider` (none/clamav) | ✅ | db (real MinIO) | Uploads are unscanned until A-25 is resolved. |
 | `fleet` | **DONE (Phase 5)** | vehicle.repository (scope, raw tstzrange calendar), vehicle.policy (dispatchability), vehicle.service, routes, mapper, openapi | ✅ | db (fleet 6, matrix) | operational_status transitions arrive with bookings/trips/maintenance. |
-| `demand` | NOT_STARTED | — | — | — | Trip requests + matching. Phase 6. |
+| `demand` | **DONE (Phase 6)** | trip-request.repository (OWN/PARTY/GLOBAL), service (lifecycle, matcher, opportunities, expiry job), mapper (redaction), routes, openapi; MapsProvider (`estimate`) | ✅ | db (demand 3, matrix) | Bids/award are Phase 7. |
 | `bidding` | NOT_STARTED | — | — | — | Acceptance transaction. Phase 7. **Critical path.** |
 | `bookings` | NOT_STARTED | — | — | — | Phase 8. |
 | `trips` | NOT_STARTED | — | — | — | Phase 10. |
@@ -152,7 +171,7 @@ Verified on 2026-09-15 with `pnpm turbo run typecheck lint test build --force` (
 | `reporting` | NOT_STARTED | — | — | — | Async exports. Phase 13. |
 | `admin` | NOT_STARTED | — | — | — | Phase 13. |
 | `platform` | IN_PROGRESS | audit writer (`writeAudit`, redacted, request-id correlated); `outbox_events` and `idempotency_keys` tables | — | unit (redact) + db (append-only trigger) | Outbox relay and idempotency middleware land in Phase 3 with the first money-moving endpoint. |
-| `passenger` | IN_PROGRESS | `plugin.ts` (capacity rules, checklist extras) — the first VerticalPlugin (ADR-010) | — | fleet test | Request schema, trip map, invoice descriptor, VAT decision land in Phases 6–11. |
+| `passenger` | IN_PROGRESS | `plugin.ts`: capacity rules, checklist extras, **request detail ownership, validation and vehicle matching** | — | fleet + demand tests | Trip map, invoice descriptor, VAT decision land in Phases 10–11. |
 | `goods` | IN_PROGRESS (seam only) | `plugin.ts` with `enabled: false` — goods vehicles can be registered ahead of the vertical | — | — | Phase 11b. |
 
 ---

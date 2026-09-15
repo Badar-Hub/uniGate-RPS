@@ -35,4 +35,55 @@ export interface VerticalPlugin {
    * null or equals this vertical — the plugin may add category-specific extras (e.g. hazmat).
    */
   extraRequiredDocumentTypes(role: 'OWNER' | 'DRIVER' | 'VEHICLE', category: CategoryShape): string[];
+  /** Demand behaviour (Phase 6). */
+  readonly demand: VerticalDemandPlugin;
 }
+
+// ── Phase 6: demand ──────────────────────────────────────────────────────────
+
+/** The shared request fields the plugin may need to validate a detail block against. */
+export interface RequestShape {
+  vehiclesRequired: number;
+  tripDirection: 'ONE_WAY' | 'ROUND_TRIP';
+  pickupAt: Date;
+  returnAt: Date | null;
+}
+
+export interface RequestValidation {
+  ok: boolean;
+  fieldErrors: Record<string, string[]>;
+}
+
+/** A candidate vehicle for matching, as the core sees it (no vertical knowledge). */
+export interface VehicleCandidate {
+  id: string;
+  categoryId: string;
+  passengerCapacity: number | null;
+  payloadCapacityKg: string | null;
+  hasRefrigeration: boolean;
+  hasTailLift: boolean;
+}
+
+export interface MatchVerdict {
+  ok: boolean;
+  /** Human-auditable reasons, stored in trip_request_invitations.match_reason. */
+  reasons: string[];
+  score: number;
+}
+
+export interface VerticalDemandPlugin {
+  /** A-45: goods on, passenger off. */
+  readonly partialFulfilmentDefault: boolean;
+  /** The request body / row property that carries this vertical's detail block. */
+  readonly detailKey: DetailKey;
+  /** Prisma nested-write fragments for the detail table — owned by the vertical, never by core. */
+  detailCreate(details: unknown): Record<string, unknown>;
+  detailUpdate(details: unknown): Record<string, unknown>;
+  /** Validates the vertical's detail block (already shape-checked by Zod) against the shared fields. */
+  validateRequest(request: RequestShape, details: unknown): RequestValidation;
+  /** Does this vehicle satisfy the detail block? Category and dispatchability are checked by the core. */
+  matchVehicle(details: unknown, vehicle: VehicleCandidate): MatchVerdict;
+}
+
+/** Which detail block belongs to the vertical; the core never names either table itself. */
+export type DetailKey = 'passengerDetails' | 'goodsDetails';

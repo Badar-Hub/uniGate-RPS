@@ -362,3 +362,29 @@ export async function unassignDriver(scope: ActorScope, id: string, assignmentId
     await writeAudit({ ...audit(scope), action: 'vehicle.driver_unassigned', entityType: 'vehicle_driver_assignment', entityId: assignmentId, beforeValue: { vehicleId: id, driverProfileId: a.driverProfileId }, afterValue: { reason: reason ?? null } }, tx);
   });
 }
+
+// ── matching (Phase 6) ────────────────────────────────────────────────────────
+
+export interface DispatchableCandidate {
+  id: string;
+  ownerProfileId: string;
+  categoryId: string;
+  plateNumberEn: string;
+  categoryCode: string;
+  passengerCapacity: number | null;
+  payloadCapacityKg: string | null;
+  hasRefrigeration: boolean;
+  hasTailLift: boolean;
+}
+
+/** Vehicles that could serve a request: structural filter in the repository, then the dispatchability predicate. */
+export async function dispatchableCandidates(input: { vehicleCategoryId: string; pickupCityId: string; transportType: 'PASSENGER' | 'GOODS'; from: Date; to: Date }): Promise<DispatchableCandidate[]> {
+  const rows = await repo.listCandidates(systemScope('demand.match'), input);
+  const out: DispatchableCandidate[] = [];
+  for (const v of rows) {
+    const d = await dispatchableNow(v, input.from);
+    if (!d.ok) continue;
+    out.push({ id: v.id, ownerProfileId: v.ownerProfileId, categoryId: v.vehicleCategoryId, plateNumberEn: v.plateNumberEn, categoryCode: v.category.code, passengerCapacity: v.passengerCapacity, payloadCapacityKg: v.payloadCapacityKg ? v.payloadCapacityKg.toString() : null, hasRefrigeration: v.hasRefrigeration, hasTailLift: v.hasTailLift });
+  }
+  return out;
+}

@@ -14,6 +14,7 @@ export const ERROR_CLASS_STATUS = {
   BusinessRuleError: 422,
   RateLimitError: 429,
   BadRequestError: 400,
+  NotImplementedError: 501,
   UpstreamError: 502,
   ServiceUnavailableError: 503,
   UpstreamTimeoutError: 504,

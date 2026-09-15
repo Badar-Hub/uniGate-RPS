@@ -75,6 +75,13 @@
     },
     "db:generate": {
       "cache": false
+    },
+    "@unigate/api#lint": {
+      "dependsOn": [
+        "^build",
+        "typecheck"
+      ],
+      "outputs": []
     }
   }
 }

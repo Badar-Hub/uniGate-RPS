@@ -59,13 +59,23 @@ All items delivered; residuals moved to Phase 3 below.
 - [x] Web: fleet list, register, vehicle page (documents / calendar / drivers), admin vehicle approvals
 - [x] Authorization matrix extended; router guards path-scoped (public routes were 401)
 
-## Immediate — Phase 6 (Trip requests — core `demand` + passenger vertical)
+## Phase 6 — Trip requests — COMPLETE 2026-09-15
 
-- [ ] `demand` module: `trip_requests` + `passenger_trip_details` through `VerticalPlugin.requestDetailSchema` / `validateRequest`; goods requests answer `501 VERTICAL_NOT_ENABLED`
-- [ ] Request lifecycle (DRAFT → OPEN → …) with bidding window computed from settings (`bidding.*`)
-- [ ] Matching predicate: category ∧ capacity ∧ dispatchable ∧ owner service area ∧ calendar free → `trip_request_invitations`; `/opportunities` for owners
-- [ ] Customer web: create/track requests (saved locations, cities); owner web: opportunities list
-- [ ] Extend the authorization matrix with the demand surface
+- [x] `demand` module with the vertical's detail block owned by the plugin (`detailKey`, `detailCreate/Update`, `validateRequest`, `matchVehicle`); goods → `501 VERTICAL_NOT_ENABLED`
+- [x] Lifecycle: draft / publish / cancel / delete / close-remainder / adjust remainder; bidding deadline from `bidding.*` settings; expiry job that never touches partially awarded orders
+- [x] Matcher on publish → `trip_request_invitations` with auditable reasons; owner redaction through PARTY scope; `/opportunities`
+- [x] Customer requests list/form/detail and owner opportunities in the web app
+- [x] Authorization matrix extended
+- [ ] Maps autocomplete / geocoding — **waits for a provider server key** (form uses saved locations or city centres)
+
+## Immediate — Phase 7 (Bidding)
+
+- [ ] `bidding` module: `POST /bids` (server-computed totals with snapshotted VAT rate, `bidding.max_active_bids_per_owner_per_request`, `bidding.bid_validity_hours`), revise (version++), withdraw, reject
+- [ ] Customer comparison list `GET /trip-requests/{id}/bids`; owner scope filters to own rows
+- [ ] `POST /bids/{id}/accept` and `POST /trip-requests/{id}/award` (all-or-nothing group award): booking creation, calendar reservation under the EXCLUDE constraint, financial snapshot with commission rule / override, credit check for INVOICED customers — **N-way concurrent acceptance test (exit criterion)**
+- [ ] Cancelling a request rejects SUBMITTED bids; `ownBidId` on opportunities; bid expiry job
+- [ ] Web: owner bid form on the opportunity, customer bid comparison and accept
+- [ ] Extend the authorization matrix with the bidding surface
 
 ## Deferred design work
 

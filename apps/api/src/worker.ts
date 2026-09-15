@@ -8,6 +8,7 @@ import { startEventWorker } from '@/jobs/event.handlers.js';
 import { closeQueues } from '@/jobs/queues.js';
 import { ensureNextMonthPartitions, purgeExpired } from '@/jobs/maintenance.js';
 import { markExpiredDocuments, sweepPendingUploads } from '@/modules/documents/documents.service.js';
+import { expireStaleRequests } from '@/modules/demand/trip-request.service.js';
 
 /**
  * Worker entrypoint — same image as the API, different process. Runs the outbox relay, the
@@ -55,12 +56,24 @@ async function main(): Promise<void> {
         log.error({ err }, 'document expiry job failed');
       });
   };
+  // Demand: PUBLISHED requests past their deadline with nothing awarded expire; partially awarded ones never do (A-45).
+  const runDemand = () => {
+    expireStaleRequests()
+      .then((n) => {
+        if (n) log.info({ expired: n }, 'trip requests expired');
+      })
+      .catch((err: unknown) => {
+        log.error({ err }, 'trip request expiry failed');
+      });
+  };
   runMaintenance();
   runPurge();
   runDocuments();
+  runDemand();
   const t1 = setInterval(runMaintenance, 60 * 60_000);
   const t2 = setInterval(runPurge, 6 * 60 * 60_000);
   const t3 = setInterval(runDocuments, 60 * 60_000);
+  const t4 = setInterval(runDemand, 5 * 60_000);
   log.info('worker started: outbox relay, event consumer, maintenance');
 
   const shutdown = async (signal: string) => {
@@ -68,6 +81,7 @@ async function main(): Promise<void> {
     clearInterval(t1);
     clearInterval(t2);
     clearInterval(t3);
+    clearInterval(t4);
     stopRelay();
     await eventWorker.close();
     await closeQueues();

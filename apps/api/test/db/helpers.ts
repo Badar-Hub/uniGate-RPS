@@ -4,6 +4,7 @@
  * offers login helpers per role. Redis is the real one from .env (throttle keys are cleared
  * between files).
  */
+import '@/config/dotenv.js'; // root .env -> process.env (dev only; CI supplies the environment)
 import { execSync } from 'node:child_process';
 import path from 'node:path';
 import request, { type Test } from 'supertest';
@@ -17,6 +18,7 @@ import { prisma, disconnectPrisma } from '@/database/prisma.js';
 import { redis, disconnectRedis } from '@/database/redis.js';
 
 export const TEST_DB = process.env['TEST_DATABASE_URL'] ?? '';
+if (TEST_DB && TEST_DB === process.env['DATABASE_URL']) throw new Error('TEST_DATABASE_URL must not equal DATABASE_URL');
 const apiRoot = path.resolve(import.meta.dirname, '../..');
 
 /** Captures every OTP so tests can read it; never sends anything. */

@@ -140,3 +140,32 @@ export async function countFutureReservations(_scope: AnyScope, vehicleId: strin
     WHERE vehicle_id = ${vehicleId}::uuid AND entry_type = 'RESERVATION' AND status <> 'RELEASED' AND upper(period) > now()`;
   return Number(rows[0]?.n ?? 0);
 }
+
+// ── matching (Phase 6) ────────────────────────────────────────────────────────
+
+/**
+ * Structural candidates for a request: approved + active vehicles in the category whose owner
+ * is approved for the vertical and serves the pickup city, and whose calendar is free for the
+ * window. Dispatchability (documents) is evaluated by the service on top of this.
+ */
+export async function listCandidates(_scope: AnyScope, input: { vehicleCategoryId: string; pickupCityId: string; transportType: 'PASSENGER' | 'GOODS'; from: Date; to: Date }): Promise<VehicleRow[]> {
+  const busy = await prisma().$queryRaw<{ vehicle_id: string }[]>`
+    SELECT DISTINCT vehicle_id FROM vehicle_calendar_entries WHERE status <> 'RELEASED' AND period && tstzrange(${input.from}, ${input.to}, '[)')`;
+  return prisma().vehicle.findMany({
+    where: {
+      deletedAt: null,
+      approvalStatus: 'APPROVED',
+      lifecycleStatus: 'ACTIVE',
+      vehicleCategoryId: input.vehicleCategoryId,
+      ...(busy.length ? { id: { notIn: busy.map((b) => b.vehicle_id) } } : {}),
+      ownerProfile: {
+        onboardingStatus: 'APPROVED',
+        serviceAreas: { some: { cityId: input.pickupCityId, isActive: true } },
+        verticalApprovals: { some: { transportType: input.transportType, status: 'APPROVED' } },
+      },
+    },
+    select: vehicleSelect,
+    orderBy: { createdAt: 'asc' },
+    take: 500,
+  });
+}

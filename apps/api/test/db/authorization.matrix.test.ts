@@ -125,6 +125,27 @@ describeDb('authorization matrix', () => {
       call: (t) => bearer(request(h.app).post('/api/v1/reference/vehicle-makes'), t).send({ name: 'Matrix Motors' }),
       expect: { SUPER_ADMIN: 201, ADMIN: 409, OPS_MANAGER: 403, FINANCE_OFFICER: 403, SUPPORT_AGENT: 403, CUSTOMER: 403, VEHICLE_OWNER: 403, DRIVER: 403, SPO: 403 },
     },
+    // ── Phase 6: demand ────────────────────────────────────────────────────────
+    {
+      name: 'GET /trip-requests (trip_requests.read own → read_any)',
+      call: (t) => bearer(request(h.app).get('/api/v1/trip-requests'), t),
+      expect: { SUPER_ADMIN: 200, ADMIN: 200, OPS_MANAGER: 200, FINANCE_OFFICER: 200, SUPPORT_AGENT: 200, CUSTOMER: 200, VEHICLE_OWNER: 200, DRIVER: 403, SPO: 200 },
+    },
+    {
+      name: 'POST /trip-requests (trip_requests.create; Idempotency-Key required → 400 before validation)',
+      call: (t) => bearer(request(h.app).post('/api/v1/trip-requests'), t).send({}),
+      expect: { SUPER_ADMIN: 400, ADMIN: 400, OPS_MANAGER: 400, FINANCE_OFFICER: 403, SUPPORT_AGENT: 403, CUSTOMER: 400, VEHICLE_OWNER: 403, DRIVER: 403, SPO: 400 },
+    },
+    {
+      name: 'GET /trip-requests/{id}/invitations (trip_requests.read_any)',
+      call: (t) => bearer(request(h.app).get('/api/v1/trip-requests/0192f3c1-0000-7000-8000-000000000000/invitations'), t),
+      expect: { SUPER_ADMIN: 404, ADMIN: 404, OPS_MANAGER: 404, FINANCE_OFFICER: 404, SUPPORT_AGENT: 404, CUSTOMER: 403, VEHICLE_OWNER: 403, DRIVER: 403, SPO: 403 },
+    },
+    {
+      name: 'GET /opportunities (owner profile or trip_requests.read)',
+      call: (t) => bearer(request(h.app).get('/api/v1/opportunities'), t),
+      expect: { SUPER_ADMIN: 200, ADMIN: 200, OPS_MANAGER: 200, FINANCE_OFFICER: 200, SUPPORT_AGENT: 200, CUSTOMER: 200, VEHICLE_OWNER: 200, DRIVER: 403, SPO: 200 },
+    },
   ];
 
   for (const row of MATRIX) {

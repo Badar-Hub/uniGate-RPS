@@ -46,7 +46,10 @@
       "DRIVER_NOT_APPROVED": "السائق غير معتمد بعد.",
       "DRIVER_LICENSE_EXPIRED": "انتهت صلاحية رخصة السائق.",
       "DRIVER_ALREADY_ON_TRIP": "السائق في رحلة حاليًا.",
-      "CONFLICT": "هذا موجود بالفعل أو لا يزال مستخدمًا."
+      "CONFLICT": "هذا موجود بالفعل أو لا يزال مستخدمًا.",
+      "TRIP_REQUEST_DETAIL_MISMATCH": "تفاصيل الطلب لا تطابق نوع النقل.",
+      "TRIP_REQUEST_INVALID_TRANSITION": "هذا الإجراء غير ممكن في حالة الطلب الحالية.",
+      "VERTICAL_NOT_ENABLED": "نقل البضائع غير متاح بعد."
     }
   },
   "home": {
@@ -108,7 +111,9 @@
       "adminReview": "الموافقات",
       "settings": "الإعدادات",
       "fleet": "الأسطول",
-      "vehicleApprovals": "اعتماد المركبات"
+      "vehicleApprovals": "اعتماد المركبات",
+      "requests": "طلباتي",
+      "opportunities": "الفرص"
     },
     "welcome": "مرحبًا، {name}",
     "roles": "الأدوار",
@@ -265,6 +270,94 @@
         "SUSPENDED": "موقوفة",
         "ARCHIVED": "مؤرشفة"
       }
+    },
+    "requests": {
+      "title": "طلباتي",
+      "subtitle": "أنشئ طلبًا وانشره للمالكين المطابقين ثم قارن عروضهم.",
+      "newRequest": "طلب جديد",
+      "empty": "لا توجد طلبات بعد.",
+      "number": "الطلب",
+      "route": "المسار",
+      "pickup": "الانطلاق",
+      "vehicles": "المركبات",
+      "status": {
+        "DRAFT": "مسودة",
+        "PUBLISHED": "منشور",
+        "PARTIALLY_AWARDED": "مُسند جزئيًا",
+        "FULLY_AWARDED": "مُسند بالكامل",
+        "CLOSED_PARTIAL": "مغلق (جزئي)",
+        "COMPLETED": "مكتمل",
+        "CANCELLED": "ملغي",
+        "EXPIRED": "منتهي"
+      },
+      "bidding": "العروض",
+      "open": "مفتوح",
+      "closed": "مغلق",
+      "invited": "تمت دعوة {count} مالك",
+      "form": {
+        "title": "طلب نقل ركاب جديد",
+        "category": "فئة المركبة",
+        "vehiclesRequired": "عدد المركبات",
+        "partial": "هل يمكن إرسالها على دفعات أم تحتاجها كلها معًا؟",
+        "partialYes": "الدفعات مقبولة",
+        "partialNo": "كلها معًا",
+        "direction": "الاتجاه",
+        "oneWay": "ذهاب فقط",
+        "roundTrip": "ذهاب وعودة",
+        "pickupAddress": "عنوان الانطلاق",
+        "pickupCity": "مدينة الانطلاق",
+        "dropoffAddress": "عنوان الوصول",
+        "dropoffCity": "مدينة الوصول",
+        "savedLocation": "استخدم موقعًا محفوظًا",
+        "pickupAt": "وقت الانطلاق",
+        "returnAt": "وقت العودة",
+        "passengers": "عدد الركاب",
+        "luggage": "قطع الأمتعة",
+        "purpose": "الغرض",
+        "wheelchair": "يلزم تجهيز لذوي الإعاقة",
+        "femaleDriver": "يلزم سائقة",
+        "childSeats": "مقاعد أطفال",
+        "budget": "الميزانية (ريال، اختياري)",
+        "instructions": "تعليمات خاصة (تظهر للمالك الفائز فقط)",
+        "publishNow": "نشر الآن",
+        "saveDraft": "حفظ كمسودة",
+        "created": "تم إنشاء الطلب.",
+        "published": "تم نشر الطلب إلى {count} مالك مطابق."
+      },
+      "detail": {
+        "publish": "نشر",
+        "cancel": "إلغاء الطلب",
+        "cancelReason": "السبب",
+        "delete": "حذف المسودة",
+        "estimate": "التقدير",
+        "distance": "{km} كم",
+        "duration": "{min} دقيقة",
+        "deadline": "تُغلق العروض",
+        "invitations": "المالكون المدعوون",
+        "noInvitations": "لا يوجد مالك لديه مركبة مطابقة متاحة حاليًا."
+      },
+      "purpose": {
+        "AIRPORT_TRANSFER": "نقل من/إلى المطار",
+        "INTERCITY": "بين المدن",
+        "CITY_TOUR": "جولة في المدينة",
+        "EMPLOYEE_TRANSPORT": "نقل موظفين",
+        "HAJJ_UMRAH": "حج / عمرة",
+        "EVENT": "مناسبة",
+        "OTHER": "أخرى"
+      }
+    },
+    "opportunities": {
+      "title": "الفرص",
+      "subtitle": "طلبات تطابق أسطولك ومناطق خدمتك. تُشارك بيانات التواصل بعد قبول عرضك.",
+      "empty": "لا توجد فرص مفتوحة حاليًا.",
+      "match": "التطابق",
+      "eligible": "مركباتك المؤهلة",
+      "dismiss": "تجاهل",
+      "undo": "استعادة",
+      "showDismissed": "عرض المتجاهلة",
+      "passengers": "{count} راكب",
+      "bidSoon": "تقديم العروض يبدأ في المرحلة 7",
+      "closes": "تُغلق العروض {date}"
     }
   }
 }
