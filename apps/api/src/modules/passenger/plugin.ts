@@ -57,4 +57,29 @@ export const passengerPlugin: VerticalPlugin = {
       return { ok: true, reasons, score };
     },
   },
+  trips: {
+    // BOOKED → DRIVER_ASSIGNED → DRIVER_EN_ROUTE → ARRIVED_AT_PICKUP → TRIP_STARTED → IN_PROGRESS → ARRIVED_AT_DESTINATION → COMPLETED
+    transitions: {
+      BOOKED: ['DRIVER_ASSIGNED', 'CANCELLED'],
+      DRIVER_ASSIGNED: ['DRIVER_EN_ROUTE', 'CANCELLED', 'EXCEPTION'],
+      DRIVER_EN_ROUTE: ['ARRIVED_AT_PICKUP', 'CANCELLED', 'EXCEPTION'],
+      ARRIVED_AT_PICKUP: ['TRIP_STARTED', 'CANCELLED', 'EXCEPTION'],
+      TRIP_STARTED: ['IN_PROGRESS', 'ARRIVED_AT_DESTINATION', 'CANCELLED', 'EXCEPTION'],
+      IN_PROGRESS: ['ARRIVED_AT_DESTINATION', 'CANCELLED', 'EXCEPTION'],
+      ARRIVED_AT_DESTINATION: ['COMPLETED', 'CANCELLED', 'EXCEPTION'],
+      COMPLETED: [],
+      CANCELLED: [],
+      EXCEPTION: ['DRIVER_EN_ROUTE', 'ARRIVED_AT_PICKUP', 'TRIP_STARTED', 'IN_PROGRESS', 'ARRIVED_AT_DESTINATION', 'CANCELLED'],
+      // no goods states on a passenger trip
+      LOADING: [],
+      LOADED: [],
+      IN_TRANSIT: [],
+      UNLOADING: [],
+      DELIVERED: [],
+    },
+    startStatus: 'TRIP_STARTED',
+    odometerRequiredOn: ['TRIP_STARTED', 'COMPLETED'],
+    proofRequiredOn: [],
+    activeStatuses: ['DRIVER_EN_ROUTE', 'ARRIVED_AT_PICKUP', 'TRIP_STARTED', 'IN_PROGRESS', 'ARRIVED_AT_DESTINATION', 'EXCEPTION'],
+  }
 };

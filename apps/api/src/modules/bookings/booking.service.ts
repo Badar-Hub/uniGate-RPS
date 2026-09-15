@@ -379,3 +379,52 @@ export async function applyRefundCompleted(scope: AnyScope, bookingId: string, f
   await tx.booking.update({ where: { id: bookingId }, data: { paymentStatus: fullyRefunded ? 'REFUNDED' : 'PARTIALLY_REFUNDED' } });
   if (fullyRefunded && b.status === 'CANCELLED') await transition(scope, b, 'REFUNDED', 'refund completed', {}, tx, { source: 'gateway' });
 }
+
+// ── trip integration (Phase 10) ──────────────────────────────────────────────
+
+/** The trip is under way: READY → IN_PROGRESS (a DRIVER_ASSIGNED booking is advanced through READY when the ready check is off). */
+export async function applyTripStarted(scope: AnyScope, bookingId: string, tx: Prisma.TransactionClient): Promise<void> {
+  await repo.lockBooking(scope, bookingId, tx);
+  let b = await repo.findBooking(scope, bookingId, tx);
+  if (!b) throw new NotFoundError();
+  if (b.status === 'DRIVER_ASSIGNED') {
+    await transition(scope, b, 'READY', 'implicit: trip started without a ready check', {}, tx, { source: 'trip' });
+    b = (await repo.findBooking(scope, bookingId, tx)) ?? b;
+  }
+  if (b.status === 'IN_PROGRESS') return;
+  await transition(scope, b, 'IN_PROGRESS', 'trip started', {}, tx, { source: 'trip' });
+  await publishEvent('booking', bookingId, 'booking.in_progress', { bookingNumber: b.bookingNumber, customerProfileId: b.customerProfileId, ownerProfileId: b.ownerProfileId }, tx);
+}
+
+/** The trip completed: IN_PROGRESS → COMPLETED, reservation released so the vehicle is free at once. */
+export async function applyTripCompleted(scope: AnyScope, bookingId: string, tx: Prisma.TransactionClient): Promise<void> {
+  await repo.lockBooking(scope, bookingId, tx);
+  const b = await repo.findBooking(scope, bookingId, tx);
+  if (!b) throw new NotFoundError();
+  if (b.status === 'COMPLETED') return;
+  await transition(scope, b, 'COMPLETED', 'trip completed', { completedAt: new Date() }, tx, { source: 'trip' });
+  await repo.releaseReservation(scope, bookingId, tx);
+  await publishEvent('booking', bookingId, 'booking.completed', { bookingNumber: b.bookingNumber, customerProfileId: b.customerProfileId, ownerProfileId: b.ownerProfileId, totalAmount: b.totalAmount.toFixed(2) }, tx);
+}
+
+/**
+ * Ops cancelled the trip (POST /trips/{id}/cancel, trips.manage): the booking is cancelled even from
+ * IN_PROGRESS — the one path the transition map does not open to the parties themselves (api.md §6.4).
+ * No cancellation fee here (fault is decided by the dispute, not by the cancel); a captured payment
+ * gets a REQUESTED refund for the full amount.
+ */
+export async function cancelFromTrip(scope: ActorScope, bookingId: string, reason: string, tx: Prisma.TransactionClient): Promise<void> {
+  await repo.lockBooking(scope, bookingId, tx);
+  const b = await repo.findBooking(scope, bookingId, tx);
+  if (!b) throw new NotFoundError();
+  if (b.status === 'CANCELLED' || b.status === 'REFUNDED' || b.status === 'COMPLETED') return;
+  const now = new Date();
+  await tx.bookingCancellation.create({ data: { bookingId, cancelledByUserId: scope.actor.userId, cancelledByRole: 'ADMIN', eventType: 'CANCELLATION', reasonCode: 'ADMIN_INTERVENTION', reasonText: reason, hoursBeforePickup: hoursBefore(b, now), feePayer: 'NONE', cancellationFeeAmount: 0, refundAmount: b.totalAmount, currency: b.currency, feeSource: 'NONE', feeRuleSnapshot: { source: 'trip cancellation' } } });
+  await tx.booking.update({ where: { id: bookingId }, data: { status: 'CANCELLED', cancelledAt: now } });
+  await tx.bookingStatusHistory.create({ data: { id: newId(), bookingId, fromStatus: b.status, toStatus: 'CANCELLED', changedByUserId: scope.actor.userId, actorType: 'USER', reason: `trip cancelled: ${reason}`, metadata: { source: 'trip', bypassesMap: true } } });
+  await repo.releaseReservation(scope, bookingId, tx);
+  await recordBookingCancellation(scope, b.tripRequestId, tx);
+  await requestRefundForCancellation(scope, bookingId, b.totalAmount, scope.actor.userId, tx);
+  await writeAudit({ ...audit(scope), action: 'booking.cancelled', entityType: 'booking', entityId: bookingId, severity: 'NOTICE', beforeValue: { status: b.status }, afterValue: { status: 'CANCELLED', role: 'ADMIN', reasonCode: 'ADMIN_INTERVENTION', source: 'trip', reason } }, tx);
+  await publishEvent('booking', bookingId, 'booking.cancelled', { bookingNumber: b.bookingNumber, tripRequestId: b.tripRequestId, customerProfileId: b.customerProfileId, ownerProfileId: b.ownerProfileId, driverProfileId: b.driverProfileId, role: 'ADMIN', reasonCode: 'ADMIN_INTERVENTION' }, tx);
+}

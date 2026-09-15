@@ -46,24 +46,11 @@ export function authenticate(opts: { optional?: boolean } = {}): RequestHandler 
   };
 }
 
-async function run(req: Request, optional: boolean): Promise<void> {
-  const header = req.header('authorization');
-  let token: string | null = null;
-  let mode: 'bearer' | 'cookie' = 'bearer';
-  if (header?.startsWith('Bearer ')) {
-    token = header.slice(7).trim();
-  } else {
-    const c = cookieOf(req, ACCESS_COOKIE);
-    if (c) {
-      token = c;
-      mode = 'cookie';
-    }
-  }
-  if (!token) {
-    if (optional) return;
-    throw new UnauthorizedError('AUTH_TOKEN_MISSING', 'Authentication required');
-  }
-
+/**
+ * Token → actor, shared by the HTTP middleware and the Socket.IO handshake (api.md §9.1) so the
+ * socket surface can never authenticate more loosely than HTTP.
+ */
+export async function actorFromToken(token: string, mode: 'bearer' | 'cookie'): Promise<{ actor: ActorIdentity; claims: AccessClaims }> {
   const claims = await verifyAccessToken(token);
 
   if ((await cacheGet(`sess:revoked:${claims.sid}`)) !== null) {
@@ -111,11 +98,33 @@ async function run(req: Request, optional: boolean): Promise<void> {
     spoProfileId: user.spoProfile?.id ?? null,
     locale: user.preferredLocale === 'en' ? 'en' : 'ar',
   };
+  return { actor, claims };
+}
+
+async function run(req: Request, optional: boolean): Promise<void> {
+  const header = req.header('authorization');
+  let token: string | null = null;
+  let mode: 'bearer' | 'cookie' = 'bearer';
+  if (header?.startsWith('Bearer ')) {
+    token = header.slice(7).trim();
+  } else {
+    const c = cookieOf(req, ACCESS_COOKIE);
+    if (c) {
+      token = c;
+      mode = 'cookie';
+    }
+  }
+  if (!token) {
+    if (optional) return;
+    throw new UnauthorizedError('AUTH_TOKEN_MISSING', 'Authentication required');
+  }
+
+  const { actor, claims } = await actorFromToken(token, mode);
   const r = req as AuthenticatedRequest;
   r.actor = actor;
   r.claims = claims;
   r.credentialMode = mode;
-  setContextUser(user.id, session.id);
+  setContextUser(actor.userId, actor.sessionId);
 }
 
 /**

@@ -37,6 +37,8 @@ export interface VerticalPlugin {
   extraRequiredDocumentTypes(role: 'OWNER' | 'DRIVER' | 'VEHICLE', category: CategoryShape): string[];
   /** Demand behaviour (Phase 6). */
   readonly demand: VerticalDemandPlugin;
+  /** Trip execution (Phase 10). */
+  readonly trips: VerticalTripPlugin;
 }
 
 // ── Phase 6: demand ──────────────────────────────────────────────────────────
@@ -87,3 +89,27 @@ export interface VerticalDemandPlugin {
 
 /** Which detail block belongs to the vertical; the core never names either table itself. */
 export type DetailKey = 'passengerDetails' | 'goodsDetails';
+
+// ── Phase 10: trips ──────────────────────────────────────────────────────────
+
+export type TripStatusCode =
+  | 'BOOKED' | 'DRIVER_ASSIGNED' | 'DRIVER_EN_ROUTE' | 'ARRIVED_AT_PICKUP' | 'TRIP_STARTED' | 'IN_PROGRESS' | 'LOADING' | 'LOADED' | 'IN_TRANSIT'
+  | 'ARRIVED_AT_DESTINATION' | 'UNLOADING' | 'DELIVERED' | 'COMPLETED' | 'CANCELLED' | 'EXCEPTION';
+
+export type TripTransitionMap = Readonly<Record<TripStatusCode, readonly TripStatusCode[]>>;
+
+/**
+ * One trip_status enum, two transition maps — each owned by its vertical (database.md §11.2).
+ * The trips module asks the plugin; it never inspects transport_type.
+ */
+export interface VerticalTripPlugin {
+  readonly transitions: TripTransitionMap;
+  /** The status that marks the trip as physically under way (booking → IN_PROGRESS, start odometer). */
+  readonly startStatus: TripStatusCode;
+  /** Statuses that require a start / end odometer reading. */
+  readonly odometerRequiredOn: readonly TripStatusCode[];
+  /** Statuses that require a proof row before they are accepted (goods: DELIVERED). */
+  readonly proofRequiredOn: readonly TripStatusCode[];
+  /** Statuses in which the vehicle is moving with the customer's load/passengers (for the customer's phone-visibility rule). */
+  readonly activeStatuses: readonly TripStatusCode[];
+}

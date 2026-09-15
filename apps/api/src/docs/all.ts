@@ -12,3 +12,4 @@ import '@/modules/demand/demand.openapi.js';
 import '@/modules/bidding/bidding.openapi.js';
 import '@/modules/bookings/bookings.openapi.js';
 import '@/modules/payments/payments.openapi.js';
+import '@/modules/trips/trips.openapi.js';

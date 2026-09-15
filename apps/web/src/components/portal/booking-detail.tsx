@@ -161,6 +161,11 @@ export function BookingDetail({ id, returnedPaymentId = null }: { id: string; re
                   ({t('detail.trip')} {b.trip.tripNumber})
                 </span>
               )}
+              {b.trip && (
+                <Link href={`/track/${b.trip.id}`} className="ms-2 text-primary underline-offset-4 hover:underline">
+                  {t('detail.track')}
+                </Link>
+              )}
             </div>
             {b.paymentDueBy && b.status === 'PENDING_PAYMENT' && (
               <div className="text-muted-foreground" dir="ltr">

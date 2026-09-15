@@ -1,3 +1,4 @@
+import type { Prisma } from '@prisma/client';
 import type { ActorScope, AnyScope, CalendarEntryDto, VehicleAssignmentDto, VehicleAvailabilityDto, VehicleDto } from '@unigate/types';
 import type { createVehicleBody, patchVehicleBody } from '@unigate/validation';
 import type { z } from 'zod';
@@ -413,4 +414,16 @@ export async function vehicleForAward(id: string, at?: Date): Promise<VehicleFor
 export async function isDriverAssignedToVehicle(vehicleId: string, driverProfileId: string): Promise<boolean> {
   const rows = await repo.listAssignments(systemScope('bookings.dispatch'), vehicleId);
   return rows.some((a) => a.driverProfileId === driverProfileId && a.assignedTo === null);
+}
+
+// ── trip integration (Phase 10) ──────────────────────────────────────────────
+
+/** System-driven operational status (database.md §7.1): the trip lifecycle owns IDLE ↔ ON_TRIP. */
+export async function setOperationalStatus(vehicleId: string, status: 'IDLE' | 'RESERVED' | 'ON_TRIP', tx: Prisma.TransactionClient): Promise<void> {
+  await tx.vehicle.update({ where: { id: vehicleId }, data: { operationalStatus: status } });
+}
+
+/** The odometer only moves forward; the caller refuses a lower reading (VALIDATION_FAILED). */
+export async function updateOdometer(vehicleId: string, km: number, tx: Prisma.TransactionClient): Promise<void> {
+  await tx.vehicle.updateMany({ where: { id: vehicleId, OR: [{ odometerKm: null }, { odometerKm: { lte: km } }] }, data: { odometerKm: km } });
 }

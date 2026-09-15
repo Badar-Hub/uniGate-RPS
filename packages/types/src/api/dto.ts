@@ -992,3 +992,146 @@ export interface WebhookReceiptDto {
   eventId: string;
   duplicate: boolean;
 }
+
+// ── trips & tracking (Phase 10) ───────────────────────────────────────────────
+
+export interface TripDto extends TimestampedDto {
+  id: string;
+  tripNumber: string;
+  bookingId: string;
+  bookingNumber: string;
+  bookingStatus: string;
+  transportType: string;
+  status: string;
+  /** From the vertical's own transition map — the driver app renders exactly these buttons. */
+  allowedNextStatuses: string[];
+  vehicle: { id: string; plateNumberEn: string; description: string; colorCode: string | null };
+  driver: { id: string; fullNameEn: string; phoneE164: string | null; ratingAvg: string } | null;
+  customerProfileId: string;
+  ownerProfileId: string;
+  pickup: TripLocationDto;
+  dropoff: TripLocationDto;
+  scheduledStartAt: string;
+  scheduledEndAt: string;
+  actualStartAt: string | null;
+  actualEndAt: string | null;
+  startOdometerKm: number | null;
+  endOdometerKm: number | null;
+  actualDistanceKm: MoneyString | null;
+  driverNotes: string | null;
+  customerNotes: string | null;
+  delayMinutes: number | null;
+  /** Last known position (from the live mirror), when the caller may track this trip. */
+  position: TrackingPositionDto | null;
+  trackingSessionId: string | null;
+}
+
+export interface TripStatusHistoryDto {
+  id: string;
+  fromStatus: string | null;
+  toStatus: string;
+  actorType: string;
+  changedByUserId: string | null;
+  latitude: number | null;
+  longitude: number | null;
+  accuracyM: number | null;
+  note: string | null;
+  occurredAt: string;
+  recordedAt: string;
+}
+
+export interface TripStatusResultDto {
+  id: string;
+  tripNumber: string;
+  status: string;
+  previousStatus: string;
+  transportType: string;
+  occurredAt: string;
+  recordedAt: string;
+  allowedNextStatuses: string[];
+  booking: { id: string; status: string };
+}
+
+export interface TripProofDto {
+  id: string;
+  tripId: string;
+  proofType: string;
+  recipientName: string | null;
+  recipientIdLast4: string | null;
+  signatureDocumentId: string | null;
+  latitude: number | null;
+  longitude: number | null;
+  notes: string | null;
+  capturedByUserId: string | null;
+  capturedAt: string;
+}
+
+export interface TrackingPositionDto {
+  latitude: number;
+  longitude: number;
+  headingDeg: number | null;
+  speedKmh: number | null;
+  accuracyM: number | null;
+  recordedAt: string;
+  ageSeconds: number;
+  /** ageSeconds > 120 — show "last seen", not a confidently wrong dot. */
+  stale: boolean;
+}
+
+export interface TrackingPingResultDto {
+  accepted: boolean;
+  persisted: boolean;
+  sequence: number;
+  lowConfidence: boolean;
+}
+
+export interface TrackingBatchResultDto {
+  results: ({ index: number } & (TrackingPingResultDto | { accepted: false; code: string }))[];
+  acceptedCount: number;
+}
+
+/** GET /tracking/trips/{id} — the customer's live-tracking read (api.md §6.4). */
+export interface TripTrackingDto {
+  tripId: string;
+  tripStatus: string;
+  bookingNumber: string;
+  position: TrackingPositionDto | null;
+  vehicle: { plateNumberEn: string; description: string; colorCode: string | null };
+  /** phoneE164 is present only for the booking's customer while the trip is active. */
+  driver: { fullNameEn: string; phoneE164: string | null; ratingAvg: string } | null;
+  pickup: { latitude: number; longitude: number; addressLine: string };
+  destination: { latitude: number; longitude: number; addressLine: string };
+  eta: { arrivalAt: string; remainingDistanceKm: MoneyString; confidence: 'LOW' | 'MEDIUM' | 'HIGH' } | null;
+  socket: { namespace: string; room: string };
+}
+
+export interface TrackingHistoryPointDto {
+  latitude: number;
+  longitude: number;
+  headingDeg: number | null;
+  speedKmh: number | null;
+  accuracyM: number | null;
+  recordedAt: string;
+}
+
+export interface VehicleLivePositionDto {
+  vehicleId: string;
+  plateNumberEn: string;
+  ownerProfileId: string;
+  operationalStatus: string;
+  tripId: string | null;
+  position: TrackingPositionDto;
+}
+
+export interface TrackingSessionDto {
+  id: string;
+  tripId: string;
+  vehicleId: string;
+  driverProfileId: string | null;
+  providerCode: string;
+  status: string;
+  startedAt: string;
+  endedAt: string | null;
+  pointCount: number;
+  totalDistanceKm: MoneyString;
+}

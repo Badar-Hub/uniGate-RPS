@@ -20,6 +20,8 @@ import { OtpField } from './otp-field';
  * `tokens: null`, and the portal boots from /me.
  */
 export function LoginForm({ next = '/dashboard' }: { next?: string }) {
+  /** A driver-only account belongs in the driver app unless a specific page was requested. */
+  const destination = (roles: string[]) => (next === '/dashboard' && roles.length === 1 && roles[0] === 'DRIVER' ? '/driver' : next);
   const t = useTranslations('auth');
   const tc = useTranslations('common');
   const router = useRouter();
@@ -43,7 +45,7 @@ export function LoginForm({ next = '/dashboard' }: { next?: string }) {
       setError(res.error);
       return;
     }
-    router.replace(next);
+    router.replace(destination(res.data.roles));
   }
 
   async function sendCode() {
@@ -73,7 +75,7 @@ export function LoginForm({ next = '/dashboard' }: { next?: string }) {
       setError(res.error);
       return;
     }
-    router.replace(next);
+    router.replace(destination(res.data.roles));
   }
 
   return (

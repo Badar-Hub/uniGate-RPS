@@ -224,6 +224,32 @@ describeDb('authorization matrix', () => {
       call: () => request(h.app).post('/api/v1/webhooks/payments/mock').set('Content-Type', 'application/json').send('{"id":"evt_x","type":"payment.captured"}'),
       expect: { SUPER_ADMIN: 401, ADMIN: 401, OPS_MANAGER: 401, FINANCE_OFFICER: 401, SUPPORT_AGENT: 401, CUSTOMER: 401, VEHICLE_OWNER: 401, DRIVER: 401, SPO: 401 },
     },
+    // ── Phase 10: trips & tracking ─────────────────────────────────────────────
+    {
+      name: 'GET /trips (trips.read own/party → read_any)',
+      call: (t) => bearer(request(h.app).get('/api/v1/trips'), t),
+      expect: { SUPER_ADMIN: 200, ADMIN: 200, OPS_MANAGER: 200, FINANCE_OFFICER: 403, SUPPORT_AGENT: 200, CUSTOMER: 200, VEHICLE_OWNER: 200, DRIVER: 200, SPO: 403 },
+    },
+    {
+      name: 'POST /trips/{id}/status (trips.update_status — drivers and ops; key required → 400)',
+      call: (t) => bearer(request(h.app).post('/api/v1/trips/0192f3c1-0000-7000-8000-000000000000/status'), t).send({ status: 'DRIVER_EN_ROUTE' }),
+      expect: { SUPER_ADMIN: 400, ADMIN: 400, OPS_MANAGER: 400, FINANCE_OFFICER: 403, SUPPORT_AGENT: 403, CUSTOMER: 403, VEHICLE_OWNER: 403, DRIVER: 400, SPO: 403 },
+    },
+    {
+      name: 'POST /trips/{id}/cancel (trips.manage — ops only; unknown id → 404)',
+      call: (t) => bearer(request(h.app).post('/api/v1/trips/0192f3c1-0000-7000-8000-000000000000/cancel'), t).send({ reason: 'breakdown' }),
+      expect: { SUPER_ADMIN: 404, ADMIN: 404, OPS_MANAGER: 404, FINANCE_OFFICER: 403, SUPPORT_AGENT: 403, CUSTOMER: 403, VEHICLE_OWNER: 403, DRIVER: 403, SPO: 403 },
+    },
+    {
+      name: 'POST /tracking/ping (tracking.publish — drivers only; unknown trip → 404)',
+      call: (t) => bearer(request(h.app).post('/api/v1/tracking/ping'), t).send({ tripId: '0192f3c1-0000-7000-8000-000000000000', latitude: 24.7, longitude: 46.7, recordedAt: new Date().toISOString() }),
+      expect: { SUPER_ADMIN: 404, ADMIN: 404, OPS_MANAGER: 404, FINANCE_OFFICER: 403, SUPPORT_AGENT: 403, CUSTOMER: 403, VEHICLE_OWNER: 403, DRIVER: 404, SPO: 403 },
+    },
+    {
+      name: 'GET /tracking/vehicles (tracking.read_any — ops/fleet only)',
+      call: (t) => bearer(request(h.app).get('/api/v1/tracking/vehicles'), t),
+      expect: { SUPER_ADMIN: 200, ADMIN: 200, OPS_MANAGER: 200, FINANCE_OFFICER: 403, SUPPORT_AGENT: 200, CUSTOMER: 403, VEHICLE_OWNER: 403, DRIVER: 403, SPO: 403 },
+    },
   ];
 
   for (const row of MATRIX) {

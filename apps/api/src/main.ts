@@ -3,6 +3,7 @@ import { createServer } from 'node:http';
 import { config } from '@/config/index.js';
 import { initLogger } from '@/logging/logger.js';
 import { createApp } from '@/app.js';
+import { startRealtime, stopRealtime } from '@/realtime/hub.js';
 import { disconnectPrisma, prisma } from '@/database/prisma.js';
 import { disconnectRedis, redis } from '@/database/redis.js';
 
@@ -25,6 +26,7 @@ async function main(): Promise<void> {
 
   const app = createApp(cfg);
   const server = createServer(app);
+  startRealtime(server);
   server.keepAliveTimeout = 65_000;
   server.headersTimeout = 66_000;
 
@@ -39,6 +41,7 @@ async function main(): Promise<void> {
       log.error('forced exit after drain timeout');
       process.exit(1);
     }, 10_000).unref();
+    void stopRealtime();
     server.close(() => {
       void (async () => {
         await disconnectPrisma();

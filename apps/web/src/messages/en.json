@@ -90,7 +90,14 @@
       "REFUND_EXCEEDS_CAPTURED": "The refund exceeds the captured amount.",
       "REFUND_ALREADY_PROCESSED": "This refund is already being processed.",
       "REFUND_INVALID_TRANSITION": "This action is not available for the refund’s current state.",
-      "REFUND_FOUR_EYES": "A refund must be approved by someone other than the requester."
+      "REFUND_FOUR_EYES": "A refund must be approved by someone other than the requester.",
+      "TRIP_INVALID_TRANSITION": "That step is not available right now.",
+      "TRIP_NOT_ACTIVE": "This trip has ended.",
+      "TRIP_ALREADY_COMPLETED": "This trip is already completed.",
+      "TRIP_PROOF_REQUIRED": "A delivery proof is required first.",
+      "TRIP_ODOMETER_REQUIRED": "Enter the odometer reading.",
+      "TRACKING_SESSION_NOT_ACTIVE": "The trip is not being tracked yet.",
+      "TRACKING_STALE_POINT": "The location sample was too old."
     }
   },
   "home": {
@@ -156,7 +163,8 @@
       "requests": "My requests",
       "opportunities": "Opportunities",
       "bids": "My bids",
-      "bookings": "Bookings"
+      "bookings": "Bookings",
+      "driverApp": "Driver app"
     },
     "welcome": "Welcome, {name}",
     "roles": "Roles",
@@ -523,7 +531,8 @@
         "readyDone": "Booking marked ready.",
         "cancellation": "Cancellation",
         "cancelledBy": "Cancelled by {role}",
-        "feeWaived": "Fee waived"
+        "feeWaived": "Fee waived",
+        "track": "Track live"
       },
       "reasons": {
         "CUSTOMER_PLANS_CHANGED": "Plans changed",
@@ -567,6 +576,106 @@
         "done": "Outcome delivered. Returning to UniGate…",
         "unknown": "This checkout session is unknown or has already completed."
       }
+    },
+    "tracking": {
+      "open": "Track live",
+      "title": "Live tracking",
+      "subtitle": "The vehicle position updates as the driver moves.",
+      "driver": "Driver",
+      "call": "Call driver",
+      "vehicle": "Vehicle",
+      "eta": "Arrival",
+      "remaining": "{km} km remaining",
+      "lastSeen": "Last seen {ago}s ago",
+      "stale": "Position is stale — waiting for the driver’s device.",
+      "noPosition": "No position yet. Tracking starts when the driver sets off.",
+      "status": {
+        "BOOKED": "Booked",
+        "DRIVER_ASSIGNED": "Assigned",
+        "DRIVER_EN_ROUTE": "En route to pickup",
+        "ARRIVED_AT_PICKUP": "At pickup",
+        "TRIP_STARTED": "Trip started",
+        "IN_PROGRESS": "In progress",
+        "LOADING": "Loading",
+        "LOADED": "Loaded",
+        "IN_TRANSIT": "In transit",
+        "ARRIVED_AT_DESTINATION": "At destination",
+        "UNLOADING": "Unloading",
+        "DELIVERED": "Delivered",
+        "COMPLETED": "Completed",
+        "CANCELLED": "Cancelled",
+        "EXCEPTION": "Exception"
+      },
+      "live": "Live",
+      "reconnecting": "Reconnecting…"
+    }
+  },
+  "driver": {
+    "appName": "UniGate Driver",
+    "title": "My trips",
+    "subtitle": "Today and upcoming. Open a trip to update its status and share your location.",
+    "empty": "No trips assigned to you.",
+    "install": "Install this app on your phone: open the browser menu and choose \"Add to Home screen\".",
+    "signInHint": "Sign in with your driver account.",
+    "noDriverProfile": "This account is not a driver. Ask your vehicle owner to register you.",
+    "offline": "You are offline. Status changes need a connection; location samples are queued and sent when you are back online.",
+    "offlineTitle": "Offline",
+    "trip": {
+      "status": {
+        "BOOKED": "Booked",
+        "DRIVER_ASSIGNED": "Assigned",
+        "DRIVER_EN_ROUTE": "En route to pickup",
+        "ARRIVED_AT_PICKUP": "At pickup",
+        "TRIP_STARTED": "Trip started",
+        "IN_PROGRESS": "In progress",
+        "LOADING": "Loading",
+        "LOADED": "Loaded",
+        "IN_TRANSIT": "In transit",
+        "ARRIVED_AT_DESTINATION": "At destination",
+        "UNLOADING": "Unloading",
+        "DELIVERED": "Delivered",
+        "COMPLETED": "Completed",
+        "CANCELLED": "Cancelled",
+        "EXCEPTION": "Exception"
+      },
+      "action": {
+        "DRIVER_EN_ROUTE": "Start driving to pickup",
+        "ARRIVED_AT_PICKUP": "I have arrived at pickup",
+        "TRIP_STARTED": "Passengers on board — start trip",
+        "IN_PROGRESS": "Underway",
+        "LOADING": "Start loading",
+        "LOADED": "Loaded — depart",
+        "IN_TRANSIT": "In transit",
+        "ARRIVED_AT_DESTINATION": "Arrived at destination",
+        "UNLOADING": "Start unloading",
+        "DELIVERED": "Delivered",
+        "COMPLETED": "Complete trip",
+        "EXCEPTION": "Report a problem",
+        "CANCELLED": "Cancel"
+      },
+      "pickup": "Pickup",
+      "dropoff": "Drop-off",
+      "scheduled": "Scheduled",
+      "customer": "Customer",
+      "odometerPrompt": "Odometer reading (km)",
+      "odometerHint": "Required for this step. Current reading: {km} km.",
+      "noteLabel": "Note (optional)",
+      "confirm": "Confirm",
+      "updated": "Status updated: {status}",
+      "sharing": "Sharing live location",
+      "notSharing": "Location sharing is off",
+      "shareOn": "Share my location",
+      "shareOff": "Stop sharing",
+      "sent": "{sent} sent · {queued} queued",
+      "lastFix": "Last fix {ago}s ago · ±{acc} m",
+      "wakeLock": "Screen kept awake",
+      "permissionDenied": "Location permission was denied. Allow location for this site in your phone settings.",
+      "gpsUnavailable": "GPS is not available on this device.",
+      "keepOpen": "Keep this screen open while driving: the browser stops GPS when the screen locks.",
+      "openMap": "Open in maps",
+      "history": "History",
+      "done": "Trip completed. Thank you.",
+      "cancelled": "This trip was cancelled."
     }
   }
 }

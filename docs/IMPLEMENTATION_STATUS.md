@@ -1,7 +1,7 @@
 # UniGate — Implementation Status
 
 **Last updated:** 2026-09-15
-**Current phase:** **Phase 9 complete** (2026-09-15, on `MockGateway` by UniGate’s decision — real adapter later) → Phase 10 (Trips & tracking) ready to start
+**Current phase:** **Phase 10 complete** (2026-09-15) → Phase 11 (Finance: settlements, invoices, expenses) ready to start
 **Overall:** Foundation built and verified end to end: monorepo, typed packages, API core, full Prisma schema (82 tables) with hand-written constraints, seeds, migration-integrity test, web scaffold (shadcn/ui, ar/en RTL), CI. `pnpm ci` is green (20/20 tasks). See [development.md](development.md).
 
 > **Schema-blocking questions resolved 2026-09-14.**
@@ -32,7 +32,7 @@ Status values: `NOT_STARTED` · `IN_PROGRESS` · `BLOCKED` · `COMPLETE`
 | 7 | Bidding | **COMPLETE** 2026-09-15 | See *Phase 7 exit* below. Acceptance transaction under the global lock order; **N-way concurrent acceptance test green** |
 | 8 | Bookings | **COMPLETE** 2026-09-15 | See *Phase 8 exit* below. ~~Cancellation fee tiers pending OQ-05~~ answered 2026-09-15 — admin-configured policies + per-case override/waiver, both implemented |
 | 9 | Payments | **COMPLETE** 2026-09-15 | See *Phase 9 exit* below. `MockGateway` behind the `PaymentGateway` port; the real adapter is a later swap (OQ-03) |
-| 10 | Trip execution & tracking | `NOT_STARTED` | ~~Hardware GPS pending OQ-11~~ none fitted — driver-app GPS at launch |
+| 10 | Trip execution & tracking | **COMPLETE** 2026-09-15 | See *Phase 10 exit* below. ~~Hardware GPS pending OQ-11~~ none fitted — the driver app (PWA) is the GPS source at launch: [driver-app.md](driver-app.md) |
 | 11 | Finance | `NOT_STARTED` | ~~Commission rate OQ-01~~ answered 2026-09-15 (admin-configured + per-trip override); settlement cycle OQ-06, self-billing OQ-25/OQ-30, SPO OQ-09 |
 | 11b | **Goods vertical** | `NOT_STARTED` | New phase per [ADR-010](decisions/ADR-010-vertical-modules-over-a-shared-core.md): goods request/validation, goods trip state machine, freight checklist, Bayan hook, zero-rating decision, goods portal sections. **Gated on OQ-13 (freight) and OQ-29 only** |
 | 12 | Maintenance | `NOT_STARTED` | |
@@ -209,6 +209,27 @@ Verified on 2026-09-15 with `pnpm turbo run typecheck lint test build --force` (
 
 ---
 
+## Phase 10 exit — what was verified
+
+Verified on 2026-09-15 with `pnpm turbo run typecheck lint test build --force` (20/20 tasks), 119 tests (105 API: 12 migration-integrity, 10 auth lifecycle, 48 authorization matrix, 6 profiles & documents, 6 fleet, 3 demand, 3 bidding, 3 bookings, 4 payments, 3 trips & tracking, 7 unit; 14 package), plus a live two-tab browser session: the **driver app** (`/en/driver`) listing the assigned trip, moving it to *en route* from the trip screen, the location agent starting by itself and streaming fixes ("2 sent · 0 queued · ±6 m"), while the **customer's tracking page** (`/en/track/{tripId}`) showed the *Live* badge, the vehicle dot and its trail moving on the map through the socket room, the ETA and the *Call driver* button.
+
+| Area | Delivered | Proof |
+|---|---|---|
+| VerticalPlugin (trips) | `trips` contract on the plugin — `transitions` (one enum, **two maps**: passenger has no LOADING/LOADED/…; goods cannot skip LOADED), `startStatus`, `odometerRequiredOn`, `proofRequiredOn`, `activeStatuses`; the trips module never inspects `transport_type` | lint + trips test |
+| Trip execution | `POST /trips/{id}/status` (Idempotency-Key): validated against the vertical's map (`TRIP_INVALID_TRANSITION` with `details.allowed`), `occurredAt` window (−24 h / +15 min), odometer required and monotonic, proof required for goods DELIVERED, driver-only (ops through `trips.manage`), CANCELLED refused here (it is its own operation). Side effects in one transaction: `DRIVER_EN_ROUTE` opens the tracking session, vehicle `ON_TRIP`, driver `ON_TRIP`, `vehicles_dispatched++`; `TRIP_STARTED` sets `actual_start_at` / start odometer, booking `IN_PROGRESS` (through READY when the ready check is off; refused when `dispatch.ready_check_required` and the owner has not marked READY); `COMPLETED` sets `actual_end_at`, distance (odometer delta, else the session's haversine sum), closes the session, releases the reservation, booking `COMPLETED`, vehicle `IDLE`, driver `AVAILABLE`, `vehicles_completed++` and the order `COMPLETED`; `trip_status_history` with coordinates on every move; `allowedNextStatuses` in every response so the driver app renders exactly the buttons that work | trips test "lifecycle…" |
+| Ops cancellation | `POST /trips/{id}/cancel` (trips.manage): any non-terminal state → CANCELLED, session INTERRUPTED, vehicle IDLE, booking cancelled **even from IN_PROGRESS** through a dedicated bookings path (the map itself stays as documented), reservation released, order reopened, refund requested; drivers cannot cancel; the customer cannot cancel an IN_PROGRESS booking | trips test "ops cancellation…" |
+| Tracking ingestion | `POST /tracking/ping`: assigned driver only (404), `ACTIVE` session required, 30/min per trip, future/stale samples refused; **tiered write path** — Redis `loc:{vehicleId}` (60 s TTL) on every ping, `current_vehicle_locations` upserted, `vehicle_location_points` appended only when ≥30 s / ≥50 m / >30° since the last persisted point (`persisted: false` is normal); `accuracyM > 500` flagged `lowConfidence` and excluded from the ETA; `/ping/batch` with per-item results; socket `trip.location` fan-out | trips test "tracking…" |
+| Tracking reads | `GET /tracking/trips/{id}` (party → global; driver phone only for the customer while active; ETA via the maps provider, `meta.degraded` when unavailable; names the socket room), cursor-paginated history, `/tracking/vehicles` + `/{id}` for ops only, `/sessions/{id}/end` | same test |
+| Realtime | Socket.IO namespace `/rt` on the API server (`src/realtime/hub.ts`): handshake resolves the actor with the **same** `actorFromToken` the HTTP middleware uses (cookie or bearer, never a query string), `room.join` through the same party predicate as the tracking read (404-equivalent ack), `auth.refresh` re-evaluates rooms, a 15-min revoked-session sweep, per-room monotonic `seq` + `emittedAt`, `trip.status` to `trip:` and `booking:` rooms, eviction on cancellation; no client→server event mutates state | trips test (room policy) + browser |
+| Driver app (PWA) | `/{locale}/driver`: manifest, icons, scoped service worker with offline page, standalone shell; trips list; trip screen with server-driven buttons, odometer prompt, and the **location agent** (`lib/driver/tracker.ts`: GPS watch, 5-s throttle, localStorage queue → batch flush, wake lock, permission/GPS error states). See [driver-app.md](driver-app.md) for the install steps, the honest limits of a web agent and the native path | browser session |
+| Customer tracking page | Leaflet map (OSM tiles for development; tile URL is configuration), vehicle + trail, socket room with polling fallback, ETA, call button | browser session |
+| Also | `actorFromToken` extracted from the middleware for the socket handshake; a dispatched booking's cancellation now clamps `vehicles_dispatched` (the counters CHECK); the Engine.IO path sits under `/api/v1` so the cookie reaches it | tests |
+| OpenAPI | 149 paths / 185 schemas, diff-checked | `openapi:check` |
+
+**Carried forward:** background tracking on a locked phone needs a native wrapper around the same endpoints (see driver-app.md); the OSM tile server is development-only — production needs the licensed maps provider (same OQ as geocoding); the no-show path (`POST /bookings/{id}/no-show`) and EXCEPTION-driven disputes land with complaints (Phase 13); proof photos attach through the existing documents flow but the driver app has no camera capture screen yet (goods vertical, Phase 11b); the Redis Socket.IO adapter for multi-instance fan-out lands with deployment (Phase 16) — today one API process owns the namespace.
+
+---
+
 ## Module status
 
 | Module | Status | Backend | Frontend | Tests | Notes |
@@ -221,8 +242,8 @@ Verified on 2026-09-15 with `pnpm turbo run typecheck lint test build --force` (
 | `demand` | **DONE (Phase 6)** | trip-request.repository (OWN/PARTY/GLOBAL), service (lifecycle, matcher, opportunities, expiry job), mapper (redaction), routes, openapi; MapsProvider (`estimate`) | ✅ | db (demand 3, matrix) | Bids/award are Phase 7. |
 | `bidding` | **DONE (Phase 7)** | bid.repository (OWN/PARTY/GLOBAL, row locks), bid.service (submit/revise/withdraw/reject, totals, expiry), award.service (accept + group award), mapper, routes, openapi | ✅ | db (bidding 3, matrix) | Request-level override endpoint is Phase 13 admin tooling. |
 | `bookings` | **DONE (Phase 8)** | repository (scope, filters, locks, reservation release, driver conflicts), service (award creation, reads by role, quote = cancel, waive, confirm, assign-driver → trip row, ready, payment-window sweeper), mapper, routes, openapi | ✅ | db (bookings 3, matrix) | Admin booking / PATCH, dispute, no-show: Phases 10/13. |
-| `trips` | NOT_STARTED | — | — | — | Phase 10. |
-| `tracking` | NOT_STARTED | — | — | — | Socket.IO + tiered storage. Phase 10. |
+| `trips` | **DONE (Phase 10)** | trip.repository (scope, locks, history, proofs), trip.service (transition endpoint through the vertical map, side effects, ops cancel, party predicate shared with tracking and sockets), mapper, routes, openapi | ✅ driver app | db (trips 3, matrix) | Dispute/no-show: Phase 13. |
+| `tracking` | **DONE (Phase 10)** | tracking.repository (mirror, sessions, sampled points), tracking.service (ping/batch, tiered writes, reads, ETA), routes; `src/realtime/{hub,rooms}.ts` Socket.IO namespace | ✅ live map | db (trips 3) | Redis adapter for multi-instance: Phase 16. |
 | `payments` | **DONE (Phase 9, MockGateway)** | payment.repository, payment.service (intent, state machine, capture postings, sync, reconciliation), webhook.service (verify → persist → 200 → job), refund.service (four-eyes, process, pro-rata reversal), jobs, routes, openapi; `integrations/payments` port + mock | ✅ | db (payments 4, matrix) | Real adapter when UniGate names the provider (OQ-03). |
 | `finance` | IN_PROGRESS | commission.service, cancellation-policy.service, **ledger.service** (balanced transaction groups, `ownerPayableBalance`) | — | via bidding, bookings, payments tests | Settlements, invoices: Phase 11. |
 | `maintenance` | NOT_STARTED | — | — | — | Phase 12. |

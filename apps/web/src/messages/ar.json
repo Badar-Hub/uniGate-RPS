@@ -90,7 +90,14 @@
       "REFUND_EXCEEDS_CAPTURED": "المبلغ المسترد يتجاوز المبلغ المحصَّل.",
       "REFUND_ALREADY_PROCESSED": "هذا الاسترداد قيد المعالجة بالفعل.",
       "REFUND_INVALID_TRANSITION": "هذا الإجراء غير متاح في حالة الاسترداد الحالية.",
-      "REFUND_FOUR_EYES": "يجب أن يعتمد الاسترداد شخص غير مقدّم الطلب."
+      "REFUND_FOUR_EYES": "يجب أن يعتمد الاسترداد شخص غير مقدّم الطلب.",
+      "TRIP_INVALID_TRANSITION": "هذه الخطوة غير متاحة الآن.",
+      "TRIP_NOT_ACTIVE": "انتهت هذه الرحلة.",
+      "TRIP_ALREADY_COMPLETED": "هذه الرحلة مكتملة بالفعل.",
+      "TRIP_PROOF_REQUIRED": "يلزم إثبات التسليم أولاً.",
+      "TRIP_ODOMETER_REQUIRED": "أدخل قراءة العداد.",
+      "TRACKING_SESSION_NOT_ACTIVE": "لم يبدأ تتبع الرحلة بعد.",
+      "TRACKING_STALE_POINT": "عينة الموقع قديمة جداً."
     }
   },
   "home": {
@@ -156,7 +163,8 @@
       "requests": "طلباتي",
       "opportunities": "الفرص",
       "bids": "عروضي",
-      "bookings": "الحجوزات"
+      "bookings": "الحجوزات",
+      "driverApp": "تطبيق السائق"
     },
     "welcome": "مرحبًا، {name}",
     "roles": "الأدوار",
@@ -523,7 +531,8 @@
         "readyDone": "تم تحديد الحجز كجاهز.",
         "cancellation": "الإلغاء",
         "cancelledBy": "ألغاه {role}",
-        "feeWaived": "أُعفيت الرسوم"
+        "feeWaived": "أُعفيت الرسوم",
+        "track": "تتبع مباشر"
       },
       "reasons": {
         "CUSTOMER_PLANS_CHANGED": "تغيرت الخطط",
@@ -567,6 +576,106 @@
         "done": "تم إرسال النتيجة. جارٍ العودة إلى يونيجيت…",
         "unknown": "جلسة الدفع هذه غير معروفة أو اكتملت بالفعل."
       }
+    },
+    "tracking": {
+      "open": "تتبع مباشر",
+      "title": "التتبع المباشر",
+      "subtitle": "يتحدث موقع المركبة مع حركة السائق.",
+      "driver": "السائق",
+      "call": "اتصال بالسائق",
+      "vehicle": "المركبة",
+      "eta": "الوصول",
+      "remaining": "متبقٍ {km} كم",
+      "lastSeen": "آخر ظهور قبل {ago} ث",
+      "stale": "الموقع قديم — بانتظار جهاز السائق.",
+      "noPosition": "لا يوجد موقع بعد. يبدأ التتبع عند انطلاق السائق.",
+      "status": {
+        "BOOKED": "محجوز",
+        "DRIVER_ASSIGNED": "تم الإسناد",
+        "DRIVER_EN_ROUTE": "في الطريق إلى نقطة الانطلاق",
+        "ARRIVED_AT_PICKUP": "وصل إلى نقطة الانطلاق",
+        "TRIP_STARTED": "بدأت الرحلة",
+        "IN_PROGRESS": "قيد التنفيذ",
+        "LOADING": "جارٍ التحميل",
+        "LOADED": "تم التحميل",
+        "IN_TRANSIT": "في الطريق",
+        "ARRIVED_AT_DESTINATION": "وصل إلى الوجهة",
+        "UNLOADING": "جارٍ التفريغ",
+        "DELIVERED": "تم التسليم",
+        "COMPLETED": "مكتملة",
+        "CANCELLED": "ملغاة",
+        "EXCEPTION": "حالة طارئة"
+      },
+      "live": "مباشر",
+      "reconnecting": "جارٍ إعادة الاتصال…"
+    }
+  },
+  "driver": {
+    "appName": "يونيجيت للسائقين",
+    "title": "رحلاتي",
+    "subtitle": "اليوم والقادمة. افتح رحلة لتحديث حالتها ومشاركة موقعك.",
+    "empty": "لا توجد رحلات مسندة إليك.",
+    "install": "ثبّت هذا التطبيق على هاتفك: افتح قائمة المتصفح واختر \"إضافة إلى الشاشة الرئيسية\".",
+    "signInHint": "سجّل الدخول بحساب السائق.",
+    "noDriverProfile": "هذا الحساب ليس حساب سائق. اطلب من مالك المركبة تسجيلك.",
+    "offline": "أنت غير متصل. تغيير الحالة يحتاج اتصالاً؛ عينات الموقع تُحفظ وتُرسل عند عودة الاتصال.",
+    "offlineTitle": "غير متصل",
+    "trip": {
+      "status": {
+        "BOOKED": "محجوز",
+        "DRIVER_ASSIGNED": "تم الإسناد",
+        "DRIVER_EN_ROUTE": "في الطريق إلى نقطة الانطلاق",
+        "ARRIVED_AT_PICKUP": "وصل إلى نقطة الانطلاق",
+        "TRIP_STARTED": "بدأت الرحلة",
+        "IN_PROGRESS": "قيد التنفيذ",
+        "LOADING": "جارٍ التحميل",
+        "LOADED": "تم التحميل",
+        "IN_TRANSIT": "في الطريق",
+        "ARRIVED_AT_DESTINATION": "وصل إلى الوجهة",
+        "UNLOADING": "جارٍ التفريغ",
+        "DELIVERED": "تم التسليم",
+        "COMPLETED": "مكتملة",
+        "CANCELLED": "ملغاة",
+        "EXCEPTION": "حالة طارئة"
+      },
+      "action": {
+        "DRIVER_EN_ROUTE": "الانطلاق إلى نقطة الالتقاء",
+        "ARRIVED_AT_PICKUP": "وصلت إلى نقطة الالتقاء",
+        "TRIP_STARTED": "الركاب على متن المركبة — بدء الرحلة",
+        "IN_PROGRESS": "جارية",
+        "LOADING": "بدء التحميل",
+        "LOADED": "تم التحميل — الانطلاق",
+        "IN_TRANSIT": "في الطريق",
+        "ARRIVED_AT_DESTINATION": "وصلت إلى الوجهة",
+        "UNLOADING": "بدء التفريغ",
+        "DELIVERED": "تم التسليم",
+        "COMPLETED": "إنهاء الرحلة",
+        "EXCEPTION": "الإبلاغ عن مشكلة",
+        "CANCELLED": "إلغاء"
+      },
+      "pickup": "نقطة الانطلاق",
+      "dropoff": "الوجهة",
+      "scheduled": "الموعد",
+      "customer": "العميل",
+      "odometerPrompt": "قراءة العداد (كم)",
+      "odometerHint": "مطلوبة لهذه الخطوة. القراءة الحالية: {km} كم.",
+      "noteLabel": "ملاحظة (اختياري)",
+      "confirm": "تأكيد",
+      "updated": "تم تحديث الحالة: {status}",
+      "sharing": "مشاركة الموقع مباشرة",
+      "notSharing": "مشاركة الموقع متوقفة",
+      "shareOn": "مشاركة موقعي",
+      "shareOff": "إيقاف المشاركة",
+      "sent": "{sent} مرسلة · {queued} في الانتظار",
+      "lastFix": "آخر تحديد قبل {ago} ث · ±{acc} م",
+      "wakeLock": "الشاشة تبقى مضاءة",
+      "permissionDenied": "تم رفض إذن الموقع. اسمح بالموقع لهذا الموقع من إعدادات الهاتف.",
+      "gpsUnavailable": "نظام تحديد المواقع غير متاح على هذا الجهاز.",
+      "keepOpen": "أبقِ هذه الشاشة مفتوحة أثناء القيادة: المتصفح يوقف تحديد الموقع عند قفل الشاشة.",
+      "openMap": "فتح في الخرائط",
+      "history": "السجل",
+      "done": "اكتملت الرحلة. شكراً لك.",
+      "cancelled": "أُلغيت هذه الرحلة."
     }
   }
 }

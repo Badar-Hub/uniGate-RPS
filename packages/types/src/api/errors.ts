@@ -153,3 +153,15 @@ export const PAYMENT_ERROR_CODES = [
   'LEDGER_UNBALANCED',
 ] as const;
 export type PaymentErrorCode = (typeof PAYMENT_ERROR_CODES)[number];
+
+/** trips + tracking codes (api.md §4.8, §6.4). */
+export const TRIP_ERROR_CODES = [
+  'TRIP_INVALID_TRANSITION',
+  'TRIP_NOT_ACTIVE',
+  'TRIP_ALREADY_COMPLETED',
+  'TRIP_PROOF_REQUIRED',
+  'TRIP_ODOMETER_REQUIRED',
+  'TRACKING_SESSION_NOT_ACTIVE',
+  'TRACKING_STALE_POINT',
+] as const;
+export type TripErrorCode = (typeof TRIP_ERROR_CODES)[number];

@@ -10,3 +10,4 @@ export * from './demand.js';
 export * from './bidding.js';
 export * from './bookings.js';
 export * from './payments.js';
+export * from './trips.js';

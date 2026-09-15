@@ -101,13 +101,24 @@ All items delivered; residuals moved to Phase 3 below.
 - [ ] Fare-VAT posting under the deemed-supplier model — waits for ADR-008 / the tax advisor (OQ-24)
 - [ ] Saved instruments and invoice payments — Phase 11; refunds admin screen — Phase 13
 
-## Immediate — Phase 10 (Trips & tracking)
+## Phase 10 — Trips & tracking + driver app — COMPLETE 2026-09-15
 
-- [ ] `trips` module: `GET /trips`, `GET /trips/{id}`, driver status updates `POST /trips/{id}/status` through the vertical's transition map (DRIVER_EN_ROUTE → ARRIVED_AT_PICKUP → IN_PROGRESS → COMPLETED, with proofs), `trip_status_history`; booking `READY → IN_PROGRESS → COMPLETED`; request counters `vehicles_dispatched` / `vehicles_completed`; `vehicles.operational_status` ON_TRIP/IDLE; trip cancellation from IN_PROGRESS (`trips.manage`)
-- [ ] `tracking` module: `POST /tracking/ping` (+ batch) with the tracking authorization rules, Socket.IO rooms per trip with the same authorization, tiered storage (hot Redis, cold `tracking_points`), customer tracking page
-- [ ] No-show path (`POST /bookings/{id}/no-show`) from trip exceptions (OQ-05)
-- [ ] Web: driver trip screen (status buttons), customer live-tracking page; owner trip list
-- [ ] Extend the authorization matrix with the trips/tracking surface
+- [x] `trips` module through the vertical transition maps, every side effect, ops cancellation, proofs
+- [x] `tracking` module: tiered ingestion, party-scoped reads, ETA, fleet reads, sessions
+- [x] Socket.IO `/rt` namespace with HTTP-identical authentication and room policy
+- [x] **Driver app (PWA)** with the live-location agent; customer live-tracking map — [driver-app.md](driver-app.md)
+- [x] Authorization matrix extended
+- [ ] Background tracking on a locked phone → native wrapper around the same endpoints (decision: stores / timing with UniGate)
+- [ ] No-show path from trip exceptions — Phase 13 with complaints
+- [ ] Production map tiles / maps provider key — same open item as geocoding
+
+## Immediate — Phase 11 (Finance)
+
+- [ ] Settlements: cycles from `settlement.*` settings, `settlement_lines` from completed bookings (eligible after the hold), approvals, payout run with `OWNER_PAYABLE` postings, owner bank accounts with the cool-off
+- [ ] Invoices for INVOICED customers: `ORDER` / `BOOKING` granularity, issue → `CUSTOMER_RECEIVABLE` postings, invoice payments through `POST /payments`, overdue reminders; e-invoicing stays designed-not-claimed (ADR-007)
+- [ ] Expenses; commission rules admin API; the ledger read endpoints
+- [ ] Web: owner settlements and earnings, corporate invoices, finance officer screens
+- [ ] Extend the authorization matrix with the finance surface
 
 ## Deferred design work
 

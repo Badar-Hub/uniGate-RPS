@@ -1,3 +1,4 @@
+import type { Prisma } from '@prisma/client';
 import type { ActorScope, AnyScope, DriverAssignmentDto, DriverDto, TransportType } from '@unigate/types';
 import type { createDriverBody, patchDriverBody } from '@unigate/validation';
 import type { z } from 'zod';
@@ -184,4 +185,10 @@ export async function driverNominationCheck(_scope: AnyScope, driverProfileId: s
   if (d.approvalStatus !== 'APPROVED') return { ok: false, code: 'DRIVER_NOT_APPROVED' };
   if (d.licenseExpiryDate && d.licenseExpiryDate < at) return { ok: false, code: 'DRIVER_LICENSE_EXPIRED' };
   return { ok: true };
+}
+
+/** The trip lifecycle owns AVAILABLE ↔ ON_TRIP; OFF_DUTY is the driver's own choice and is not overridden on completion. */
+export async function setDriverAvailabilityForTrip(driverProfileId: string, status: 'AVAILABLE' | 'ON_TRIP', tx: Prisma.TransactionClient): Promise<void> {
+  if (status === 'AVAILABLE') await tx.driverProfile.updateMany({ where: { id: driverProfileId, availabilityStatus: 'ON_TRIP' }, data: { availabilityStatus: 'AVAILABLE' } });
+  else await tx.driverProfile.update({ where: { id: driverProfileId }, data: { availabilityStatus: 'ON_TRIP' } });
 }

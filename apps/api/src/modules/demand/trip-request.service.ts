@@ -390,12 +390,31 @@ export { biddingOpen, systemScope };
 /** A booking was cancelled: vehicles_awarded--, vehicles_cancelled++ (cumulative), FULLY_AWARDED → PARTIALLY_AWARDED reopens the order (A-45). Under the request's row lock. */
 export async function recordBookingCancellation(scope: AnyScope, tripRequestId: string, tx: Prisma.TransactionClient): Promise<{ status: string; vehiclesAwarded: number }> {
   await tx.$queryRaw`SELECT id FROM trip_requests WHERE id = ${tripRequestId}::uuid FOR UPDATE`;
-  const r = await tx.tripRequest.findUniqueOrThrow({ where: { id: tripRequestId }, select: { status: true, vehiclesAwarded: true, vehiclesRequired: true, vehiclesCancelled: true, requestNumber: true } });
+  const r = await tx.tripRequest.findUniqueOrThrow({ where: { id: tripRequestId }, select: { status: true, vehiclesAwarded: true, vehiclesRequired: true, vehiclesCancelled: true, vehiclesDispatched: true, requestNumber: true } });
   const vehiclesAwarded = Math.max(0, r.vehiclesAwarded - 1);
+  // A cancelled booking is no longer dispatched either (ck_trip_requests_counters: dispatched ≤ awarded).
+  const vehiclesDispatched = Math.min(r.vehiclesDispatched, vehiclesAwarded);
   // A closed or completed order stays closed; an open one reopens for the balance.
   const status = r.status === 'FULLY_AWARDED' ? 'PARTIALLY_AWARDED' : r.status;
-  await tx.tripRequest.update({ where: { id: tripRequestId }, data: { vehiclesAwarded, vehiclesCancelled: { increment: 1 }, status } });
+  await tx.tripRequest.update({ where: { id: tripRequestId }, data: { vehiclesAwarded, vehiclesDispatched, vehiclesCancelled: { increment: 1 }, status } });
   await writeAudit({ ...(scope.kind === 'SYSTEM' ? { actorUserId: null, actorType: 'SYSTEM' as const } : audit(scope)), action: 'trip_request.booking_cancelled', entityType: 'trip_request', entityId: tripRequestId, beforeValue: { vehiclesAwarded: r.vehiclesAwarded, status: r.status }, afterValue: { vehiclesAwarded, vehiclesCancelled: r.vehiclesCancelled + 1, status } }, tx);
   if (status !== r.status) await publishEvent('trip_request', tripRequestId, 'trip_request.reopened', { requestNumber: r.requestNumber, vehiclesRequired: r.vehiclesRequired, vehiclesAwarded }, tx);
   return { status, vehiclesAwarded };
+}
+
+/** A vehicle left for the pickup: vehicles_dispatched++ (bounded by vehicles_awarded through the CHECK). */
+export async function recordDispatch(_scope: AnyScope, tripRequestId: string, tx: Prisma.TransactionClient): Promise<void> {
+  await tx.$queryRaw`SELECT id FROM trip_requests WHERE id = ${tripRequestId}::uuid FOR UPDATE`;
+  await tx.tripRequest.update({ where: { id: tripRequestId }, data: { vehiclesDispatched: { increment: 1 } } });
+}
+
+/** A vehicle finished: vehicles_completed++; the order is COMPLETED once every awarded vehicle has completed. */
+export async function recordCompletion(scope: AnyScope, tripRequestId: string, tx: Prisma.TransactionClient): Promise<void> {
+  await tx.$queryRaw`SELECT id FROM trip_requests WHERE id = ${tripRequestId}::uuid FOR UPDATE`;
+  const r = await tx.tripRequest.update({ where: { id: tripRequestId }, data: { vehiclesCompleted: { increment: 1 } }, select: { status: true, vehiclesAwarded: true, vehiclesCompleted: true, requestNumber: true } });
+  if ((r.status === 'FULLY_AWARDED' || r.status === 'CLOSED_PARTIAL') && r.vehiclesAwarded > 0 && r.vehiclesCompleted >= r.vehiclesAwarded) {
+    await tx.tripRequest.update({ where: { id: tripRequestId }, data: { status: 'COMPLETED' } });
+    await writeAudit({ ...(scope.kind === 'SYSTEM' ? { actorUserId: null, actorType: 'SYSTEM' as const } : audit(scope)), action: 'trip_request.completed', entityType: 'trip_request', entityId: tripRequestId, afterValue: { vehiclesCompleted: r.vehiclesCompleted } }, tx);
+    await publishEvent('trip_request', tripRequestId, 'trip_request.completed', { requestNumber: r.requestNumber }, tx);
+  }
 }

@@ -3065,7 +3065,7 @@ Location: /api/v1/reports/exports/0192f470-9999-7000-8000-000000000001
 
 ### 9.1 Namespace and handshake
 
-Single namespace: **`/rt`**, mounted on the same origin and port as the API.
+Single namespace: **`/rt`**, mounted on the same origin and port as the API. The Engine.IO path is **`/api/v1/rt/socket.io`** — under `/api/v1` so the `ug_at` cookie (scoped to `path=/api/v1`) reaches the handshake without widening where the token travels.
 
 ```ts
 const socket = io('https://api.unigate.sa/rt', {

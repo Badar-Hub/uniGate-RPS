@@ -7943,6 +7943,1315 @@
           "message",
           "meta"
         ]
+      },
+      "TrackingPosition": {
+        "type": [
+          "object",
+          "null"
+        ],
+        "properties": {
+          "latitude": {
+            "type": "number"
+          },
+          "longitude": {
+            "type": "number"
+          },
+          "headingDeg": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "speedKmh": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "accuracyM": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "recordedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "ageSeconds": {
+            "type": "integer"
+          },
+          "stale": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "latitude",
+          "longitude",
+          "headingDeg",
+          "speedKmh",
+          "accuracyM",
+          "recordedAt",
+          "ageSeconds",
+          "stale"
+        ]
+      },
+      "Trip": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "tripNumber": {
+            "type": "string"
+          },
+          "bookingId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "bookingNumber": {
+            "type": "string"
+          },
+          "bookingStatus": {
+            "type": "string"
+          },
+          "transportType": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          },
+          "allowedNextStatuses": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "From the vertical’s own transition map — render exactly these buttons"
+          },
+          "vehicle": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "plateNumberEn": {
+                "type": "string"
+              },
+              "description": {
+                "type": "string"
+              },
+              "colorCode": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            },
+            "required": [
+              "id",
+              "plateNumberEn",
+              "description",
+              "colorCode"
+            ]
+          },
+          "driver": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "properties": {
+              "id": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "fullNameEn": {
+                "type": "string"
+              },
+              "phoneE164": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "ratingAvg": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "id",
+              "fullNameEn",
+              "phoneE164",
+              "ratingAvg"
+            ]
+          },
+          "customerProfileId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "ownerProfileId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "pickup": {
+            "type": "object",
+            "properties": {
+              "addressLine": {
+                "type": "string"
+              },
+              "cityId": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "latitude": {
+                "type": "number"
+              },
+              "longitude": {
+                "type": "number"
+              },
+              "placeId": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            },
+            "required": [
+              "addressLine",
+              "cityId",
+              "latitude",
+              "longitude",
+              "placeId"
+            ]
+          },
+          "dropoff": {
+            "type": "object",
+            "properties": {
+              "addressLine": {
+                "type": "string"
+              },
+              "cityId": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "latitude": {
+                "type": "number"
+              },
+              "longitude": {
+                "type": "number"
+              },
+              "placeId": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            },
+            "required": [
+              "addressLine",
+              "cityId",
+              "latitude",
+              "longitude",
+              "placeId"
+            ]
+          },
+          "scheduledStartAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "scheduledEndAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "actualStartAt": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "actualEndAt": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "startOdometerKm": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "endOdometerKm": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "actualDistanceKm": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "pattern": "^-?\\d+\\.\\d{2}$"
+          },
+          "driverNotes": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "customerNotes": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "delayMinutes": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "position": {
+            "$ref": "#/components/schemas/TrackingPosition"
+          },
+          "trackingSessionId": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "tripNumber",
+          "bookingId",
+          "bookingNumber",
+          "bookingStatus",
+          "transportType",
+          "status",
+          "allowedNextStatuses",
+          "vehicle",
+          "driver",
+          "customerProfileId",
+          "ownerProfileId",
+          "pickup",
+          "dropoff",
+          "scheduledStartAt",
+          "scheduledEndAt",
+          "actualStartAt",
+          "actualEndAt",
+          "startOdometerKm",
+          "endOdometerKm",
+          "actualDistanceKm",
+          "driverNotes",
+          "customerNotes",
+          "delayMinutes",
+          "position",
+          "trackingSessionId",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
+      "TripListEnvelope": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "enum": [
+              true
+            ]
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Trip"
+            }
+          },
+          "message": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "meta": {
+            "type": "object",
+            "additionalProperties": {}
+          }
+        },
+        "required": [
+          "success",
+          "data",
+          "message",
+          "meta"
+        ]
+      },
+      "TripEnvelope": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "enum": [
+              true
+            ]
+          },
+          "data": {
+            "$ref": "#/components/schemas/Trip"
+          },
+          "message": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "meta": {
+            "type": "object",
+            "additionalProperties": {}
+          }
+        },
+        "required": [
+          "success",
+          "data",
+          "message",
+          "meta"
+        ]
+      },
+      "TripStatusResult": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "tripNumber": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          },
+          "previousStatus": {
+            "type": "string"
+          },
+          "transportType": {
+            "type": "string"
+          },
+          "occurredAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "recordedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "allowedNextStatuses": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "booking": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "status": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "id",
+              "status"
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "tripNumber",
+          "status",
+          "previousStatus",
+          "transportType",
+          "occurredAt",
+          "recordedAt",
+          "allowedNextStatuses",
+          "booking"
+        ]
+      },
+      "TripStatusResultEnvelope": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "enum": [
+              true
+            ]
+          },
+          "data": {
+            "$ref": "#/components/schemas/TripStatusResult"
+          },
+          "message": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "meta": {
+            "type": "object",
+            "additionalProperties": {}
+          }
+        },
+        "required": [
+          "success",
+          "data",
+          "message",
+          "meta"
+        ]
+      },
+      "TripStatusHistoryEntry": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "fromStatus": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "toStatus": {
+            "type": "string"
+          },
+          "actorType": {
+            "type": "string"
+          },
+          "changedByUserId": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid"
+          },
+          "latitude": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "longitude": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "accuracyM": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "note": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "occurredAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "recordedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "fromStatus",
+          "toStatus",
+          "actorType",
+          "changedByUserId",
+          "latitude",
+          "longitude",
+          "accuracyM",
+          "note",
+          "occurredAt",
+          "recordedAt"
+        ]
+      },
+      "TripStatusHistoryEnvelope": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "enum": [
+              true
+            ]
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TripStatusHistoryEntry"
+            }
+          },
+          "message": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "meta": {
+            "type": "object",
+            "additionalProperties": {}
+          }
+        },
+        "required": [
+          "success",
+          "data",
+          "message",
+          "meta"
+        ]
+      },
+      "TripProof": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "tripId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "proofType": {
+            "type": "string"
+          },
+          "recipientName": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "recipientIdLast4": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "signatureDocumentId": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid"
+          },
+          "latitude": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "longitude": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "notes": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "capturedByUserId": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid"
+          },
+          "capturedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "tripId",
+          "proofType",
+          "recipientName",
+          "recipientIdLast4",
+          "signatureDocumentId",
+          "latitude",
+          "longitude",
+          "notes",
+          "capturedByUserId",
+          "capturedAt"
+        ]
+      },
+      "TripProofListEnvelope": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "enum": [
+              true
+            ]
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TripProof"
+            }
+          },
+          "message": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "meta": {
+            "type": "object",
+            "additionalProperties": {}
+          }
+        },
+        "required": [
+          "success",
+          "data",
+          "message",
+          "meta"
+        ]
+      },
+      "TripProofEnvelope": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "enum": [
+              true
+            ]
+          },
+          "data": {
+            "$ref": "#/components/schemas/TripProof"
+          },
+          "message": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "meta": {
+            "type": "object",
+            "additionalProperties": {}
+          }
+        },
+        "required": [
+          "success",
+          "data",
+          "message",
+          "meta"
+        ]
+      },
+      "TrackingPingResult": {
+        "type": "object",
+        "properties": {
+          "accepted": {
+            "type": "boolean"
+          },
+          "persisted": {
+            "type": "boolean",
+            "description": "false = live position updated but not appended to history (sampled) — normal"
+          },
+          "sequence": {
+            "type": "integer"
+          },
+          "lowConfidence": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "accepted",
+          "persisted",
+          "sequence",
+          "lowConfidence"
+        ]
+      },
+      "TrackingPingResultEnvelope": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "enum": [
+              true
+            ]
+          },
+          "data": {
+            "$ref": "#/components/schemas/TrackingPingResult"
+          },
+          "message": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "meta": {
+            "type": "object",
+            "additionalProperties": {}
+          }
+        },
+        "required": [
+          "success",
+          "data",
+          "message",
+          "meta"
+        ]
+      },
+      "TrackingBatchResult": {
+        "type": "object",
+        "properties": {
+          "results": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "index": {
+                  "type": "integer"
+                },
+                "accepted": {
+                  "type": "boolean"
+                },
+                "persisted": {
+                  "type": "boolean"
+                },
+                "sequence": {
+                  "type": "integer"
+                },
+                "lowConfidence": {
+                  "type": "boolean"
+                },
+                "code": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "index",
+                "accepted"
+              ]
+            }
+          },
+          "acceptedCount": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "results",
+          "acceptedCount"
+        ]
+      },
+      "TrackingBatchResultEnvelope": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "enum": [
+              true
+            ]
+          },
+          "data": {
+            "$ref": "#/components/schemas/TrackingBatchResult"
+          },
+          "message": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "meta": {
+            "type": "object",
+            "additionalProperties": {}
+          }
+        },
+        "required": [
+          "success",
+          "data",
+          "message",
+          "meta"
+        ]
+      },
+      "TripTracking": {
+        "type": "object",
+        "properties": {
+          "tripId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "tripStatus": {
+            "type": "string"
+          },
+          "bookingNumber": {
+            "type": "string"
+          },
+          "position": {
+            "$ref": "#/components/schemas/TrackingPosition"
+          },
+          "vehicle": {
+            "type": "object",
+            "properties": {
+              "plateNumberEn": {
+                "type": "string"
+              },
+              "description": {
+                "type": "string"
+              },
+              "colorCode": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            },
+            "required": [
+              "plateNumberEn",
+              "description",
+              "colorCode"
+            ]
+          },
+          "driver": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "properties": {
+              "fullNameEn": {
+                "type": "string"
+              },
+              "phoneE164": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "description": "Only for the booking’s customer while the trip is active"
+              },
+              "ratingAvg": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "fullNameEn",
+              "phoneE164",
+              "ratingAvg"
+            ]
+          },
+          "pickup": {
+            "type": "object",
+            "properties": {
+              "latitude": {
+                "type": "number"
+              },
+              "longitude": {
+                "type": "number"
+              },
+              "addressLine": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "latitude",
+              "longitude",
+              "addressLine"
+            ]
+          },
+          "destination": {
+            "type": "object",
+            "properties": {
+              "latitude": {
+                "type": "number"
+              },
+              "longitude": {
+                "type": "number"
+              },
+              "addressLine": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "latitude",
+              "longitude",
+              "addressLine"
+            ]
+          },
+          "eta": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "properties": {
+              "arrivalAt": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "remainingDistanceKm": {
+                "type": "string",
+                "pattern": "^-?\\d+\\.\\d{2}$"
+              },
+              "confidence": {
+                "type": "string",
+                "enum": [
+                  "LOW",
+                  "MEDIUM",
+                  "HIGH"
+                ]
+              }
+            },
+            "required": [
+              "arrivalAt",
+              "remainingDistanceKm",
+              "confidence"
+            ]
+          },
+          "socket": {
+            "type": "object",
+            "properties": {
+              "namespace": {
+                "type": "string"
+              },
+              "room": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "namespace",
+              "room"
+            ]
+          }
+        },
+        "required": [
+          "tripId",
+          "tripStatus",
+          "bookingNumber",
+          "position",
+          "vehicle",
+          "driver",
+          "pickup",
+          "destination",
+          "eta",
+          "socket"
+        ]
+      },
+      "TripTrackingEnvelope": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "enum": [
+              true
+            ]
+          },
+          "data": {
+            "$ref": "#/components/schemas/TripTracking"
+          },
+          "message": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "meta": {
+            "type": "object",
+            "additionalProperties": {}
+          }
+        },
+        "required": [
+          "success",
+          "data",
+          "message",
+          "meta"
+        ]
+      },
+      "TrackingHistoryPoint": {
+        "type": "object",
+        "properties": {
+          "latitude": {
+            "type": "number"
+          },
+          "longitude": {
+            "type": "number"
+          },
+          "headingDeg": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "speedKmh": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "accuracyM": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "recordedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "latitude",
+          "longitude",
+          "headingDeg",
+          "speedKmh",
+          "accuracyM",
+          "recordedAt"
+        ]
+      },
+      "TrackingHistoryEnvelope": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "enum": [
+              true
+            ]
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TrackingHistoryPoint"
+            }
+          },
+          "message": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "meta": {
+            "type": "object",
+            "additionalProperties": {}
+          }
+        },
+        "required": [
+          "success",
+          "data",
+          "message",
+          "meta"
+        ]
+      },
+      "VehicleLivePosition": {
+        "type": "object",
+        "properties": {
+          "vehicleId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "plateNumberEn": {
+            "type": "string"
+          },
+          "ownerProfileId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "operationalStatus": {
+            "type": "string"
+          },
+          "tripId": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid"
+          },
+          "position": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/TrackingPosition"
+              },
+              {
+                "type": "object"
+              }
+            ]
+          }
+        },
+        "required": [
+          "vehicleId",
+          "plateNumberEn",
+          "ownerProfileId",
+          "operationalStatus",
+          "tripId",
+          "position"
+        ]
+      },
+      "VehicleLiveListEnvelope": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "enum": [
+              true
+            ]
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/VehicleLivePosition"
+            }
+          },
+          "message": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "meta": {
+            "type": "object",
+            "additionalProperties": {}
+          }
+        },
+        "required": [
+          "success",
+          "data",
+          "message",
+          "meta"
+        ]
+      },
+      "VehicleLiveEnvelope": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "enum": [
+              true
+            ]
+          },
+          "data": {
+            "$ref": "#/components/schemas/VehicleLivePosition"
+          },
+          "message": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "meta": {
+            "type": "object",
+            "additionalProperties": {}
+          }
+        },
+        "required": [
+          "success",
+          "data",
+          "message",
+          "meta"
+        ]
+      },
+      "TrackingSession": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "tripId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "vehicleId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "driverProfileId": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid"
+          },
+          "providerCode": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          },
+          "startedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "endedAt": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "pointCount": {
+            "type": "integer"
+          },
+          "totalDistanceKm": {
+            "type": "string",
+            "pattern": "^-?\\d+\\.\\d{2}$"
+          }
+        },
+        "required": [
+          "id",
+          "tripId",
+          "vehicleId",
+          "driverProfileId",
+          "providerCode",
+          "status",
+          "startedAt",
+          "endedAt",
+          "pointCount",
+          "totalDistanceKm"
+        ]
+      },
+      "TrackingSessionEnvelope": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "enum": [
+              true
+            ]
+          },
+          "data": {
+            "$ref": "#/components/schemas/TrackingSession"
+          },
+          "message": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "meta": {
+            "type": "object",
+            "additionalProperties": {}
+          }
+        },
+        "required": [
+          "success",
+          "data",
+          "message",
+          "meta"
+        ]
       }
     },
     "parameters": {}
@@ -20881,6 +22190,1291 @@
                   "type": "object",
                   "properties": {},
                   "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/trips": {
+      "get": {
+        "tags": [
+          "trips"
+        ],
+        "summary": "Own trips (driver / owner / customer) or all with trips.read_any",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "default": 1
+            },
+            "required": false,
+            "name": "page",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 20
+            },
+            "required": false,
+            "name": "pageSize",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "enum": [
+                  "BOOKED",
+                  "DRIVER_ASSIGNED",
+                  "DRIVER_EN_ROUTE",
+                  "ARRIVED_AT_PICKUP",
+                  "TRIP_STARTED",
+                  "IN_PROGRESS",
+                  "LOADING",
+                  "LOADED",
+                  "IN_TRANSIT",
+                  "ARRIVED_AT_DESTINATION",
+                  "UNLOADING",
+                  "DELIVERED",
+                  "COMPLETED",
+                  "CANCELLED",
+                  "EXCEPTION"
+                ]
+              },
+              "minItems": 1
+            },
+            "required": false,
+            "name": "status",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "PASSENGER",
+                "GOODS"
+              ]
+            },
+            "required": false,
+            "name": "transportType",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": false,
+            "name": "vehicleId",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": false,
+            "name": "driverProfileId",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": false,
+            "name": "bookingId",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "date-time",
+              "description": "ISO-8601 UTC timestamp, e.g. 2026-09-14T11:02:44.817Z"
+            },
+            "required": false,
+            "description": "ISO-8601 UTC timestamp, e.g. 2026-09-14T11:02:44.817Z",
+            "name": "dateFrom",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "date-time",
+              "description": "ISO-8601 UTC timestamp, e.g. 2026-09-14T11:02:44.817Z"
+            },
+            "required": false,
+            "description": "ISO-8601 UTC timestamp, e.g. 2026-09-14T11:02:44.817Z",
+            "name": "dateTo",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK — paginated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TripListEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/trips/active": {
+      "get": {
+        "tags": [
+          "trips"
+        ],
+        "summary": "Trips in a non-terminal state, with last known position",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "default": 1
+            },
+            "required": false,
+            "name": "page",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 20
+            },
+            "required": false,
+            "name": "pageSize",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "enum": [
+                  "BOOKED",
+                  "DRIVER_ASSIGNED",
+                  "DRIVER_EN_ROUTE",
+                  "ARRIVED_AT_PICKUP",
+                  "TRIP_STARTED",
+                  "IN_PROGRESS",
+                  "LOADING",
+                  "LOADED",
+                  "IN_TRANSIT",
+                  "ARRIVED_AT_DESTINATION",
+                  "UNLOADING",
+                  "DELIVERED",
+                  "COMPLETED",
+                  "CANCELLED",
+                  "EXCEPTION"
+                ]
+              },
+              "minItems": 1
+            },
+            "required": false,
+            "name": "status",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "PASSENGER",
+                "GOODS"
+              ]
+            },
+            "required": false,
+            "name": "transportType",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": false,
+            "name": "vehicleId",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": false,
+            "name": "driverProfileId",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": false,
+            "name": "bookingId",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "date-time",
+              "description": "ISO-8601 UTC timestamp, e.g. 2026-09-14T11:02:44.817Z"
+            },
+            "required": false,
+            "description": "ISO-8601 UTC timestamp, e.g. 2026-09-14T11:02:44.817Z",
+            "name": "dateFrom",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "date-time",
+              "description": "ISO-8601 UTC timestamp, e.g. 2026-09-14T11:02:44.817Z"
+            },
+            "required": false,
+            "description": "ISO-8601 UTC timestamp, e.g. 2026-09-14T11:02:44.817Z",
+            "name": "dateTo",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK — paginated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TripListEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/trips/{id}": {
+      "get": {
+        "tags": [
+          "trips"
+        ],
+        "summary": "Trip + booking, vehicle and driver summary, allowedNextStatuses, position",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TripEnvelope"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "NOT_FOUND",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {},
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "trips"
+        ],
+        "summary": "Notes and odometer readings (audited before/after)",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "driverNotes": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 2000
+                  },
+                  "customerNotes": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 2000
+                  },
+                  "startOdometerKm": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 9999999
+                  },
+                  "endOdometerKm": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 9999999
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TripEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/trips/{id}/status": {
+      "post": {
+        "tags": [
+          "trips"
+        ],
+        "summary": "The single transition endpoint — validated against the vertical’s map; side effects (tracking session, booking, counters, calendar) in one transaction; Idempotency-Key required",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "name": "idempotency-key",
+            "in": "header"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "status": {
+                    "type": "string",
+                    "enum": [
+                      "BOOKED",
+                      "DRIVER_ASSIGNED",
+                      "DRIVER_EN_ROUTE",
+                      "ARRIVED_AT_PICKUP",
+                      "TRIP_STARTED",
+                      "IN_PROGRESS",
+                      "LOADING",
+                      "LOADED",
+                      "IN_TRANSIT",
+                      "ARRIVED_AT_DESTINATION",
+                      "UNLOADING",
+                      "DELIVERED",
+                      "COMPLETED",
+                      "CANCELLED",
+                      "EXCEPTION"
+                    ]
+                  },
+                  "occurredAt": {
+                    "type": "string",
+                    "format": "date-time",
+                    "description": "ISO-8601 UTC timestamp, e.g. 2026-09-14T11:02:44.817Z"
+                  },
+                  "latitude": {
+                    "type": "number",
+                    "minimum": -90,
+                    "maximum": 90
+                  },
+                  "longitude": {
+                    "type": "number",
+                    "minimum": -180,
+                    "maximum": 180
+                  },
+                  "accuracyM": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 100000
+                  },
+                  "note": {
+                    "type": "string",
+                    "maxLength": 1000
+                  },
+                  "odometerKm": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 9999999
+                  },
+                  "proofId": {
+                    "type": "string",
+                    "format": "uuid"
+                  }
+                },
+                "required": [
+                  "status"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TripStatusResultEnvelope"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "TRIP_ALREADY_COMPLETED",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {},
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "TRIP_INVALID_TRANSITION (details.allowed) / TRIP_NOT_ACTIVE / TRIP_ODOMETER_REQUIRED / TRIP_PROOF_REQUIRED / BOOKING_INVALID_TRANSITION / VALIDATION_FAILED",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {},
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/trips/{id}/status-history": {
+      "get": {
+        "tags": [
+          "trips"
+        ],
+        "summary": "Status history with the coordinates captured at each transition",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TripStatusHistoryEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/trips/{id}/cancel": {
+      "post": {
+        "tags": [
+          "trips"
+        ],
+        "summary": "Ops: any non-terminal state → CANCELLED; cascades to the booking (even IN_PROGRESS), releases the reservation, requests the refund",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "reason": {
+                    "type": "string",
+                    "maxLength": 1000
+                  }
+                },
+                "required": [
+                  "reason"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TripEnvelope"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "TRIP_NOT_ACTIVE",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {},
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/trips/{id}/proofs": {
+      "get": {
+        "tags": [
+          "trips"
+        ],
+        "summary": "Proofs of pickup / delivery / damage / exception",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TripProofListEnvelope"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "trips"
+        ],
+        "summary": "Record a proof (with coordinates and linked documents)",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "proofType": {
+                    "type": "string",
+                    "enum": [
+                      "PICKUP_CONFIRMATION",
+                      "DELIVERY_CONFIRMATION",
+                      "DAMAGE_REPORT",
+                      "EXCEPTION"
+                    ]
+                  },
+                  "recipientName": {
+                    "type": "string",
+                    "maxLength": 160
+                  },
+                  "recipientIdLast4": {
+                    "type": "string",
+                    "pattern": "^\\d{4}$"
+                  },
+                  "signatureDocumentId": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "latitude": {
+                    "type": "number",
+                    "minimum": -90,
+                    "maximum": 90
+                  },
+                  "longitude": {
+                    "type": "number",
+                    "minimum": -180,
+                    "maximum": 180
+                  },
+                  "notes": {
+                    "type": "string",
+                    "maxLength": 2000
+                  },
+                  "documentIds": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "maxItems": 10,
+                    "default": []
+                  }
+                },
+                "required": [
+                  "proofType"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TripProofEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/tracking/ping": {
+      "post": {
+        "tags": [
+          "tracking"
+        ],
+        "summary": "Position sample from the driver app — Redis on every ping, one mirrored row per vehicle, sampled history; 30/min per trip",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "tripId": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "latitude": {
+                    "type": "number",
+                    "minimum": -90,
+                    "maximum": 90
+                  },
+                  "longitude": {
+                    "type": "number",
+                    "minimum": -180,
+                    "maximum": 180
+                  },
+                  "accuracyM": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 100000
+                  },
+                  "headingDeg": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 360
+                  },
+                  "speedKmh": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 400
+                  },
+                  "recordedAt": {
+                    "type": "string",
+                    "format": "date-time",
+                    "description": "ISO-8601 UTC timestamp, e.g. 2026-09-14T11:02:44.817Z"
+                  },
+                  "source": {
+                    "type": "string",
+                    "enum": [
+                      "DRIVER_APP",
+                      "GPS_DEVICE",
+                      "EXTERNAL_API"
+                    ],
+                    "default": "DRIVER_APP"
+                  }
+                },
+                "required": [
+                  "tripId",
+                  "latitude",
+                  "longitude",
+                  "recordedAt"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "202": {
+            "description": "Accepted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TrackingPingResultEnvelope"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "NOT_FOUND — not the assigned driver",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {},
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "TRACKING_SESSION_NOT_ACTIVE / TRACKING_STALE_POINT",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {},
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "RATE_LIMITED",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {},
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/tracking/ping/batch": {
+      "post": {
+        "tags": [
+          "tracking"
+        ],
+        "summary": "Up to 200 buffered samples with per-item results",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "points": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "tripId": {
+                          "type": "string",
+                          "format": "uuid"
+                        },
+                        "latitude": {
+                          "type": "number",
+                          "minimum": -90,
+                          "maximum": 90
+                        },
+                        "longitude": {
+                          "type": "number",
+                          "minimum": -180,
+                          "maximum": 180
+                        },
+                        "accuracyM": {
+                          "type": "number",
+                          "minimum": 0,
+                          "maximum": 100000
+                        },
+                        "headingDeg": {
+                          "type": "number",
+                          "minimum": 0,
+                          "maximum": 360
+                        },
+                        "speedKmh": {
+                          "type": "number",
+                          "minimum": 0,
+                          "maximum": 400
+                        },
+                        "recordedAt": {
+                          "type": "string",
+                          "format": "date-time",
+                          "description": "ISO-8601 UTC timestamp, e.g. 2026-09-14T11:02:44.817Z"
+                        },
+                        "source": {
+                          "type": "string",
+                          "enum": [
+                            "DRIVER_APP",
+                            "GPS_DEVICE",
+                            "EXTERNAL_API"
+                          ],
+                          "default": "DRIVER_APP"
+                        }
+                      },
+                      "required": [
+                        "tripId",
+                        "latitude",
+                        "longitude",
+                        "recordedAt"
+                      ],
+                      "additionalProperties": false
+                    },
+                    "minItems": 1,
+                    "maxItems": 200
+                  }
+                },
+                "required": [
+                  "points"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "202": {
+            "description": "Accepted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TrackingBatchResultEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/tracking/trips/{id}": {
+      "get": {
+        "tags": [
+          "tracking"
+        ],
+        "summary": "Live position + status + ETA for one trip (party → global); names the socket room",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK (meta.degraded = [\"maps\"] when the ETA is unavailable)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TripTrackingEnvelope"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "NOT_FOUND",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {},
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/tracking/trips/{id}/history": {
+      "get": {
+        "tags": [
+          "tracking"
+        ],
+        "summary": "Cursor-paginated history for replay",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "maxLength": 64
+            },
+            "required": false,
+            "name": "cursor",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 1000,
+              "default": 200
+            },
+            "required": false,
+            "name": "limit",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "date-time",
+              "description": "ISO-8601 UTC timestamp, e.g. 2026-09-14T11:02:44.817Z"
+            },
+            "required": false,
+            "description": "ISO-8601 UTC timestamp, e.g. 2026-09-14T11:02:44.817Z",
+            "name": "from",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "date-time",
+              "description": "ISO-8601 UTC timestamp, e.g. 2026-09-14T11:02:44.817Z"
+            },
+            "required": false,
+            "description": "ISO-8601 UTC timestamp, e.g. 2026-09-14T11:02:44.817Z",
+            "name": "to",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK (meta.nextCursor)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TrackingHistoryEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/tracking/vehicles": {
+      "get": {
+        "tags": [
+          "tracking"
+        ],
+        "summary": "Fleet live map from the mirror (tracking.read_any)",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": false,
+            "name": "ownerProfileId",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": false,
+            "name": "cityId",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "IDLE",
+                "RESERVED",
+                "ON_TRIP",
+                "UNDER_MAINTENANCE",
+                "OUT_OF_SERVICE"
+              ]
+            },
+            "required": false,
+            "name": "operationalStatus",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 10080
+            },
+            "required": false,
+            "name": "movedWithinMinutes",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VehicleLiveListEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/tracking/vehicles/{id}": {
+      "get": {
+        "tags": [
+          "tracking"
+        ],
+        "summary": "Live position of one vehicle irrespective of trip (tracking.read_any)",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VehicleLiveEnvelope"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "NOT_FOUND",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {},
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/tracking/sessions/{id}/end": {
+      "post": {
+        "tags": [
+          "tracking"
+        ],
+        "summary": "Close a tracking session (ENDED / INTERRUPTED), finalising point count and distance",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "reason": {
+                    "type": "string",
+                    "enum": [
+                      "ENDED",
+                      "INTERRUPTED"
+                    ],
+                    "default": "ENDED"
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TrackingSessionEnvelope"
                 }
               }
             }

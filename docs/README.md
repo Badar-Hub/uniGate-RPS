@@ -39,7 +39,7 @@ Vehicle Hiring & Management Platform (passenger + goods transport), Kingdom of S
 
 ## To be written
 
-`authentication.md` · `authorization.md` · `payments.md` · `tracking.md` · `deployment.md` · `development.md` — each written as its subsystem is implemented (engagement brief §42).
+[driver-app.md](driver-app.md) — the installable driver app and its live-location agent (Phase 10). Still to be written: `authentication.md` · `authorization.md` · `payments.md` · `tracking.md` · `deployment.md` — each as its subsystem is documented for operations (engagement brief §42); [development.md](development.md) covers local development today.
 
 ---
 
