@@ -11,3 +11,4 @@ export * from './bidding.js';
 export * from './bookings.js';
 export * from './payments.js';
 export * from './trips.js';
+export * from './finance.js';

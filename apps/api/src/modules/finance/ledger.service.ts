@@ -1,8 +1,11 @@
 import type { Prisma } from '@prisma/client';
+import type { AnyScope, LedgerGroupDto } from '@unigate/types';
 import { AppError } from '@/common/errors.js';
 import { newId } from '@/common/ids.js';
 import { Decimal, round2 } from '@/common/money.js';
 import { prisma } from '@/database/prisma.js';
+import { toLedgerGroupDto } from './finance.mapper.js';
+import { listGroups, type LedgerFilters } from './ledger.repository.js';
 
 /**
  * Double-entry ledger (database.md §12.4). Append-only; corrections are reversing entries. Every
@@ -85,4 +88,11 @@ export async function ownerPayableBalance(ownerProfileId: string): Promise<Decim
 
 export function resetLedgerCacheForTests(): void {
   accountIds.clear();
+}
+
+// ── reads (api.md §8.21) ─────────────────────────────────────────────────────
+
+export async function listLedgerGroups(scope: AnyScope, f: LedgerFilters, page: { page: number; pageSize: number }): Promise<{ items: LedgerGroupDto[]; total: number }> {
+  const { groups, total } = await listGroups(scope, f, page);
+  return { items: groups.filter((g) => g.length).map(toLedgerGroupDto), total };
 }

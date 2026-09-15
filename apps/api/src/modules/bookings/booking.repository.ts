@@ -19,6 +19,7 @@ export const bookingSelect = {
   tripRequest: { select: { requestNumber: true, status: true, vehiclesRequired: true, vehiclesAwarded: true, vehiclesCancelled: true, vehicleCategoryId: true } },
   financialSnapshot: { select: { grossAmount: true, netOfVatAmount: true, commissionAmount: true, commissionVatAmount: true, commissionSource: true, paymentFeeAmount: true, ownerNetAmount: true, vatTreatment: true } },
   driverProfile: { select: { user: { select: { fullNameEn: true } } } },
+  ownerProfile: { select: { isPlatformFleet: true } },
   trip: { select: { id: true, tripNumber: true, status: true } },
   cancellation: { select: { cancelledByRole: true, eventType: true, reasonCode: true, reasonText: true, hoursBeforePickup: true, feePayer: true, cancellationFeeAmount: true, refundAmount: true, currency: true, feeSource: true, feeRuleSnapshot: true, feeWaivedAt: true, feeWaivedReason: true, cancelledAt: true } },
   calendarEntry: { select: { id: true, status: true } },

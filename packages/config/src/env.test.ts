@@ -57,7 +57,7 @@ describe('env schema', () => {
   it('forbids mock providers, http origins, docs and seed credentials in production', () => {
     const prod = { ...valid, NODE_ENV: 'production', API_DOCS_ENABLED: 'true', SEED_ADMIN_EMAIL: 'a@b.co', SEED_ADMIN_PASSWORD: 'longenoughpassword' };
     const keys = names(() => loadEnv(prod));
-    for (const k of ['PAYMENT_PROVIDER', 'OTP_PROVIDER', 'APP_URL', 'API_URL', 'API_DOCS_ENABLED', 'SEED_ADMIN_EMAIL']) {
+    for (const k of ['PAYMENT_PROVIDER', 'EINVOICING_PROVIDER', 'OTP_PROVIDER', 'APP_URL', 'API_URL', 'API_DOCS_ENABLED', 'SEED_ADMIN_EMAIL']) {
       expect(keys).toContain(k);
     }
   });

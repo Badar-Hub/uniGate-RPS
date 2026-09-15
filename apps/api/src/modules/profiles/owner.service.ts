@@ -231,3 +231,33 @@ export async function addBankAccount(scope: ActorScope, ownerProfileId: string, 
   const row = await prisma().ownerBankAccount.findUniqueOrThrow({ where: { id }, select: repo.bankAccountSelect });
   return toBankAccountDto(row);
 }
+
+export interface PayoutAccount {
+  id: string;
+  bankName: string;
+  accountHolderName: string;
+  ibanLast4: string;
+  isVerified: boolean;
+  isDefault: boolean;
+  /** Cool-off end (A-47): a payout before this instant is refused. */
+  activationAt: Date;
+}
+
+/** The owner's payout account for settlements: the requested one, else the default. Deleted accounts never qualify. */
+export async function payoutAccountOf(_scope: AnyScope, ownerProfileId: string, bankAccountId: string | null = null): Promise<PayoutAccount | null> {
+  const row = await prisma().ownerBankAccount.findFirst({ where: { ownerProfileId, deletedAt: null, ...(bankAccountId ? { id: bankAccountId } : { isDefault: true }) }, select: { id: true, bankName: true, accountHolderName: true, ibanLast4: true, isVerified: true, isDefault: true, activationAt: true } });
+  return row;
+}
+
+/** VAT registration as the finance module needs it (deemed-supplier vs owner-is-supplier). */
+export async function ownerVatStatusOf(_scope: AnyScope, ownerProfileId: string): Promise<{ isVatRegistered: boolean; vatNumber: string | null; displayName: string; isPlatformFleet: boolean } | null> {
+  const o = await prisma().ownerProfile.findUnique({ where: { id: ownerProfileId }, select: { isVatRegistered: true, vatNumber: true, isPlatformFleet: true, businessNameEn: true, user: { select: { fullNameEn: true } } } });
+  if (!o) return null;
+  return { isVatRegistered: o.isVatRegistered, vatNumber: o.vatNumber, displayName: o.businessNameEn ?? o.user.fullNameEn, isPlatformFleet: o.isPlatformFleet };
+}
+
+/** The single platform-fleet owner row (A-57): UniGate's own vehicles hang off it. */
+export async function platformFleetOwnerId(_scope: AnyScope): Promise<string | null> {
+  const o = await prisma().ownerProfile.findFirst({ where: { isPlatformFleet: true }, select: { id: true } });
+  return o?.id ?? null;
+}

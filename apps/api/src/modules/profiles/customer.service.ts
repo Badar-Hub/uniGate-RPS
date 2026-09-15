@@ -272,3 +272,33 @@ export async function billingProfileOf(_scope: AnyScope, customerProfileId: stri
   if (!c || c.billingCycle === 'PER_BOOKING') return { mode: 'PREPAID', creditStatus: c?.creditStatus ?? 'NONE', creditLimitAmount: c ? c.creditLimitAmount.toFixed(2) : '0.00', creditTermsDays: null };
   return { mode: 'INVOICED', creditStatus: c.creditStatus, creditLimitAmount: c.creditLimitAmount.toFixed(2), creditTermsDays: c.creditTermsDays };
 }
+
+export interface InvoiceBuyer {
+  customerProfileId: string;
+  corporateCustomerProfileId: string | null;
+  /** Verified-or-not VAT number as registered on the profile; presence decides TAX vs SIMPLIFIED (api.md §8.19). */
+  vatNumber: string | null;
+  nameEn: string | null;
+  nameAr: string | null;
+  creditTermsDays: number | null;
+  billingCycle: 'PER_BOOKING' | 'WEEKLY' | 'MONTHLY' | null;
+  creditStatus: 'NONE' | 'PENDING_APPROVAL' | 'APPROVED' | 'SUSPENDED';
+  creditLimitAmount: string;
+  invoiceLineGranularity: 'ORDER' | 'BOOKING' | null;
+}
+
+/** What the invoicing module needs to know about a buyer (finance never reads profile tables directly). */
+export async function invoiceBuyerOf(_scope: AnyScope, customerProfileId: string, tx: Prisma.TransactionClient | null = null): Promise<InvoiceBuyer | null> {
+  const db = tx ?? prisma();
+  const c = await db.customerProfile.findUnique({
+    where: { id: customerProfileId },
+    select: { id: true, vatNumber: true, user: { select: { fullNameEn: true, fullNameAr: true } }, corporate: { select: { id: true, companyNameEn: true, companyNameAr: true, creditTermsDays: true, billingCycle: true, creditStatus: true, creditLimitAmount: true, invoiceLineGranularity: true } } },
+  });
+  if (!c) return null;
+  const corp = c.corporate;
+  return {
+    customerProfileId: c.id, corporateCustomerProfileId: corp?.id ?? null, vatNumber: c.vatNumber,
+    nameEn: corp?.companyNameEn ?? c.user.fullNameEn, nameAr: corp?.companyNameAr ?? c.user.fullNameAr ?? null,
+    creditTermsDays: corp?.creditTermsDays ?? null, billingCycle: corp?.billingCycle ?? null, creditStatus: corp?.creditStatus ?? 'NONE', creditLimitAmount: corp ? corp.creditLimitAmount.toFixed(2) : '0.00', invoiceLineGranularity: corp?.invoiceLineGranularity ?? null,
+  };
+}

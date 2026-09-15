@@ -1135,3 +1135,271 @@ export interface TrackingSessionDto {
   pointCount: number;
   totalDistanceKm: MoneyString;
 }
+
+// ── finance (api.md §8.19–§8.22) ─────────────────────────────────────────────
+
+export interface CommissionRuleDto extends TimestampedDto {
+  id: string;
+  name: string;
+  scope: string;
+  vehicleCategoryId: string | null;
+  ownerProfileId: string | null;
+  transportType: string | null;
+  calculationType: string;
+  /** Percent (0–100) on the API; stored as a fraction. */
+  percentageRate: MoneyString | null;
+  fixedAmount: MoneyString | null;
+  basis: string;
+  minAmount: MoneyString | null;
+  maxAmount: MoneyString | null;
+  currency: string;
+  priority: number;
+  effectiveFrom: string;
+  effectiveTo: string | null;
+  isActive: boolean;
+}
+
+/** Dry run of the commission resolution for a hypothetical booking. */
+export interface CommissionPreviewDto {
+  source: 'RULE' | 'OVERRIDE' | 'NONE';
+  type: string;
+  value: MoneyString | null;
+  basis: string | null;
+  ruleId: string | null;
+  ruleName: string | null;
+  grossAmount: MoneyString;
+  vatAmount: MoneyString;
+  netOfVatAmount: MoneyString;
+  commissionAmount: MoneyString;
+  commissionVatAmount: MoneyString;
+  ownerNetAmount: MoneyString;
+  vatTreatment: string;
+  currency: string;
+}
+
+export interface RequestCommissionDto {
+  tripRequestId: string;
+  override: { type: string; value: MoneyString | null; basis: string | null; reason: string | null; setByUserId: string | null; setAt: string | null } | null;
+  /** What the next award would actually charge — override or rule. */
+  effectiveCommission: { type: string; value: MoneyString | null; basis: string | null; source: string } | null;
+  bidsExist: boolean;
+}
+
+export interface CommissionEarningsRowDto {
+  key: string;
+  label: string | null;
+  bookingCount: number;
+  grossAmount: MoneyString;
+  commissionAmount: MoneyString;
+  commissionVatAmount: MoneyString;
+  ownerNetAmount: MoneyString;
+}
+export interface CommissionEarningsDto {
+  groupBy: string;
+  currency: string;
+  rows: CommissionEarningsRowDto[];
+  totals: Omit<CommissionEarningsRowDto, 'key' | 'label'>;
+}
+
+export interface SettlementLineDto {
+  id: string;
+  settlementId: string;
+  bookingId: string | null;
+  bookingNumber: string | null;
+  lineType: string;
+  amount: MoneyString;
+  currency: string;
+  description: string;
+  holdReason: string;
+  heldSince: string | null;
+  releasedAt: string | null;
+  eligibleAt: string | null;
+  createdAt: string;
+}
+
+export interface SettlementDto extends TimestampedDto {
+  id: string;
+  settlementNumber: string;
+  ownerProfileId: string;
+  ownerName: string | null;
+  periodStart: string;
+  periodEnd: string;
+  grossAmount: MoneyString;
+  commissionAmount: MoneyString;
+  adjustmentsAmount: MoneyString;
+  netPayableAmount: MoneyString;
+  currency: string;
+  status: string;
+  bankAccount: { id: string; bankName: string; ibanLast4: string; accountHolderName: string } | null;
+  paymentReference: string | null;
+  approvedByUserId: string | null;
+  paidAt: string | null;
+  notes: string | null;
+  lineCount: number;
+}
+
+export interface SettlementPreviewDto {
+  ownerProfileId: string;
+  periodStart: string;
+  periodEnd: string;
+  currency: string;
+  eligible: { bookingId: string; bookingNumber: string; completedAt: string | null; eligibleAt: string; grossAmount: MoneyString; deductions: MoneyString; ownerNetAmount: MoneyString }[];
+  held: { bookingId: string; bookingNumber: string; completedAt: string | null; eligibleAt: string; holdReason: string; ownerNetAmount: MoneyString }[];
+  grossAmount: MoneyString;
+  commissionAmount: MoneyString;
+  adjustmentsAmount: MoneyString;
+  netPayableAmount: MoneyString;
+  minimumPayoutAmount: MoneyString;
+  belowMinimum: boolean;
+}
+
+export interface InvoiceEinvoiceDto {
+  einvoiceUuid: string | null;
+  icv: number | null;
+  invoiceHash: string | null;
+  previousInvoiceHash: string | null;
+  qrCodeTlv: string | null;
+  clearanceStatus: string;
+  clearanceSubmittedAt: string | null;
+  clearanceCompletedAt: string | null;
+  clearanceAttemptCount: number;
+  xmlDocumentId: string | null;
+  clearedXmlDocumentId: string | null;
+  lastErrorCode: string | null;
+}
+
+export interface InvoiceDto extends TimestampedDto {
+  id: string;
+  invoiceNumber: string;
+  invoiceType: string;
+  issuedToCustomerProfileId: string;
+  corporateCustomerProfileId: string | null;
+  buyerName: string | null;
+  correctsInvoiceId: string | null;
+  correctsInvoiceNumber: string | null;
+  billingPeriodStart: string | null;
+  billingPeriodEnd: string | null;
+  sellerVatNumber: string;
+  buyerVatNumber: string | null;
+  lineGranularity: string;
+  subtotalAmount: MoneyString;
+  vatAmount: MoneyString;
+  totalAmount: MoneyString;
+  paidAmount: MoneyString;
+  outstandingAmount: MoneyString;
+  currency: string;
+  issueDate: string;
+  supplyDate: string;
+  dueDate: string;
+  status: string;
+  lineCount: number;
+  /** Chain and clearance fields (api.md §8.19). Never a stamp, never credentials, never the raw authority response. */
+  einvoice: InvoiceEinvoiceDto;
+  pdfDocumentId: string | null;
+}
+
+export interface InvoiceLineDto {
+  id: string;
+  invoiceId: string;
+  lineType: string;
+  tripRequestId: string | null;
+  requestNumber: string | null;
+  bookingId: string | null;
+  bookingNumber: string | null;
+  /** Bookings covered by the line (many for an ORDER line, one for a BOOKING line, none for adjustments). */
+  bookingIds: string[];
+  descriptionEn: string;
+  descriptionAr: string;
+  quantity: MoneyString;
+  unitAmount: MoneyString;
+  netAmount: MoneyString;
+  vatRate: RateString;
+  vatAmount: MoneyString;
+  totalAmount: MoneyString;
+  vatCategory: string;
+  sortOrder: number;
+}
+
+export interface InvoiceGenerateResultDto {
+  periodStart: string;
+  periodEnd: string;
+  customersConsidered: number;
+  invoices: { invoiceId: string; invoiceNumber: string; customerProfileId: string; invoiceType: string; status: string; bookingCount: number; totalAmount: MoneyString }[];
+  skipped: { customerProfileId: string; reason: string }[];
+}
+
+export interface ClearanceQueueItemDto {
+  invoiceId: string;
+  invoiceNumber: string;
+  invoiceType: string;
+  status: string;
+  clearanceStatus: string;
+  clearanceSubmittedAt: string | null;
+  attemptCount: number;
+  ageSeconds: number;
+  lastErrorCode: string | null;
+  buyer: { customerProfileId: string; name: string | null; vatNumber: string | null };
+}
+
+export interface ExpenseDto extends TimestampedDto {
+  id: string;
+  ownerProfileId: string;
+  vehicleId: string | null;
+  vehiclePlate: string | null;
+  driverProfileId: string | null;
+  tripId: string | null;
+  expenseCategoryId: string;
+  categoryCode: string;
+  amount: MoneyString;
+  vatAmount: MoneyString;
+  totalAmount: MoneyString;
+  currency: string;
+  expenseDate: string;
+  description: string | null;
+  vendorName: string | null;
+  odometerKm: number | null;
+  receiptDocumentId: string | null;
+  isReimbursable: boolean;
+  /** True once the expense falls inside a PAID settlement period (409 EXPENSE_IMMUTABLE on edit/delete). */
+  isLocked: boolean;
+}
+
+export interface ExpenseSummaryDto {
+  groupBy: 'category' | 'vehicle' | 'month';
+  currency: string;
+  rows: { key: string; label: string | null; count: number; amount: MoneyString; vatAmount: MoneyString; totalAmount: MoneyString }[];
+  totals: { count: number; amount: MoneyString; vatAmount: MoneyString; totalAmount: MoneyString };
+}
+
+export interface LedgerEntryDto {
+  id: string;
+  accountCode: string;
+  accountType: string;
+  direction: 'DEBIT' | 'CREDIT';
+  amount: MoneyString;
+  currency: string;
+  ownerProfileId: string | null;
+  customerProfileId: string | null;
+}
+export interface LedgerGroupDto {
+  transactionGroupId: string;
+  description: string;
+  occurredAt: string;
+  bookingId: string | null;
+  paymentId: string | null;
+  refundId: string | null;
+  settlementId: string | null;
+  invoiceId: string | null;
+  entries: LedgerEntryDto[];
+  debitTotal: MoneyString;
+  creditTotal: MoneyString;
+}
+export interface OwnerBalanceDto {
+  ownerProfileId: string;
+  accountCode: 'OWNER_PAYABLE';
+  balance: MoneyString;
+  currency: string;
+  /** Net payable of DRAFT / PENDING_APPROVAL / APPROVED / PROCESSING settlements not yet paid. */
+  inFlightSettlements: MoneyString;
+  asOf: string;
+}

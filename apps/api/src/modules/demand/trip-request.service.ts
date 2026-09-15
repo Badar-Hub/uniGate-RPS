@@ -4,7 +4,7 @@ import type { createTripRequestBody, patchTripRequestBody } from '@unigate/valid
 import type { z } from 'zod';
 import { BusinessRuleError, ForbiddenError, NotFoundError, NotImplementedError } from '@/common/errors.js';
 import { newId } from '@/common/ids.js';
-import { money } from '@/common/money.js';
+import { type Decimal, money } from '@/common/money.js';
 import { prisma } from '@/database/prisma.js';
 import { publishEvent } from '@/events/outbox.js';
 import { mapsProvider } from '@/integrations/maps/maps.provider.js';
@@ -369,6 +369,12 @@ export async function expireStaleRequests(): Promise<number> {
 /** The row as bidding sees it — scoped; pass `tx` after locking the row so the re-read is current. */
 export async function requestRowForBidding(scope: AnyScope, id: string, tx: Prisma.TransactionClient | null = null): Promise<repo.TripRequestRow | null> {
   return repo.findTripRequest(scope, id, tx);
+}
+
+/** PATCH /trip-requests/{id}/commission writes here (the finance module owns the decision, demand owns the row). */
+export async function setRequestCommissionOverride(_scope: AnyScope, id: string, o: { type: 'NONE' | 'PERCENTAGE' | 'FIXED'; value: Decimal | null; basis: 'GROSS' | 'NET_OF_VAT' | null; reason: string } | null, tx: Prisma.TransactionClient): Promise<void> {
+  const actorUserId = _scope.kind === 'SYSTEM' ? null : _scope.actor.userId;
+  await tx.tripRequest.update({ where: { id }, data: o ? { commissionOverrideType: o.type, commissionOverrideValue: o.value, commissionOverrideBasis: o.basis, commissionOverrideReason: o.reason, commissionOverrideSetByUserId: actorUserId, commissionOverrideSetAt: new Date() } : { commissionOverrideType: null, commissionOverrideValue: null, commissionOverrideBasis: null, commissionOverrideReason: null, commissionOverrideSetByUserId: null, commissionOverrideSetAt: null } });
 }
 
 /** The occupancy window the matcher and the reservation share. */

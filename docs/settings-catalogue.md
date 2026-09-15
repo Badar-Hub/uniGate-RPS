@@ -96,6 +96,9 @@ Where a value varies by scope (global → category → customer/owner → per ca
 | `finance.commission_basis_default` | enum `GROSS` \| `NET_OF_VAT` | `NET_OF_VAT` | — | INTERNAL | yes — via the rule snapshot | OQ-01 |
 | `finance.rounding_mode` | enum | `HALF_UP` | code-managed | INTERNAL | — | — |
 | `finance.bad_debt_writeoff_requires_approval` | bool | `true` | — | INTERNAL | no | A-48 |
+| `finance.seller_vat_number` | string | `` (empty) | `^3[0-9]{13}3$` or empty | INTERNAL | **yes** → `invoices.seller_vat_number` | ADR-007 |
+| `finance.seller_name_en` | string | `` (empty) | ≤ 160 | INTERNAL | yes → invoice QR / document | ADR-007 |
+| `finance.seller_name_ar` | string | `` (empty) | ≤ 160 | INTERNAL | yes → invoice document | ADR-007 |
 
 ## 7. `onboarding` (owners, drivers, vehicles, customers)
 
@@ -197,6 +200,7 @@ Enforced by the per-key Zod schema at `PUT /settings/{key}`:
 | `spo.default_commission_model_id` | Seeded `NONE` — SPOs earn nothing (OQ-09) |
 | `notifications.sms_sender_id` | Empty — OTP delivery fails without a registered sender (OQ-10) |
 | `platform.support_phone` / `support_email` / `terms_version` | Empty |
+| `finance.seller_vat_number` / `seller_name_*` | Empty — **no customer invoice can be issued** until UniGate’s VAT number and legal name are set (`INVOICE_SELLER_VAT_NOT_CONFIGURED`) |
 | `retention.*` | Interim values pending legal review (OQ-08) |
 | `settlement.*`, `billing.*`, `bidding.*` | Seeds are ours (A-39, A-46, A-05); UniGate should confirm or change them — takes minutes, needs no deploy |
 

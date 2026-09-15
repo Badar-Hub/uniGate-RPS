@@ -148,6 +148,18 @@ export async function applyRefundOutcome(refundId: string, outcome: 'COMPLETED' 
     if (b?.split) {
       // Reverse the capture pro rata; the last line absorbs rounding so the group balances.
       const ratio = r.amount.div(b.split.grossAmount);
+      if (b.ownerIsPlatformFleet) {
+        const vatPart = round2(b.split.vatAmount.mul(ratio));
+        await postLedger({ description: `refund ${r.refundNumber} for ${b.bookingNumber} (platform fleet)`, occurredAt: now, currency: r.currency, bookingId: b.id, paymentId: r.paymentId, refundId: r.id, lines: [
+          { account: 'TRANSPORT_REVENUE', direction: 'DEBIT', amount: r.amount.sub(vatPart) },
+          { account: 'VAT_PAYABLE', direction: 'DEBIT', amount: vatPart },
+          { account: 'CASH_GATEWAY', direction: 'CREDIT', amount: r.amount, customerProfileId: b.customerProfileId },
+        ] }, tx);
+        await applyRefundCompleted(systemScope, r.bookingId, fully, tx);
+        await writeAudit({ actorUserId: null, actorType: 'SYSTEM', action: 'refund.completed', entityType: 'refund', entityId: refundId, afterValue: { amount: r.amount.toFixed(2), paymentStatus: fully ? 'REFUNDED' : 'PARTIALLY_REFUNDED' } }, tx);
+        await publishEvent('refund', refundId, 'refund.completed', { refundNumber: r.refundNumber, paymentId: r.paymentId, bookingId: r.bookingId, customerProfileId: r.payment.customerProfileId, amount: r.amount.toFixed(2) }, tx);
+        return;
+      }
       const owner = round2(b.split.ownerNetAmount.mul(ratio));
       const commission = round2(b.split.commissionAmount.mul(ratio));
       const vat = round2(r.amount.sub(owner).sub(commission));

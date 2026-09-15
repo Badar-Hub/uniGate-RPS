@@ -1,20 +1,22 @@
 import type { Prisma } from '@prisma/client';
 import type { AcceptBidResultDto, ActorScope, AnyScope, AwardResultDto, BookingDto, TripRequestDto } from '@unigate/types';
-import type { acceptBidBody, awardBody } from '@unigate/validation';
+import type { acceptBidBody, assignPlatformVehicleBody, awardBody } from '@unigate/validation';
 import type { z } from 'zod';
 import { BusinessRuleError, ConflictError, ForbiddenError, NotFoundError } from '@/common/errors.js';
+import { newId } from '@/common/ids.js';
 import { money } from '@/common/money.js';
 import { prisma } from '@/database/prisma.js';
 import { publishEvent } from '@/events/outbox.js';
 import { createAwardedBooking, creditExposureOf, getBooking } from '@/modules/bookings/booking.service.js';
+import { platformFleetOwnerId } from '@/modules/profiles/owner.service.js';
 import { getTripRequest, recordAward, requestOccupancyWindow, requestRowForBidding } from '@/modules/demand/trip-request.service.js';
-import { resolveCommission, type CommissionOverride } from '@/modules/finance/commission.service.js';
+import { resolveCommission, type CommissionOverride, type ResolvedCommission } from '@/modules/finance/commission.service.js';
 import { vehicleForAward } from '@/modules/fleet/vehicle.service.js';
 import { writeAudit } from '@/modules/platform/audit.service.js';
 import { billingProfileOf } from '@/modules/profiles/customer.service.js';
 import { getSettingValue } from '@/modules/reference/settings.service.js';
 import { ownerDisplayName } from './bidding.mapper.js';
-import { assertRequestOpenForBids, biddingSystemScope, rejectLiveBidsOnRequest, requestOverride } from './bid.service.js';
+import { assertRequestOpenForBids, biddingSystemScope, computeTotals, rejectLiveBidsOnRequest, requestOverride } from './bid.service.js';
 import * as repo from './bid.repository.js';
 
 /**
@@ -107,7 +109,10 @@ async function bookOne(scope: ActorScope, r: RequestRow, b: repo.BidRow, seq: nu
   const v = await vehicleForAward(b.vehicleId, r.pickupAt);
   if (!v) throw new NotFoundError('NOT_FOUND', 'Vehicle no longer exists', { vehicleId: b.vehicleId });
   if (!v.dispatch.ok) throw new BusinessRuleError('VEHICLE_NOT_DISPATCHABLE', `Vehicle ${v.plateNumberEn} is no longer dispatchable`, { bidId: b.id, vehicleId: v.id, reasons: v.dispatch.reasons });
-  const commission = await resolveCommission(scope, { ownerProfileId: b.ownerProfileId, vehicleCategoryId: v.vehicleCategoryId, transportType: r.transportType, at: now, awardOverride: override, requestOverride: requestOverride(r), basisDefault: s.basisDefault }, tx);
+  // A-57: UniGate's own fleet earns no commission from itself — the whole fare is transport revenue, not an owner payable.
+  const commission: ResolvedCommission = b.ownerProfile.isPlatformFleet
+    ? { source: 'NONE', type: 'NONE', value: null, basis: s.basisDefault, minAmount: null, maxAmount: null, rule: null, override: null }
+    : await resolveCommission(scope, { ownerProfileId: b.ownerProfileId, vehicleCategoryId: v.vehicleCategoryId, transportType: r.transportType, at: now, awardOverride: override, requestOverride: requestOverride(r), basisDefault: s.basisDefault }, tx);
   const window = requestOccupancyWindow(r, b.estimatedDurationMinutes);
   const nonCircumventionUntil = s.nonCircumventionMonths > 0 ? new Date(new Date(now).setUTCMonth(now.getUTCMonth() + s.nonCircumventionMonths)) : null;
   const booking = await createAwardedBooking(
@@ -158,6 +163,45 @@ export async function acceptBid(scope: ActorScope, bidId: string, body: z.infer<
     return booking.id;
   }, TX);
   return { booking: await getBooking(scope, bookingId), tripRequest: await getTripRequest(scope, peek.tripRequestId) };
+}
+
+/**
+ * POST /trip-requests/{id}/assign-platform-vehicle — ops put one of UniGate's own vehicles on a
+ * request without a bid (A-57 / FR-FLEET-13). A bid row is still written, marked as the ops
+ * decision, so the award path, the reservation and the frozen snapshot are exactly the ones every
+ * subcontracted booking goes through; the snapshot simply carries no commission.
+ */
+export async function assignPlatformVehicle(scope: ActorScope, tripRequestId: string, body: z.infer<typeof assignPlatformVehicleBody>): Promise<AcceptBidResultDto> {
+  const s = await awardSettings();
+  const now = new Date();
+  const platformOwnerId = await platformFleetOwnerId(scope);
+  if (!platformOwnerId) throw new BusinessRuleError('PLATFORM_FLEET_VEHICLE_REQUIRED', 'No platform-fleet owner is configured');
+  const v = await vehicleForAward(body.vehicleId, now);
+  if (!v) throw new NotFoundError('NOT_FOUND', 'Vehicle not found', { vehicleId: body.vehicleId });
+  if (v.ownerProfileId !== platformOwnerId) throw new BusinessRuleError('PLATFORM_FLEET_VEHICLE_REQUIRED', `Vehicle ${v.plateNumberEn} is not part of UniGate's own fleet; subcontracted vehicles are awarded through their bids`, { vehicleId: v.id });
+  const totals = await computeTotals(body.baseAmount, body.extrasBreakdown);
+  const bidId = newId();
+  const bookingId = await prisma().$transaction(async (tx) => {
+    const r = await lockedRequest(scope, tripRequestId, tx, now);
+    if (v.vehicleCategoryId !== r.vehicleCategoryId) throw new BusinessRuleError('BID_NOT_ELIGIBLE', `Vehicle category ${v.categoryCode} does not match the request`, { vehicleId: v.id, categoryCode: v.categoryCode });
+    const bidNumber = await repo.nextBidNumber(scope, tx);
+    await tx.bid.create({
+      data: {
+        id: bidId, bidNumber, tripRequestId: r.id, ownerProfileId: platformOwnerId, vehicleId: v.id, driverProfileId: body.driverProfileId ?? null,
+        baseAmount: totals.baseAmount, extrasAmount: totals.extrasAmount, extrasBreakdown: body.extrasBreakdown, vatRate: totals.vatRate, vatAmount: totals.vatAmount, totalAmount: totals.totalAmount, currency: r.currency,
+        estimatedDurationMinutes: body.estimatedDurationMinutes ?? null, validUntil: new Date(now.getTime() + 60_000), ownerNotes: body.notes ?? 'Platform fleet — direct assignment by operations', status: 'SUBMITTED', version: 1, submittedAt: now,
+      },
+    });
+    const [b] = await lockedBids(scope, r, [bidId], tx, now);
+    if (!b) throw new NotFoundError();
+    await repo.lockVehicles(scope, [b.vehicleId], tx);
+    const billing = await creditCheck(scope, r, b.totalAmount, tx);
+    const booking = await bookOne(scope, r, b, r.vehiclesAwarded + 1, billing, null, s, tx, now);
+    await writeAudit({ ...audit(scope), action: 'trip_request.platform_vehicle_assigned', entityType: 'trip_request', entityId: r.id, severity: 'NOTICE', afterValue: { vehicleId: v.id, plate: v.plateNumberEn, bookingId: booking.id, bookingNumber: booking.bookingNumber, totalAmount: totals.totalAmount.toFixed(2) } }, tx);
+    await finish(scope, r, [bidId], tx);
+    return booking.id;
+  }, TX);
+  return { booking: await getBooking(scope, bookingId), tripRequest: await getTripRequest(scope, tripRequestId) };
 }
 
 /** POST /trip-requests/{id}/award — all-or-nothing: the bid set must cover the remainder exactly. */

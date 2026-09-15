@@ -2,7 +2,7 @@
 
 import { useEffect, type ReactNode } from 'react';
 import { useTranslations } from 'next-intl';
-import { CalendarCheck2, CarFront, Smartphone, ClipboardList, FileCheck2, FileText, Gavel, LayoutDashboard, Loader2, LogOut, Sparkles, Truck, UserCircle2, Users } from 'lucide-react';
+import { CalendarCheck2, CarFront, Smartphone, ClipboardList, FileCheck2, FileText, Gavel, LayoutDashboard, Loader2, LogOut, Percent, Receipt, Sparkles, Truck, UserCircle2, Users, Wallet, WalletCards } from 'lucide-react';
 import { useSession } from '@/lib/auth/session-provider';
 import { Link, usePathname, useRouter } from '@/lib/i18n/routing';
 import { cn } from '@/lib/utils';
@@ -45,6 +45,10 @@ export function PortalShell({ children }: { children: ReactNode }) {
     { href: '/bookings', label: t('bookings'), icon: CalendarCheck2, show: can('bookings.read') },
     { href: '/driver', label: t('driverApp'), icon: Smartphone, show: Boolean(me.profiles.driver) },
     { href: '/fleet', label: t('fleet'), icon: CarFront, show: Boolean(me.profiles.owner) || can('vehicles.read_any') },
+    { href: '/settlements', label: t('settlements'), icon: Wallet, show: Boolean(me.profiles.owner) || can('settlements.create') },
+    { href: '/invoices', label: t('invoices'), icon: Receipt, show: Boolean(me.profiles.customer) || can('invoices.issue') },
+    { href: '/expenses', label: t('expenses'), icon: WalletCards, show: Boolean(me.profiles.owner) || can('expenses.read_any') },
+    { href: '/admin/commissions', label: t('commissions'), icon: Percent, show: can('commissions.manage') },
     { href: '/admin/owners', label: t('adminReview'), icon: FileCheck2, show: can('owners.approve') },
     { href: '/admin/vehicles', label: t('vehicleApprovals'), icon: Truck, show: can('vehicles.approve') },
     { href: '/admin/customers', label: t('customers'), icon: Users, show: false },

@@ -2,7 +2,7 @@ import type { PaymentMethodType, Prisma } from '@prisma/client';
 import type { ActorScope, AnyScope, CreatePaymentResultDto, PaymentConfigDto, PaymentDto, PaymentStatusDto, PaymentTransactionDto } from '@unigate/types';
 import type { createPaymentBody } from '@unigate/validation';
 import type { z } from 'zod';
-import { BusinessRuleError, ConflictError, NotFoundError, NotImplementedError, UpstreamError } from '@/common/errors.js';
+import { BusinessRuleError, ConflictError, NotFoundError, UpstreamError } from '@/common/errors.js';
 import { newId } from '@/common/ids.js';
 import { money } from '@/common/money.js';
 import { redact } from '@/common/redact.js';
@@ -13,6 +13,7 @@ import { GatewayError, type GatewayPaymentStatus } from '@/integrations/payments
 import { paymentGateway } from '@/integrations/payments/index.js';
 import { logger } from '@/logging/logger.js';
 import { applyPaymentCaptured, bookingForPayment, type BookingPaymentView } from '@/modules/bookings/booking.service.js';
+import { applyInvoicePaymentCaptured, invoiceForPayment, isPayable } from '@/modules/finance/invoice.service.js';
 import { postLedger } from '@/modules/finance/ledger.service.js';
 import { writeAudit } from '@/modules/platform/audit.service.js';
 import { getSettingValue } from '@/modules/reference/settings.service.js';
@@ -73,9 +74,9 @@ function assertReturnUrl(url: string): void {
   if (!allowed.includes(new URL(url).origin)) throw new BusinessRuleError('PAYMENT_RETURN_URL_NOT_ALLOWED', 'returnUrl must be on an allow-listed origin', { origin: new URL(url).origin });
 }
 
-/** POST /payments — booking path. Invoice payments arrive with invoicing (Phase 11). */
+/** POST /payments — exactly one target: a PENDING_PAYMENT booking, or a payable invoice (ISSUED / PARTIALLY_PAID / OVERDUE). */
 export async function createPayment(scope: ActorScope, body: z.infer<typeof createPaymentBody>, idempotencyKey: string | null): Promise<CreatePaymentResultDto> {
-  if (body.invoiceId) throw new NotImplementedError('INVOICE_PAYMENTS_NOT_AVAILABLE', 'Invoice payments arrive with invoicing (Phase 11)');
+  if (body.invoiceId) return createInvoicePayment(scope, body, body.invoiceId, idempotencyKey);
   if (!body.bookingId) throw new NotFoundError();
   assertReturnUrl(body.returnUrl);
   const cfg = await paymentConfig();
@@ -116,6 +117,47 @@ export async function createPayment(scope: ActorScope, body: z.infer<typeof crea
     // An adapter error means "unknown", not "did not happen": the row stays PENDING for reconciliation.
     const detail = e instanceof GatewayError ? e.responseRedacted : { message: e instanceof Error ? e.message : String(e) };
     await prisma().paymentTransaction.create({ data: { id: newId(), paymentId: id, type: 'AUTHORIZE', amount: b.totalAmount, currency: b.currency, status: 'FAILED', responsePayloadRedacted: redact(detail) as Prisma.InputJsonValue } });
+    logger().error({ err: e, paymentId: id }, 'gateway createPayment failed');
+    throw new UpstreamError('PAYMENT_GATEWAY_ERROR', 'The payment gateway did not accept the request', { paymentId: id, provider: g.code });
+  }
+}
+
+/**
+ * Invoice path (api.md §8.19): the buyer pays all or part of what is outstanding on an ISSUED /
+ * PARTIALLY_PAID / OVERDUE invoice (or a debit note). The gateway's capture settles the receivable.
+ */
+async function createInvoicePayment(scope: ActorScope, body: z.infer<typeof createPaymentBody>, invoiceId: string, idempotencyKey: string | null): Promise<CreatePaymentResultDto> {
+  assertReturnUrl(body.returnUrl);
+  const cfg = await paymentConfig();
+  if (!cfg.methodTypes.includes(body.methodType)) throw new BusinessRuleError('PAYMENT_METHOD_UNSUPPORTED', `${body.methodType} is not enabled`, { enabled: cfg.methodTypes });
+  const inv = await invoiceForPayment(scope, invoiceId);
+  if (!inv) throw new NotFoundError();
+  if (scope.kind !== 'GLOBAL' && inv.customerProfileId !== scope.actor.customerProfileId) throw new NotFoundError();
+  if (!isPayable(inv)) throw new BusinessRuleError('INVOICE_NOT_PAYABLE', `Invoice ${inv.invoiceNumber} is ${inv.status} with ${inv.outstandingAmount.toFixed(2)} outstanding`, { status: inv.status, outstandingAmount: inv.outstandingAmount.toFixed(2) });
+  const amount = money(body.amount);
+  if (amount.lte(0) || amount.gt(inv.outstandingAmount) || body.currency !== inv.currency) throw new BusinessRuleError('PAYMENT_AMOUNT_MISMATCH', 'The amount must be positive and at most the outstanding balance', { outstandingAmount: inv.outstandingAmount.toFixed(2), received: body.amount, currency: inv.currency });
+  const pending = await repo.findPendingForInvoice(scope, inv.id);
+  if (pending) throw new ConflictError('PAYMENT_ALREADY_PENDING', `Payment ${pending.paymentNumber} is already in progress for this invoice`, { paymentId: pending.id });
+
+  const g = paymentGateway();
+  const id = newId();
+  const paymentNumber = await prisma().$transaction(async (tx) => {
+    const n = await repo.nextPaymentNumber(scope, tx);
+    await tx.payment.create({ data: { id, paymentNumber: n, invoiceId: inv.id, customerProfileId: inv.customerProfileId, purpose: 'INVOICE_PAYMENT', amount, currency: inv.currency, status: 'PENDING', providerCode: g.code, paymentMethodType: body.methodType, expiresAt: new Date(Date.now() + 30 * 60_000), idempotencyKey, metadata: { returnUrl: body.returnUrl } } });
+    return n;
+  });
+  try {
+    const res = await g.createPayment({ paymentId: id, paymentNumber, amount: amount.toFixed(2), currency: inv.currency, methodType: body.methodType, savedToken: null, returnUrl: body.returnUrl, description: `UniGate invoice ${inv.invoiceNumber}`, customerRef: inv.customerProfileId, metadata: { invoiceNumber: inv.invoiceNumber } });
+    await prisma().$transaction(async (tx) => {
+      await tx.payment.update({ where: { id }, data: { providerPaymentId: res.providerPaymentId, ...(res.expiresAt ? { expiresAt: res.expiresAt } : {}) } });
+      await tx.paymentTransaction.create({ data: { id: newId(), paymentId: id, type: 'AUTHORIZE', amount, currency: inv.currency, status: 'INITIATED', providerTransactionId: res.providerPaymentId, requestPayloadRedacted: redact(res.requestRedacted) as Prisma.InputJsonValue, responsePayloadRedacted: redact(res.responseRedacted) as Prisma.InputJsonValue } });
+      await writeAudit({ ...audit(scope), action: 'payment.initiated', entityType: 'payment', entityId: id, afterValue: { paymentNumber, invoiceId: inv.id, amount: amount.toFixed(2), methodType: body.methodType, provider: g.code } }, tx);
+      await publishEvent('payment', id, 'payment.initiated', { paymentNumber, invoiceId: inv.id, customerProfileId: inv.customerProfileId, amount: amount.toFixed(2) }, tx);
+    });
+    return { payment: await getPayment(scope, id), action: res.action };
+  } catch (e) {
+    const detail = e instanceof GatewayError ? e.responseRedacted : { message: e instanceof Error ? e.message : String(e) };
+    await prisma().paymentTransaction.create({ data: { id: newId(), paymentId: id, type: 'AUTHORIZE', amount, currency: inv.currency, status: 'FAILED', responsePayloadRedacted: redact(detail) as Prisma.InputJsonValue } });
     logger().error({ err: e, paymentId: id }, 'gateway createPayment failed');
     throw new UpstreamError('PAYMENT_GATEWAY_ERROR', 'The payment gateway did not accept the request', { paymentId: id, provider: g.code });
   }
@@ -174,6 +216,9 @@ export async function applyGatewayOutcome(paymentId: string, o: GatewayOutcome, 
       await postCapture(p.id, b, o.occurredAt, tx);
     }
     await publishEvent('payment', paymentId, 'payment.captured', { paymentNumber: p.paymentNumber, bookingId: p.bookingId, customerProfileId: p.customerProfileId, amount: p.amount.toFixed(2) }, tx);
+  } else if (to === 'PAID' && p.invoiceId) {
+    await applyInvoicePaymentCaptured(scope, p.invoiceId, p.amount, p.id, o.occurredAt, tx);
+    await publishEvent('payment', paymentId, 'payment.captured', { paymentNumber: p.paymentNumber, invoiceId: p.invoiceId, customerProfileId: p.customerProfileId, amount: p.amount.toFixed(2) }, tx);
   } else if (to === 'FAILED') {
     await publishEvent('payment', paymentId, 'payment.failed', { paymentNumber: p.paymentNumber, bookingId: p.bookingId, customerProfileId: p.customerProfileId, failureCode: o.failureCode }, tx);
   }
@@ -189,10 +234,21 @@ export async function applyGatewayOutcome(paymentId: string, o: GatewayOutcome, 
  *   DEBIT  PAYMENT_PROCESSING_FEES / CREDIT CASH_GATEWAY  fee (0 until the provider reports one)
  * Fare VAT under the deemed-supplier model (ADR-008, pending the advisor) is not yet split out
  * of the owner payable; it is recorded in the snapshot and reported, not posted, until then.
+ * UniGate's own fleet (A-57) is different: UniGate is the supplier, so the fare is
+ *   DEBIT CASH_GATEWAY gross / CREDIT TRANSPORT_REVENUE net / CREDIT VAT_PAYABLE fare VAT
+ * — no owner payable, no commission, no settlement.
  */
 async function postCapture(paymentId: string, b: BookingPaymentView, at: Date, tx: Prisma.TransactionClient): Promise<void> {
   const s = b.split;
   if (!s) return;
+  if (b.ownerIsPlatformFleet) {
+    await postLedger({ description: `capture ${b.bookingNumber} (platform fleet)`, occurredAt: at, currency: b.currency, bookingId: b.id, paymentId, lines: [
+      { account: 'CASH_GATEWAY', direction: 'DEBIT', amount: s.grossAmount, customerProfileId: b.customerProfileId },
+      { account: 'TRANSPORT_REVENUE', direction: 'CREDIT', amount: s.grossAmount.sub(s.vatAmount) },
+      { account: 'VAT_PAYABLE', direction: 'CREDIT', amount: s.vatAmount },
+    ] }, tx);
+    return;
+  }
   await postLedger(
     {
       description: `capture ${b.bookingNumber}`, occurredAt: at, currency: b.currency, bookingId: b.id, paymentId,

@@ -112,13 +112,22 @@ All items delivered; residuals moved to Phase 3 below.
 - [ ] No-show path from trip exceptions — Phase 13 with complaints
 - [ ] Production map tiles / maps provider key — same open item as geocoding
 
-## Immediate — Phase 11 (Finance)
+## Phase 11 — Finance — COMPLETE 2026-09-15
 
-- [ ] Settlements: cycles from `settlement.*` settings, `settlement_lines` from completed bookings (eligible after the hold), approvals, payout run with `OWNER_PAYABLE` postings, owner bank accounts with the cool-off
-- [ ] Invoices for INVOICED customers: `ORDER` / `BOOKING` granularity, issue → `CUSTOMER_RECEIVABLE` postings, invoice payments through `POST /payments`, overdue reminders; e-invoicing stays designed-not-claimed (ADR-007)
-- [ ] Expenses; commission rules admin API; the ledger read endpoints
-- [ ] Web: owner settlements and earnings, corporate invoices, finance officer screens
-- [ ] Extend the authorization matrix with the finance surface
+- [x] Settlements: preview, build (one line per funded booking past the hold, never twice), adjustments, submit → four-eyes approve → payout with the bank-account cool-off and `OWNER_PAYABLE` postings
+- [x] Invoices: single-booking and billing-cycle triggers, type from the buyer's VAT number, gapless number + ICV + hash chain, `EInvoicingProvider` port with the mock (designed, not claimed — ADR-007 / OQ-04), invoice payments through `POST /payments`, void / credit note / debit note, overdue job
+- [x] Expenses with the PAID-settlement immutability guard; commission rules admin + per-request override; ledger reads
+- [x] Web: settlements, invoices (printable document + pay), expenses, commission rules; matrix rows
+- [x] **Platform fleet (A-57)**: ops direct assignment without a bid, no commission, TRANSPORT_REVENUE postings, never settled; margin report → Phase 13
+- [ ] PDF rendering and cleared-XML delivery — with the certified e-invoicing adapter (UniGate's tax advisor confirms the wave — OQ-04)
+- [ ] Supplier invoices / self-billing (OQ-25 / OQ-30) and the `SUPPLIER_INVOICE_MISSING` settlement hold
+- [ ] SPO commission roll-up (OQ-09); GATEWAY_PAYOUT rail (decision with the gateway, OQ-03)
+
+## Immediate — next phase (UniGate's call)
+
+- [ ] **Phase 11b — Goods vertical** (per ADR-010): goods request validation, goods trip plugin already carries the LOADING/LOADED/DELIVERED map, freight checklist, proof capture in the driver app, zero-rating decision; gated on OQ-13 / OQ-29
+- [ ] **Phase 12 — Maintenance**: `/maintenance` records and schedules, vehicle downtime on the calendar, reminders
+- [ ] Phase 13 — Admin & reporting: refunds admin screen, disputes / no-show, customer statements, dashboards
 
 ## Deferred design work
 

@@ -344,6 +344,8 @@ export interface BookingPaymentView {
   totalAmount: Decimal;
   currency: string;
   paymentDueBy: Date | null;
+  /** A-57: UniGate's own vehicle — the fare is transport revenue, never an owner payable. */
+  ownerIsPlatformFleet: boolean;
   /** The frozen split the ledger postings follow; null only for a booking created before snapshots existed. */
   split: { grossAmount: Decimal; vatAmount: Decimal; commissionAmount: Decimal; commissionVatAmount: Decimal; paymentFeeAmount: Decimal; ownerNetAmount: Decimal; vatTreatment: string } | null;
 }
@@ -354,7 +356,7 @@ export async function bookingForPayment(scope: AnyScope, id: string, tx: Prisma.
   if (!b) return null;
   const f = b.financialSnapshot;
   return {
-    id: b.id, bookingNumber: b.bookingNumber, customerProfileId: b.customerProfileId, ownerProfileId: b.ownerProfileId, status: b.status, paymentStatus: b.paymentStatus, billingMode: b.billingMode, totalAmount: b.totalAmount, currency: b.currency, paymentDueBy: b.paymentDueBy,
+    id: b.id, bookingNumber: b.bookingNumber, customerProfileId: b.customerProfileId, ownerProfileId: b.ownerProfileId, status: b.status, paymentStatus: b.paymentStatus, billingMode: b.billingMode, totalAmount: b.totalAmount, currency: b.currency, paymentDueBy: b.paymentDueBy, ownerIsPlatformFleet: b.ownerProfile.isPlatformFleet,
     split: f ? { grossAmount: f.grossAmount, vatAmount: b.vatAmount, commissionAmount: f.commissionAmount, commissionVatAmount: f.commissionVatAmount, paymentFeeAmount: f.paymentFeeAmount, ownerNetAmount: f.ownerNetAmount, vatTreatment: f.vatTreatment } : null,
   };
 }

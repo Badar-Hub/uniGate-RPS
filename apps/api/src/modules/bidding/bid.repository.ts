@@ -13,7 +13,7 @@ export const bidSelect = {
   id: true, bidNumber: true, tripRequestId: true, ownerProfileId: true, vehicleId: true, driverProfileId: true, baseAmount: true, extrasAmount: true, extrasBreakdown: true, vatRate: true, vatAmount: true, totalAmount: true, currency: true,
   estimatedArrivalAt: true, estimatedDurationMinutes: true, validUntil: true, ownerNotes: true, status: true, version: true, lastRevisedAt: true, rejectedReason: true, submittedAt: true, decidedAt: true, createdAt: true, updatedAt: true,
   tripRequest: { select: { requestNumber: true, customerProfileId: true, status: true, vehicleCategoryId: true, transportType: true } },
-  ownerProfile: { select: { businessNameEn: true, ratingAvg: true, isVatRegistered: true, vatNumber: true, onboardingStatus: true, user: { select: { fullNameEn: true } } } },
+  ownerProfile: { select: { businessNameEn: true, ratingAvg: true, isVatRegistered: true, vatNumber: true, isPlatformFleet: true, onboardingStatus: true, user: { select: { fullNameEn: true } } } },
   vehicle: { select: { plateNumberEn: true, modelYear: true, passengerCapacity: true, payloadCapacityKg: true, ratingAvg: true, make: { select: { name: true } }, model: { select: { name: true } }, category: { select: { code: true, nameEn: true } } } },
   driverProfile: { select: { user: { select: { fullNameEn: true } } } },
   booking: { select: { id: true } },
@@ -72,6 +72,10 @@ export async function listRequestBids(scope: AnyScope, tripRequestId: string, f:
 
 export async function countActiveForOwner(_scope: AnyScope, tripRequestId: string, ownerProfileId: string): Promise<number> {
   return prisma().bid.count({ where: { tripRequestId, ownerProfileId, status: 'SUBMITTED' } });
+}
+
+export async function countOnRequest(_scope: AnyScope, tripRequestId: string): Promise<number> {
+  return prisma().bid.count({ where: { tripRequestId } });
 }
 
 export async function hasLiveBidForVehicle(_scope: AnyScope, tripRequestId: string, vehicleId: string): Promise<boolean> {

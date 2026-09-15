@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useLocale, useTranslations } from 'next-intl';
 import { AlertCircle, CheckCircle2, Loader2 } from 'lucide-react';
-import type { BookingDto, CreatePaymentResultDto, PaymentConfigDto, PaymentStatusDto } from '@unigate/types';
+import type { CreatePaymentResultDto, PaymentConfigDto, PaymentStatusDto } from '@unigate/types';
 import { api, idempotencyKey, type ApiError } from '@/lib/api-client';
 import { errorMessage } from '@/lib/errors';
 import { Alert, AlertDescription } from '@/components/ui/alert';
@@ -11,12 +11,24 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 
+/** What is being paid: a PENDING_PAYMENT booking or the outstanding balance of an invoice (api.md §6.4 — exactly one target). */
+export interface PayTarget {
+  bookingId?: string;
+  invoiceId?: string;
+  amount: string;
+  currency: string;
+  /** Locale-relative path the gateway returns to, e.g. /bookings/{id}. */
+  returnPath: string;
+  /** Shown while the gateway is silent (a booking's payment window); null for invoices. */
+  dueLabel: string | null;
+}
+
 /**
- * Pay-now for a PENDING_PAYMENT booking: creates the intent and follows the gateway action.
+ * Pay-now for a booking or an invoice: creates the intent and follows the gateway action.
  * When the browser returns (?payment=…), the panel polls GET /payments/{id}/status with a bounded
  * backoff — it never assumes success from the return itself (api.md §10).
  */
-export function PayNow({ booking, returnedPaymentId, onPaid }: { booking: BookingDto; returnedPaymentId: string | null; onPaid: () => void }) {
+export function PayNow({ target, returnedPaymentId, onPaid }: { target: PayTarget; returnedPaymentId: string | null; onPaid: () => void }) {
   const t = useTranslations('portal.payments');
   const tc = useTranslations('common');
   const locale = useLocale();
@@ -72,8 +84,9 @@ export function PayNow({ booking, returnedPaymentId, onPaid }: { booking: Bookin
     if (!method) return;
     setBusy(true);
     setError(null);
-    const returnUrl = `${window.location.origin}/${locale}/bookings/${booking.id}`;
-    const res = await api<CreatePaymentResultDto>('/payments', { method: 'POST', body: { bookingId: booking.id, amount: booking.totalAmount, currency: booking.currency, methodType: method, returnUrl }, headers: { 'Idempotency-Key': idempotencyKey() } });
+    const returnUrl = `${window.location.origin}/${locale}${target.returnPath}`;
+    const body = { ...(target.bookingId ? { bookingId: target.bookingId } : { invoiceId: target.invoiceId, purpose: 'INVOICE_PAYMENT' }), amount: target.amount, currency: target.currency, methodType: method, returnUrl };
+    const res = await api<CreatePaymentResultDto>('/payments', { method: 'POST', body, headers: { 'Idempotency-Key': idempotencyKey() } });
     if (!res.ok) {
       setBusy(false);
       setError(res.error);
@@ -117,7 +130,7 @@ export function PayNow({ booking, returnedPaymentId, onPaid }: { booking: Bookin
             </Alert>
           )}
           {!polling && poll && poll.status !== 'PAID' && poll.status !== 'FAILED' && poll.status !== 'CANCELLED' && (
-            <p className="text-muted-foreground">{t('stillPending', { due: booking.paymentDueBy ? new Date(booking.paymentDueBy).toLocaleString() : '' })}</p>
+            <p className="text-muted-foreground">{t('stillPending', { due: target.dueLabel ?? '' })}</p>
           )}
         </CardContent>
       </Card>
@@ -152,7 +165,7 @@ export function PayNow({ booking, returnedPaymentId, onPaid }: { booking: Bookin
             </div>
             <Button disabled={busy || !method || !cfg} onClick={() => void start()}>
               {busy && <Loader2 className="animate-spin" />}
-              {busy ? t('redirecting') : t('pay', { amount: booking.totalAmount, currency: booking.currency })}
+              {busy ? t('redirecting') : t('pay', { amount: target.amount, currency: target.currency })}
             </Button>
           </div>
         )}

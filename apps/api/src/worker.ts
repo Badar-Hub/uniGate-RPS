@@ -14,6 +14,7 @@ import { expireUnpaidBookings } from '@/modules/bookings/booking.service.js';
 import { reconcilePendingPayments } from '@/modules/payments/payment.service.js';
 import { startPaymentsWorker } from '@/modules/payments/payments.jobs.js';
 import { processPendingWebhooks } from '@/modules/payments/webhook.service.js';
+import { markOverdueInvoices, retryPendingClearances } from '@/modules/finance/invoice.service.js';
 
 /**
  * Worker entrypoint — same image as the API, different process. Runs the outbox relay, the
@@ -94,9 +95,24 @@ async function main(): Promise<void> {
         log.error({ err }, 'payments reconciliation failed');
       });
   };
+  // Finance: invoices past due flip to OVERDUE (reminders on the configured days); stalled clearances are re-presented.
+  const runFinance = () => {
+    markOverdueInvoices()
+      .then((r) => {
+        if (r.overdue || r.reminders) log.info(r, 'invoices overdue sweep');
+        return retryPendingClearances();
+      })
+      .then((n) => {
+        if (n) log.info({ cleared: n }, 'pending clearances re-presented');
+      })
+      .catch((err: unknown) => {
+        log.error({ err }, 'finance jobs failed');
+      });
+  };
   runMaintenance();
   runPurge();
   runPayments();
+  runFinance();
   runDocuments();
   runDemand();
   const t1 = setInterval(runMaintenance, 60 * 60_000);
@@ -104,6 +120,7 @@ async function main(): Promise<void> {
   const t3 = setInterval(runDocuments, 60 * 60_000);
   const t4 = setInterval(runDemand, 5 * 60_000);
   const t5 = setInterval(runPayments, 5 * 60_000);
+  const t6 = setInterval(runFinance, 15 * 60_000);
   log.info('worker started: outbox relay, event consumer, maintenance');
 
   const shutdown = async (signal: string) => {
@@ -113,6 +130,7 @@ async function main(): Promise<void> {
     clearInterval(t3);
     clearInterval(t4);
     clearInterval(t5);
+    clearInterval(t6);
     stopRelay();
     await eventWorker.close();
     await paymentsWorker.close();

@@ -1,13 +1,13 @@
 import { Router, type Request, type Response } from 'express';
 import type { z } from 'zod';
-import { acceptBidBody, awardBody, createBidBody, idParams, listBidsQuery, listRequestBidsQuery, patchBidBody, rejectBidBody, withdrawBidBody } from '@unigate/validation';
+import { acceptBidBody, assignPlatformVehicleBody, awardBody, createBidBody, idParams, listBidsQuery, listRequestBidsQuery, patchBidBody, rejectBidBody, withdrawBidBody } from '@unigate/validation';
 import { ok, paginated, sendOk } from '@/common/envelope.js';
 import { h } from '@/common/handler.js';
 import { authenticate, requirePermission, scopeFor } from '@/middleware/authenticate.js';
 import { csrfGuard } from '@/middleware/csrf.js';
 import { idempotent } from '@/middleware/idempotency.js';
 import { validate, type ValidatedRequest } from '@/middleware/validate.js';
-import { acceptBid, awardRequest } from './award.service.js';
+import { acceptBid, assignPlatformVehicle, awardRequest } from './award.service.js';
 import * as bids from './bid.service.js';
 
 type R<B = unknown, Q = unknown, P = unknown> = ValidatedRequest<B, Q, P>;
@@ -68,6 +68,11 @@ export function biddingRouter(): Router {
   r.post('/trip-requests/:id/award', requirePermission('bids.accept'), idempotent({ required: true }), validate({ params: idParams, body: awardBody }), h(async (req, res) => {
     const { params, body } = (req as R<z.infer<typeof awardBody>, unknown, Id>).validated;
     res.status(201).json(ok(await awardRequest(scopeFor(req, 'bids.read_any', 'OWN'), params.id, body)));
+  }));
+  // A-57: ops dispatch one of UniGate's own vehicles without a bid; the award path is reused, the snapshot carries no commission.
+  r.post('/trip-requests/:id/assign-platform-vehicle', requirePermission('bookings.manage'), idempotent({ required: true }), validate({ params: idParams, body: assignPlatformVehicleBody }), h(async (req, res) => {
+    const { params, body } = (req as R<z.infer<typeof assignPlatformVehicleBody>, unknown, Id>).validated;
+    res.status(201).json(ok(await assignPlatformVehicle(scopeFor(req, 'bookings.manage'), params.id, body)));
   }));
 
   return r;

@@ -250,6 +250,72 @@ describeDb('authorization matrix', () => {
       call: (t) => bearer(request(h.app).get('/api/v1/tracking/vehicles'), t),
       expect: { SUPER_ADMIN: 200, ADMIN: 200, OPS_MANAGER: 200, FINANCE_OFFICER: 403, SUPPORT_AGENT: 200, CUSTOMER: 403, VEHICLE_OWNER: 403, DRIVER: 403, SPO: 403 },
     },
+    {
+      name: 'POST /trip-requests/{id}/assign-platform-vehicle (bookings.manage — ops; key required → 400)',
+      call: (t) => bearer(request(h.app).post('/api/v1/trip-requests/0192f3c1-0000-7000-8000-000000000000/assign-platform-vehicle'), t).send({ vehicleId: '0192f3c1-0000-7000-8000-000000000000', baseAmount: '100.00' }),
+      expect: { SUPER_ADMIN: 400, ADMIN: 400, OPS_MANAGER: 400, FINANCE_OFFICER: 403, SUPPORT_AGENT: 403, CUSTOMER: 403, VEHICLE_OWNER: 403, DRIVER: 403, SPO: 403 },
+    },
+    // ── Phase 11: finance ──────────────────────────────────────────────────────
+    {
+      name: 'GET /commissions/rules (commissions.read)',
+      call: (t) => bearer(request(h.app).get('/api/v1/commissions/rules'), t),
+      expect: { SUPER_ADMIN: 200, ADMIN: 200, OPS_MANAGER: 200, FINANCE_OFFICER: 200, SUPPORT_AGENT: 403, CUSTOMER: 403, VEHICLE_OWNER: 200, DRIVER: 403, SPO: 403 },
+    },
+    {
+      name: 'POST /commissions/rules (commissions.manage — finance/admin; empty body → 422)',
+      call: (t) => bearer(request(h.app).post('/api/v1/commissions/rules'), t).send({}),
+      expect: { SUPER_ADMIN: 422, ADMIN: 422, OPS_MANAGER: 403, FINANCE_OFFICER: 422, SUPPORT_AGENT: 403, CUSTOMER: 403, VEHICLE_OWNER: 403, DRIVER: 403, SPO: 403 },
+    },
+    {
+      name: 'PATCH /trip-requests/{id}/commission (commissions.override — ops and finance; unknown id → 404)',
+      call: (t) => bearer(request(h.app).patch('/api/v1/trip-requests/0192f3c1-0000-7000-8000-000000000000/commission'), t).send({ override: null }),
+      expect: { SUPER_ADMIN: 404, ADMIN: 404, OPS_MANAGER: 404, FINANCE_OFFICER: 404, SUPPORT_AGENT: 403, CUSTOMER: 403, VEHICLE_OWNER: 403, DRIVER: 403, SPO: 403 },
+    },
+    {
+      name: 'GET /settlements (settlements.read — owners see their own)',
+      call: (t) => bearer(request(h.app).get('/api/v1/settlements'), t),
+      expect: { SUPER_ADMIN: 200, ADMIN: 200, OPS_MANAGER: 403, FINANCE_OFFICER: 200, SUPPORT_AGENT: 403, CUSTOMER: 403, VEHICLE_OWNER: 200, DRIVER: 403, SPO: 403 },
+    },
+    {
+      name: 'POST /settlements (settlements.create — finance; key required → 400)',
+      call: (t) => bearer(request(h.app).post('/api/v1/settlements'), t).send({}),
+      expect: { SUPER_ADMIN: 400, ADMIN: 400, OPS_MANAGER: 403, FINANCE_OFFICER: 400, SUPPORT_AGENT: 403, CUSTOMER: 403, VEHICLE_OWNER: 403, DRIVER: 403, SPO: 403 },
+    },
+    {
+      name: 'POST /settlements/{id}/approve (settlements.approve; unknown id → 404)',
+      call: (t) => bearer(request(h.app).post('/api/v1/settlements/0192f3c1-0000-7000-8000-000000000000/approve'), t).send({}),
+      expect: { SUPER_ADMIN: 404, ADMIN: 404, OPS_MANAGER: 403, FINANCE_OFFICER: 404, SUPPORT_AGENT: 403, CUSTOMER: 403, VEHICLE_OWNER: 403, DRIVER: 403, SPO: 403 },
+    },
+    {
+      name: 'GET /ledger/entries (ledger.read — finance only)',
+      call: (t) => bearer(request(h.app).get('/api/v1/ledger/entries'), t),
+      expect: { SUPER_ADMIN: 200, ADMIN: 200, OPS_MANAGER: 403, FINANCE_OFFICER: 200, SUPPORT_AGENT: 403, CUSTOMER: 403, VEHICLE_OWNER: 403, DRIVER: 403, SPO: 403 },
+    },
+    {
+      name: 'GET /invoices (invoices.read — buyers see their own)',
+      call: (t) => bearer(request(h.app).get('/api/v1/invoices'), t),
+      expect: { SUPER_ADMIN: 200, ADMIN: 200, OPS_MANAGER: 403, FINANCE_OFFICER: 200, SUPPORT_AGENT: 200, CUSTOMER: 200, VEHICLE_OWNER: 200, DRIVER: 403, SPO: 403 },
+    },
+    {
+      name: 'POST /invoices (invoices.issue — finance; key required → 400)',
+      call: (t) => bearer(request(h.app).post('/api/v1/invoices'), t).send({ bookingId: '0192f3c1-0000-7000-8000-000000000000' }),
+      expect: { SUPER_ADMIN: 400, ADMIN: 400, OPS_MANAGER: 403, FINANCE_OFFICER: 400, SUPPORT_AGENT: 403, CUSTOMER: 403, VEHICLE_OWNER: 403, DRIVER: 403, SPO: 403 },
+    },
+    {
+      name: 'GET /admin/invoices/clearance-queue (invoices.issue)',
+      call: (t) => bearer(request(h.app).get('/api/v1/admin/invoices/clearance-queue'), t),
+      expect: { SUPER_ADMIN: 200, ADMIN: 200, OPS_MANAGER: 403, FINANCE_OFFICER: 200, SUPPORT_AGENT: 403, CUSTOMER: 403, VEHICLE_OWNER: 403, DRIVER: 403, SPO: 403 },
+    },
+    {
+      name: 'GET /expenses (expenses.read — owners see their own)',
+      call: (t) => bearer(request(h.app).get('/api/v1/expenses'), t),
+      expect: { SUPER_ADMIN: 200, ADMIN: 200, OPS_MANAGER: 403, FINANCE_OFFICER: 200, SUPPORT_AGENT: 403, CUSTOMER: 403, VEHICLE_OWNER: 200, DRIVER: 403, SPO: 403 },
+    },
+    {
+      name: 'POST /expenses (expenses.create — owners; empty body → 422)',
+      call: (t) => bearer(request(h.app).post('/api/v1/expenses'), t).send({}),
+      expect: { SUPER_ADMIN: 422, ADMIN: 422, OPS_MANAGER: 403, FINANCE_OFFICER: 422, SUPPORT_AGENT: 403, CUSTOMER: 403, VEHICLE_OWNER: 422, DRIVER: 403, SPO: 403 },
+    },
   ];
 
   for (const row of MATRIX) {

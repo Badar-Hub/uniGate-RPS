@@ -15,6 +15,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { REQUEST_TONE } from './requests-list';
+import { PlatformAssign } from './platform-assign';
 import { RequestBids } from './request-bids';
 
 /** One request: status, counters, estimate, the detail block, lifecycle actions, and (staff) the invitation list. */
@@ -191,6 +192,8 @@ export function RequestDetail({ id, created }: { id: string; created?: string | 
       {!r.redacted && ['PUBLISHED', 'PARTIALLY_AWARDED', 'FULLY_AWARDED', 'CLOSED_PARTIAL'].includes(r.status) && (
         <RequestBids request={r} canAccept={can('bids.accept') && (r.customerProfileId === me?.profiles.customer?.id || can('trip_requests.read_any'))} onChanged={setR} />
       )}
+
+      {!r.redacted && can('bookings.manage') && ['PUBLISHED', 'PARTIALLY_AWARDED'].includes(r.status) && <PlatformAssign request={r} onChanged={setR} />}
 
       {invitations && (
         <Card>

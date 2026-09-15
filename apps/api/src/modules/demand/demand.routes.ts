@@ -1,12 +1,13 @@
 import { Router, type Request, type Response } from 'express';
 import type { z } from 'zod';
-import { cancelTripRequestBody, closeRemainderBody, createTripRequestBody, dismissQuery, idParams, listOpportunitiesQuery, listTripRequestsQuery, patchTripRequestBody, remainderBody } from '@unigate/validation';
+import { cancelTripRequestBody, closeRemainderBody, createTripRequestBody, dismissQuery, idParams, listOpportunitiesQuery, listTripRequestsQuery, patchTripRequestBody, remainderBody, requestCommissionBody } from '@unigate/validation';
 import { ok, paginated, sendNoContent, sendOk } from '@/common/envelope.js';
 import { h } from '@/common/handler.js';
 import { authenticate, requirePermission, requirePermissionOrProfile, scopeFor, type AuthenticatedRequest } from '@/middleware/authenticate.js';
 import { csrfGuard } from '@/middleware/csrf.js';
 import { idempotent } from '@/middleware/idempotency.js';
 import { validate, type ValidatedRequest } from '@/middleware/validate.js';
+import { getRequestCommission, setRequestCommission } from '@/modules/finance/commission-admin.service.js';
 import * as demand from './trip-request.service.js';
 
 type R<B = unknown, Q = unknown, P = unknown> = ValidatedRequest<B, Q, P>;
@@ -67,6 +68,15 @@ export function demandRouter(): Router {
   r.patch('/trip-requests/:id/remainder', requirePermission('trip_requests.update'), validate({ params: idParams, body: remainderBody }), h(async (req, res) => {
     const { params, body } = (req as R<z.infer<typeof remainderBody>, unknown, Id>).validated;
     sendOk(res, await demand.adjustRemainder(scopeFor(req, 'trip_requests.read_any'), params.id, body));
+  }));
+  // The per-trip commission decision (api.md §8.20) lives on the request; the finance module owns the rules.
+  r.get('/trip-requests/:id/commission', requirePermission('commissions.read', 'trip_requests.read_any'), validate({ params: idParams }), h(async (req, res) => {
+    const { params } = (req as R<unknown, unknown, Id>).validated;
+    sendOk(res, await getRequestCommission(scopeFor(req, 'trip_requests.read_any'), params.id));
+  }));
+  r.patch('/trip-requests/:id/commission', requirePermission('commissions.override'), validate({ params: idParams, body: requestCommissionBody }), h(async (req, res) => {
+    const { params, body } = (req as R<z.infer<typeof requestCommissionBody>, unknown, Id>).validated;
+    sendOk(res, await setRequestCommission(scopeFor(req, 'commissions.override'), params.id, body));
   }));
   r.get('/trip-requests/:id/invitations', requirePermission('trip_requests.read_any'), validate({ params: idParams }), h(async (req, res) => {
     const { params } = (req as R<unknown, unknown, Id>).validated;

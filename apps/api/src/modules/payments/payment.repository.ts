@@ -70,6 +70,10 @@ export async function listPayments(scope: AnyScope, f: PaymentFilters, page: { p
   return { items, total };
 }
 
+export async function findPendingForInvoice(_scope: AnyScope, invoiceId: string): Promise<{ id: string; paymentNumber: string } | null> {
+  return prisma().payment.findFirst({ where: { invoiceId, status: { in: ['PENDING', 'AUTHORIZED'] } }, select: { id: true, paymentNumber: true } });
+}
+
 export async function findPendingForBooking(_scope: AnyScope, bookingId: string): Promise<PaymentRow | null> {
   return prisma().payment.findFirst({ where: { bookingId, status: { in: ['PENDING', 'AUTHORIZED'] } }, select: paymentSelect, orderBy: { createdAt: 'desc' } });
 }

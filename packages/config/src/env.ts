@@ -69,6 +69,8 @@ export const envSchema = z
     PAYMENT_API_KEY: optionalSecret,
     PAYMENT_WEBHOOK_SECRET: optionalSecret,
     OTP_PROVIDER: z.enum(['console', 'unifonic', 'taqnyat', 'msegat', 'twilio']),
+    /** E-invoicing (ADR-007): `none` = plain invoices, clearanceStatus NOT_REQUIRED; `mock` = the development stand-in. */
+    EINVOICING_PROVIDER: z.enum(['none', 'mock']).default('mock'),
     OTP_ALLOWED_COUNTRY_CODES: z.string().default('+966'),
     /** Malware scanning of uploads. `none` = uploads are accepted UNSCANNED (A-25: no scanner procured). */
     SCAN_PROVIDER: z.enum(['none', 'clamav']).default('none'),
@@ -103,6 +105,9 @@ export const envSchema = z
     if (e.NODE_ENV === 'production' || e.NODE_ENV === 'staging') {
       if (e.PAYMENT_PROVIDER === 'mock' && e.NODE_ENV === 'production') {
         ctx.addIssue({ code: 'custom', path: ['PAYMENT_PROVIDER'], message: 'mock gateway is forbidden in production' });
+      }
+      if (e.EINVOICING_PROVIDER === 'mock' && e.NODE_ENV === 'production') {
+        ctx.addIssue({ code: 'custom', path: ['EINVOICING_PROVIDER'], message: 'mock e-invoicing provider is forbidden in production' });
       }
       if (e.OTP_PROVIDER === 'console' && e.NODE_ENV === 'production') {
         ctx.addIssue({ code: 'custom', path: ['OTP_PROVIDER'], message: 'console OTP provider is forbidden in production' });

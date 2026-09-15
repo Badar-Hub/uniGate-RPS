@@ -1,6 +1,6 @@
 /** OpenAPI registrations for /bids and the bidding sub-resources of /trip-requests (api.md §8.13, §6.4). */
 import { z } from 'zod';
-import { acceptBidBody, awardBody, createBidBody, idParams, listBidsQuery, listRequestBidsQuery, patchBidBody, rejectBidBody, withdrawBidBody } from '@unigate/validation';
+import { acceptBidBody, assignPlatformVehicleBody, awardBody, createBidBody, idParams, listBidsQuery, listRequestBidsQuery, patchBidBody, rejectBidBody, withdrawBidBody } from '@unigate/validation';
 import { registry, successEnvelope } from '@/docs/registry.js';
 
 const errorRef = z.object({}).openapi({ $ref: '#/components/schemas/ErrorEnvelope' } as never);
@@ -60,4 +60,9 @@ registry.registerPath({
   method: 'post', path: '/trip-requests/{id}/award', tags: ['trip-requests'], summary: 'All-or-nothing group award: the bid set must cover the remainder exactly; every booking is created or none is; Idempotency-Key required', security: bearer,
   request: { params: idParams, headers: idem, body: json(awardBody) },
   responses: { 201: ok(awardResult, 'AwardResultEnvelope', 'Bookings created'), 403: err('COMMISSION_OVERRIDE_FORBIDDEN'), 409: err('BID_VEHICLE_UNAVAILABLE / TRIP_REQUEST_FULLY_AWARDED'), 422: err('RULE_AWARD_SET_INCOMPLETE / RULE_CREDIT_NOT_APPROVED / RULE_CREDIT_LIMIT_EXCEEDED / BID_EXPIRED / VALIDATION_FAILED (duplicate vehicle)') },
+});
+registry.registerPath({
+  method: 'post', path: '/trip-requests/{id}/assign-platform-vehicle', tags: ['trip-requests'], summary: "A-57: ops dispatch one of UniGate's own vehicles without a bid (bookings.manage). Reuses the award path — reservation and frozen snapshot — with no commission; the fare is transport revenue, never an owner payable. Idempotency-Key required", security: bearer,
+  request: { headers: idem, params: idParams, body: json(assignPlatformVehicleBody) },
+  responses: { 201: ok(acceptResult, 'AcceptBidResultEnvelope', 'Booking created'), 409: err('BID_VEHICLE_UNAVAILABLE / TRIP_REQUEST_FULLY_AWARDED'), 422: err('PLATFORM_FLEET_VEHICLE_REQUIRED / BID_NOT_ELIGIBLE / VEHICLE_NOT_DISPATCHABLE / RULE_CREDIT_* / TRIP_REQUEST_*') },
 });

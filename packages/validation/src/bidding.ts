@@ -78,6 +78,19 @@ export const acceptBidBody = z
   .strict();
 export type AcceptBidInput = z.infer<typeof acceptBidBody>;
 
+/** POST /trip-requests/{id}/assign-platform-vehicle — ops dispatch UniGate's own vehicle without a bid (A-57). */
+export const assignPlatformVehicleBody = z
+  .object({
+    vehicleId: uuid,
+    driverProfileId: uuid.optional(),
+    /** The price the customer pays (net of VAT), set by ops. */
+    baseAmount: decimalString,
+    extrasBreakdown: z.array(bidExtra).max(20).default([]),
+    estimatedDurationMinutes: z.number().int().min(15).max(7 * 24 * 60).optional(),
+    notes: safeText(1000).optional(),
+  })
+  .strict();
+
 export const awardBody = z
   .object({
     bidIds: z

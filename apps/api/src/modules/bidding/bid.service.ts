@@ -254,6 +254,11 @@ export async function ownerBidOnRequest(scope: AnyScope, tripRequestId: string, 
   return (await repo.findOwnerBidOnRequest(scope, tripRequestId, ownerProfileId))?.id ?? null;
 }
 
+/** Any bid ever placed on the request (SUBMITTED or later) — the commission override guard keys on it. */
+export async function countBidsOnRequest(scope: AnyScope, tripRequestId: string): Promise<number> {
+  return repo.countOnRequest(scope, tripRequestId);
+}
+
 // ── jobs ─────────────────────────────────────────────────────────────────────
 
 /** SUBMITTED past valid_until → EXPIRED. */

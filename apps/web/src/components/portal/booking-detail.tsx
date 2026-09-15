@@ -203,7 +203,7 @@ export function BookingDetail({ id, returnedPaymentId = null }: { id: string; re
       </div>
 
       {isCustomer && b.billingMode === 'PREPAID' && (b.status === 'PENDING_PAYMENT' || returnedPaymentId) && (
-        <PayNow booking={b} returnedPaymentId={returnedPaymentId} onPaid={() => void load()} />
+        <PayNow target={{ bookingId: b.id, amount: b.totalAmount, currency: b.currency, returnPath: `/bookings/${b.id}`, dueLabel: b.paymentDueBy ? new Date(b.paymentDueBy).toLocaleString() : null }} returnedPaymentId={returnedPaymentId} onPaid={() => void load()} />
       )}
 
       {(isCustomer || isOwner || staff) && (

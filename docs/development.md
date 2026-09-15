@@ -117,6 +117,15 @@ command refuses to add a second `SUPER_ADMIN` unless `ADMIN_ALLOW_ADDITIONAL=tru
 
 To exercise reconciliation instead of webhooks, post to the checkout endpoint with `{ "outcome": "SUCCESS", "deliverWebhook": false }` and then `POST /payments/{id}/sync` as staff. The webhook secret for the mock is `PAYMENT_WEBHOOK_SECRET` when set, otherwise derived from `OTP_PEPPER` so a fresh `.env` works without configuration.
 
+## 4c. Invoicing locally (mock clearance provider)
+
+`EINVOICING_PROVIDER=mock` (the default outside production) selects the development stand-in for the clearance authority behind the `EInvoicingProvider` port (ADR-007). It accepts every well-formed document, so a standard tax invoice goes DRAFT → PENDING_CLEARANCE → ISSUED within the request, and a simplified one is ISSUED and REPORTED. `EINVOICING_PROVIDER=none` issues plain invoices with `clearanceStatus = NOT_REQUIRED` — no chain, no authority, nothing claimed. Production refuses `mock`. **No compliance is claimed either way** (OQ-04).
+
+1. Set `finance.seller_vat_number` (and the seller names) through the settings API — with it empty every issue answers `422 INVOICE_SELLER_VAT_NOT_CONFIGURED`.
+2. Issue a single invoice with `POST /invoices { bookingId }` for a COMPLETED booking, or run a cycle with `POST /admin/invoices/generate { periodStart, periodEnd }`; the portal's **Invoices** page does both for a finance officer.
+3. To exercise failure paths from a test, script the mock per invoice number: `mockClearanceProvider()?.script('INV-2026-000007', 'REJECT' | 'UNAVAILABLE' | null)` — REJECT rests the invoice in CLEARANCE_FAILED (void + re-issue), UNAVAILABLE leaves it PENDING_CLEARANCE and the request answers 503; `POST /admin/invoices/{id}/retry-clearance` re-presents the same document.
+4. A buyer pays an ISSUED / PARTIALLY_PAID / OVERDUE invoice from its page through the same MockGateway checkout as bookings (§4b) with `POST /payments { invoiceId, amount }`.
+
 ## 5. Database workflow
 
 Prisma owns structure it can express; a hand-written migration owns the rest

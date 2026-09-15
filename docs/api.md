@@ -1333,6 +1333,8 @@ The e-invoicing block on every invoice DTO — `null` throughout for an invoice 
 
 > **Why `clearance-queue` and `retry-clearance` sit under `invoices.issue` and not a new code.** Both are acts of issuance — one observes invoices mid-issue, the other completes an issue that stalled. A separate `invoices.clearance.manage` code would have to be granted to exactly the people who already hold `invoices.issue`, and a permission nobody holds independently is a permission that only adds a seeding step. They are grouped with `/invoices` rather than `/admin/*` for the same reason as `POST /admin/invoices/generate`: admin-only path, finance module, one route file.
 
+> **Implemented (Phase 11) — notes that sharpen the table above.** Postings are made when an invoice becomes ISSUED (after clearance for a standard invoice), never at DRAFT; a void of an ISSUED invoice that was never submitted (`NOT_REQUIRED`) therefore posts a **reversing** group so the receivable disappears with the document — "void posts nothing" holds for everything that never reached ISSUED. A credit note is limited to the outstanding balance (received money goes back through `/refunds`) and the platform bears it (DEBIT `REFUNDS_ISSUED`); a debit note is **itself payable** (its own `outstandingAmount`, so `ck_invoices_outstanding` on the source is never violated). The seller VAT number is `finance.seller_vat_number` — empty answers `422 INVOICE_SELLER_VAT_NOT_CONFIGURED`. Numbers and `icv` are minted as MAX+1 under a transaction advisory lock, which is what makes them gapless under rollback. `pdf-url` / `xml` apply the gates above and then answer `501 INVOICE_RENDERING_NOT_AVAILABLE` until the certified adapter lands; the portal renders the document from `/lines`. `EINVOICING_PROVIDER=none` issues plain invoices (`NOT_REQUIRED`, no chain); `mock` is the development stand-in and is refused in production. No compliance is claimed (OQ-04).
+
 ### 8.20 `/commissions` (5)
 
 | Method | Path | Permission | Scope | Description |
@@ -1360,6 +1362,10 @@ Settlement cycle and minimum payout are **OQ-06**; the endpoints are period-driv
 | POST | `/settlements/{id}/pay` **⧗** | `settlements.pay` | global | `202`. `APPROVED` → `PROCESSING`, records `paymentReference`, posts the `OWNER_PAYABLE` debit set to the ledger. `422 SETTLEMENT_BANK_ACCOUNT_MISSING` without a verified default account. |
 | GET | `/ledger/entries` | `ledger.read` | global | `ledger_entries`, append-only, grouped by `transactionGroupId`. Filters: `ledgerAccountCode`, `bookingId`, `paymentId`, `settlementId`, `dateFrom`/`dateTo`. `GET /ledger/balances/owners/{ownerProfileId}` returns the `OWNER_PAYABLE` balance as `SUM(credits) − SUM(debits)` — one query, never drifting from the snapshots. |
 
+> **Platform fleet (A-57, Phase 11).** `POST /trip-requests/{id}/assign-platform-vehicle` (`bookings.manage`, ⧗, body `{ vehicleId, baseAmount, driverProfileId?, extrasBreakdown?, estimatedDurationMinutes?, notes? }`) dispatches one of UniGate's own vehicles without a bid: a bid row is written as the ops decision and the normal award path runs, so the reservation and the frozen snapshot are the shared ones — with **no commission** whatever the rules say. `422 PLATFORM_FLEET_VEHICLE_REQUIRED` for any subcontracted vehicle. Capture and invoice issue post `TRANSPORT_REVENUE` + fare `VAT_PAYABLE` instead of `OWNER_PAYABLE`; the platform owner is never settled (`SETTLEMENT_NO_ELIGIBLE_LINES` with `details.reason = PLATFORM_FLEET`).
+
+> **Implemented (Phase 11).** Eligibility for a `BOOKING_EARNING` line = COMPLETED, funded (PAID for PREPAID; on a live invoice for INVOICED) and past `settlement.hold_days_after_completion`; the preview lists held bookings with the reason. Four-eyes compares the approver with the **submitter** recorded in the audit trail. On the `BANK_TRANSFER` rail the transfer is executed outside the platform, so `POST …/pay` records the reference and lands in **PAID** in the same call (PROCESSING is reserved for the gateway payout rail, which answers `501 SETTLEMENT_PAYOUT_RAIL_NOT_AVAILABLE` until wired); `SETTLEMENT_BANK_ACCOUNT_MISSING` carries `details.reason` MISSING | UNVERIFIED | COOLOFF. `GET /ledger/entries` pages over transaction groups so a page never splits a posting.
+
 ### 8.22 `/expenses` (5)
 
 | Method | Path | Permission | Scope | Description |
@@ -1369,6 +1375,8 @@ Settlement cycle and minimum payout are **OQ-06**; the endpoints are period-driv
 | GET | `/expenses/{id}` | `expenses.read` | own → global | |
 | PATCH | `/expenses/{id}` | `expenses.update` | own → global | `409 EXPENSE_IMMUTABLE` once the expense has been included in a `PAID` settlement. `DELETE` (soft, `expenses.delete`) shares the guard. |
 | GET | `/expenses/summary` | `expenses.read` | own → global | Totals grouped by `category`, `vehicle` or `month`. Feeds the owner's expense dashboard and vehicle profitability (BRIEF-§19). |
+
+> **Implemented (Phase 11).** `EXPENSE_IMMUTABLE` fires once the expense date falls inside a **PAID** settlement period of the owner (`isLocked` on the DTO); references are resolved through the owning modules under the caller's scope, so a foreign vehicle/driver/trip/document id is a `422` on that field. Reimbursable expenses are flagged only — whether they flow into settlements is UniGate's decision.
 
 ### 8.23 `/maintenance` (8)
 
