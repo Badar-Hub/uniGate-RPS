@@ -7,7 +7,7 @@ import { startOutboxRelay } from '@/jobs/outbox.relay.js';
 import { startEventWorker } from '@/jobs/event.handlers.js';
 import { closeQueues } from '@/jobs/queues.js';
 import { ensureNextMonthPartitions, purgeExpired } from '@/jobs/maintenance.js';
-import { markExpiredDocuments, sweepPendingUploads } from '@/modules/documents/documents.service.js';
+import { markExpiredDocuments, sweepPendingUploads, warnExpiringDocuments } from '@/modules/documents/documents.service.js';
 import { expireStaleRequests } from '@/modules/demand/trip-request.service.js';
 import { expireStaleBids } from '@/modules/bidding/bid.service.js';
 import { expireUnpaidBookings } from '@/modules/bookings/booking.service.js';
@@ -16,6 +16,9 @@ import { startPaymentsWorker } from '@/modules/payments/payments.jobs.js';
 import { processPendingWebhooks } from '@/modules/payments/webhook.service.js';
 import { markOverdueInvoices, retryPendingClearances } from '@/modules/finance/invoice.service.js';
 import { maintenanceReminders } from '@/modules/maintenance/maintenance.service.js';
+import { deliverStale, purgeNotifications } from '@/modules/notifications/notification.service.js';
+import { startNotificationsWorker } from '@/modules/notifications/notifications.jobs.js';
+import { expireExports, processNextExport } from '@/modules/reporting/reporting.service.js';
 
 /**
  * Worker entrypoint — same image as the API, different process. Runs the outbox relay, the
@@ -36,6 +39,7 @@ async function main(): Promise<void> {
   const stopRelay = startOutboxRelay(1000);
   const eventWorker = startEventWorker();
   const paymentsWorker = startPaymentsWorker();
+  const notificationsWorker = startNotificationsWorker();
 
   const runMaintenance = () => {
     ensureNextMonthPartitions().catch((err: unknown) => {
@@ -110,6 +114,61 @@ async function main(): Promise<void> {
         log.error({ err }, 'finance jobs failed');
       });
   };
+  // Notifications: rows still QUEUED (a lost enqueue) are delivered; old inbox rows are purged daily.
+  const runNotifications = () => {
+    deliverStale()
+      .then((n) => {
+        if (n) log.info({ delivered: n }, 'stale notifications delivered');
+      })
+      .catch((err: unknown) => {
+        log.error({ err }, 'notification sweep failed');
+      });
+  };
+  const runNotificationPurge = () => {
+    purgeNotifications()
+      .then((n) => {
+        if (n) log.info({ purged: n }, 'notifications purged');
+      })
+      .catch((err: unknown) => {
+        log.error({ err }, 'notification purge failed');
+      });
+  };
+  // Reports: exports are generated here (concurrency 1 per worker), completed files expire after 24 h.
+  let exporting = false;
+  const runExports = () => {
+    if (exporting) return;
+    exporting = true;
+    (async () => {
+      let n = 0;
+      while ((await processNextExport()) && n < 20) n++;
+      if (n) log.info({ exports: n }, 'report exports generated');
+    })()
+      .catch((err: unknown) => {
+        log.error({ err }, 'report export loop failed');
+      })
+      .finally(() => {
+        exporting = false;
+      });
+  };
+  const runExportExpiry = () => {
+    expireExports()
+      .then((n) => {
+        if (n) log.info({ expired: n }, 'report exports expired');
+      })
+      .catch((err: unknown) => {
+        log.error({ err }, 'export expiry failed');
+      });
+  };
+  // Documents: expiry warnings at the configured days before expiry, daily.
+  const runDocumentWarnings = () => {
+    warnExpiringDocuments()
+      .then((n) => {
+        if (n) log.info({ warned: n }, 'document expiry warnings published');
+      })
+      .catch((err: unknown) => {
+        log.error({ err }, 'document expiry warnings failed');
+      });
+  };
   // Fleet maintenance: one reminder event per schedule inside the horizon, daily.
   const runFleetMaintenance = () => {
     maintenanceReminders()
@@ -125,6 +184,11 @@ async function main(): Promise<void> {
   runPayments();
   runFinance();
   runFleetMaintenance();
+  runNotifications();
+  runNotificationPurge();
+  runDocumentWarnings();
+  runExports();
+  runExportExpiry();
   runDocuments();
   runDemand();
   const t1 = setInterval(runMaintenance, 60 * 60_000);
@@ -134,6 +198,11 @@ async function main(): Promise<void> {
   const t5 = setInterval(runPayments, 5 * 60_000);
   const t6 = setInterval(runFinance, 15 * 60_000);
   const t7 = setInterval(runFleetMaintenance, 24 * 60 * 60_000);
+  const t8 = setInterval(runNotifications, 60_000);
+  const t9 = setInterval(runNotificationPurge, 24 * 60 * 60_000);
+  const t10 = setInterval(runDocumentWarnings, 24 * 60 * 60_000);
+  const t11 = setInterval(runExports, 15_000);
+  const t12 = setInterval(runExportExpiry, 60 * 60_000);
   log.info('worker started: outbox relay, event consumer, maintenance');
 
   const shutdown = async (signal: string) => {
@@ -145,9 +214,15 @@ async function main(): Promise<void> {
     clearInterval(t5);
     clearInterval(t6);
     clearInterval(t7);
+    clearInterval(t8);
+    clearInterval(t9);
+    clearInterval(t10);
+    clearInterval(t11);
+    clearInterval(t12);
     stopRelay();
     await eventWorker.close();
     await paymentsWorker.close();
+    await notificationsWorker.close();
     await closeQueues();
     await disconnectPrisma();
     await disconnectRedis();

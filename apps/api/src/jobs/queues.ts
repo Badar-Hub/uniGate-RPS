@@ -6,6 +6,7 @@ export const QUEUE = {
   events: 'unigate-events',
   maintenance: 'unigate-maintenance',
   payments: 'unigate-payments',
+  notifications: 'unigate-notifications',
 } as const;
 
 export function bullConnection(): ConnectionOptions {
@@ -44,7 +45,20 @@ export function paymentsJobs(): Queue {
   return paymentsQueue;
 }
 
+let notificationsQueue: Queue | null = null;
+
+/** Notification delivery (architecture.md §9): row ids only — text and addresses stay in Postgres. */
+export function notificationsJobs(): Queue {
+  notificationsQueue ??= new Queue(QUEUE.notifications, {
+    connection: bullConnection(),
+    defaultJobOptions: { attempts: 5, backoff: { type: 'exponential', delay: 5000 }, removeOnComplete: 1000, removeOnFail: 5000 },
+  });
+  return notificationsQueue;
+}
+
 export async function closeQueues(): Promise<void> {
+  await notificationsQueue?.close();
+  notificationsQueue = null;
   await eventsQueue?.close();
   eventsQueue = null;
   await paymentsQueue?.close();

@@ -37,6 +37,8 @@ Where a value varies by scope (global → category → customer/owner → per ca
 | `booking.remainder_closes_after_days` | int \| null | `null` (open until the customer closes it) | null or 1–90 | INTERNAL | **yes** → `trip_requests.remainder_closes_at` at publish | **OQ-22** |
 | `booking.remainder_reminder_after_days` | int \| null | `7` | null or 1–30 | INTERNAL | no — job reads live | **OQ-22** |
 | `booking.later_wave_requires_customer_approval` | bool | `true` | — | INTERNAL | no — checked at award; an admin acting for the customer is audited either way | **OQ-23** |
+| `booking.rating_window_days` | int | `14` | 1–90 | PUBLIC | no — checked at rating time | A-10 |
+| `booking.rating_review_below_score` | int | `0` | 0–5 | INTERNAL | no — 0 publishes immediately | BRIEF-§22 |
 | `booking.customer_cancellation_fee_owner_share_pct` | decimal | `100` | 0–100 | INTERNAL | **yes** → `booking_cancellations.fee_rule_snapshot` | OQ-05 |
 
 ## 2. `bidding`
@@ -154,6 +156,10 @@ Provider *choice* and credentials are environment configuration (ADR-009 §8). B
 | `notifications.sms_sender_id` | string | `""` (unset — **CITC registration, OQ-10**) | ≤ 11 chars | INTERNAL | no |
 | `notifications.default_locale` | enum `ar` \| `en` | `ar` | — | PUBLIC | no |
 | `notifications.quiet_hours` | `{ from, to }` \| null | `null` | HH:mm | INTERNAL | no — non-urgent only |
+| `notifications.enabled_channels` | string[] of `IN_APP` \| `EMAIL` \| `SMS` \| `PUSH` | all four | ≥ 1 | INTERNAL | no — a channel not listed is SUPPRESSED at dispatch |
+| `notifications.locked_categories` | string[] | `[SECURITY, PAYMENT, TRIP]` | category codes | INTERNAL | no — users cannot opt out (FR-NOTIFICATIONS-06) |
+| `notifications.urgent_categories` | string[] | `[SECURITY, PAYMENT, TRIP]` | category codes | INTERNAL | no — ignore quiet hours |
+| `notifications.retention_days` | int | `180` | 7–730 | INTERNAL | no — purge job |
 | `notifications.maintenance_reminder_days_before` | int | `7` | 0–90 | INTERNAL | no — read by the reminder job | BRIEF-§21 |
 | `notifications.maintenance_reminder_km_before` | int | `500` | 0–10000 | INTERNAL | no — read by the reminder job | BRIEF-§21 |
 
@@ -173,6 +179,8 @@ Every value here is **pending legal review (OQ-08)**; the seeds are the interim 
 
 | Key | Type | Seed (prod) | Validation | Scope |
 |---|---|---|---|---|
+| `platform.complaint_categories` | string[] | 9 codes (`SERVICE_QUALITY` … `OTHER`) | UPPER_SNAKE | PUBLIC |
+| `platform.complaint_sla_hours` | `{ LOW, MEDIUM, HIGH, CRITICAL }` hours | `120 / 72 / 24 / 4` | 1–720 each | INTERNAL |
 | `platform.maintenance_mode` | bool | `false` | — | PUBLIC |
 | `platform.supported_locales` | string[] | `["ar", "en"]` | code-managed at MVP | PUBLIC |
 | `platform.timezone` | IANA | `Asia/Riyadh` | code-managed | PUBLIC |

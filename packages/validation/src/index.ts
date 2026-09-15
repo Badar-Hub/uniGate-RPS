@@ -13,3 +13,7 @@ export * from './payments.js';
 export * from './trips.js';
 export * from './finance.js';
 export * from './maintenance.js';
+export * from './notifications.js';
+export * from './engagement.js';
+export * from './admin.js';
+export * from './reporting.js';

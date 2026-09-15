@@ -621,6 +621,8 @@ export const CANCELLATION_REASON_CODE = enumOf([
   'ADMIN_INTERVENTION',
   'PAYMENT_FAILED',
   'PAYMENT_WINDOW_EXPIRED',
+  'CUSTOMER_NO_SHOW',
+  'OWNER_NO_SHOW',
   'OTHER',
 ]);
 export type CancellationReasonCode = (typeof CANCELLATION_REASON_CODE)[number];

@@ -27,6 +27,7 @@ import { prisma } from '@/database/prisma.js';
 import { logger } from '@/logging/logger.js';
 import { publishEvent } from '@/events/outbox.js';
 import { writeAudit } from '@/modules/platform/audit.service.js';
+import { sendSecretLink } from '@/modules/notifications/notification.service.js';
 import { getSettingValue } from '@/modules/reference/settings.service.js';
 import { signAccessToken } from './jwt.js';
 import { requestOtp, verifyOtp } from './otp.service.js';
@@ -191,6 +192,8 @@ async function openSession(
   const refreshToken = randomToken(32);
   const refreshExpires = new Date(Date.now() + config().auth.refreshTokenTtlSeconds * 1000);
 
+  // A device never seen on this account before gets a security notice (database.md §11.2).
+  const newDevice = device.deviceId ? (await prisma().session.count({ where: { userId, deviceId: device.deviceId } })) === 0 : true;
   const session = await prisma().$transaction(async (tx) => {
     const s = await sessions.createSession(scope, { userId, clientType, deviceId: device.deviceId, deviceName: device.deviceName, userAgent: meta.userAgent, ipAddress: meta.ipAddress }, tx);
     await sessions.issueRefreshToken(scope, { sessionId: s.id, familyId, tokenHash: sha256Hex(refreshToken), expiresAt: refreshExpires }, tx);
@@ -201,7 +204,7 @@ async function openSession(
   });
 
   const access = await signAccessToken({ sub: userId, sid: session.id, roles: authority.roles, pv: authority.permissionVersion }, { minIssuedAt: await passwordEpoch(userId) });
-  await publishEvent('user', userId, 'auth.session_opened', { sessionId: session.id, clientType, deviceId: device.deviceId, ipAddress: meta.ipAddress });
+  await publishEvent('user', userId, 'auth.session_opened', { sessionId: session.id, clientType, deviceId: device.deviceId, ipAddress: meta.ipAddress, newDevice, at: new Date().toISOString() });
 
   return {
     result: { userId, sessionId: session.id, clientType, roles: authority.roles, tokens: null },
@@ -303,7 +306,10 @@ export async function forgotPassword(identifierRaw: string, meta: RequestMeta): 
   if (!user || user.status === 'DEACTIVATED') return;
   const token = randomToken(32);
   await prisma().passwordResetToken.create({ data: { id: newId(), userId: user.id, tokenHash: sha256Hex(token), expiresAt: new Date(Date.now() + 30 * 60_000) } });
-  await publishEvent('user', user.id, 'auth.password_reset_requested', { token, locale: user.preferredLocale, ipAddress: meta.ipAddress });
+  await publishEvent('user', user.id, 'auth.password_reset_requested', { ipAddress: meta.ipAddress });
+  // The one-time link never enters the outbox (redacted) or a queue: delivered synchronously, stored masked.
+  const locale = user.preferredLocale === 'en' ? 'en' : 'ar';
+  await sendSecretLink({ userId: user.id, templateCode: 'PASSWORD_RESET', variables: {}, secrets: { resetUrl: `${config().appUrl}/${locale}/reset-password?token=${token}` } });
   logger().info('password reset requested');
 }
 
@@ -347,7 +353,7 @@ export async function changePassword(userId: string, sessionId: string, currentP
   // Revokes every OTHER session; the current one keeps working (api.md §8.1).
   await sessions.revokeAllSessions(systemScope('auth.change-password'), userId, 'PASSWORD_CHANGED', sessionId);
   await writeAudit({ actorUserId: userId, actorType: 'USER', action: 'password.changed', entityType: 'user', entityId: userId, severity: 'SECURITY', ipAddress: meta.ipAddress, userAgent: meta.userAgent });
-  await publishEvent('user', userId, 'auth.password_changed', { ipAddress: meta.ipAddress });
+  await publishEvent('user', userId, 'auth.password_changed', { ipAddress: meta.ipAddress, at: new Date().toISOString() });
   // The current session survives, but its access token predates password_changed_at and the
   // global-invalidation rule would reject it — so hand back a fresh one for this session.
   const authority = await resolveAuthority(userId);

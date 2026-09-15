@@ -37,6 +37,16 @@
       "DOCUMENT_UPLOAD_INCOMPLETE": "لم يكتمل الرفع. يرجى المحاولة مرة أخرى.",
       "DOCUMENT_CHECKSUM_MISMATCH": "تغيّر الملف أثناء الرفع. يرجى المحاولة مرة أخرى.",
       "DOCUMENT_SCAN_QUARANTINED": "رفض فحص البرمجيات الخبيثة هذا الملف.",
+      "RATING_NOT_ELIGIBLE": "يمكن تقييم الحجوزات المكتملة فقط.",
+      "RATING_WINDOW_CLOSED": "انتهت مهلة تقييم هذا الحجز.",
+      "RATING_ALREADY_SUBMITTED": "لقد قيّمت هذا مسبقاً.",
+      "RATING_SUBJECT_INVALID": "لا يمكنك تقييم هذا العنصر في هذا الحجز.",
+      "COMPLAINT_INVALID_TRANSITION": "لا يمكن نقل هذه الشكوى إلى تلك الحالة.",
+      "COMPLAINT_RESOLUTION_REQUIRED": "اكتب الحل قبل إغلاق الشكوى كمحلولة.",
+      "NOTIFICATION_TEMPLATE_NOT_FOUND": "لا يوجد قالب مفعّل بهذا الرمز.",
+      "NOTIFICATION_TEMPLATE_VARIABLES_MISSING": "يحتاج القالب إلى متغيرات لم يتم توفيرها.",
+      "NOTIFICATION_CATEGORY_LOCKED": "لا يمكن إيقاف إشعارات الأمان والمدفوعات والرحلات.",
+      "NOTIFICATION_AUDIENCE_EMPTY": "لم يطابق فلتر الجمهور أي مستخدم.",
       "MAINTENANCE_CALENDAR_CONFLICT": "تتداخل فترة الصيانة مع حجز أو حجب على المركبة.",
       "MAINTENANCE_INVALID_TRANSITION": "لا يمكن تغيير سجل الصيانة هذا في حالته الحالية.",
       "VEHICLE_CALENDAR_CONFLICT": "تتداخل هذه التواريخ مع حجز أو صيانة أو حجب موجود.",
@@ -66,7 +76,7 @@
       "TRIP_REQUEST_FULLY_AWARDED": "تمت ترسية جميع المركبات على هذا الطلب.",
       "RULE_PARTIAL_AWARD_NOT_ALLOWED": "يُرسى هذا الطلب دفعة واحدة — حدد عروضاً تغطي جميع المركبات.",
       "RULE_AWARD_SET_INCOMPLETE": "حدد عدداً من العروض يساوي عدد المركبات المتبقية بالضبط.",
-      "RULE_CREDIT_LIMIT_EXCEEDED": "سيتجاوز هذا الحجز حدك الائتماني.",
+      "RULE_CREDIT_LIMIT_EXCEEDED": "سيتجاوز هذا حد ائتمان العميل.",
       "RULE_CREDIT_NOT_APPROVED": "حسابك الائتماني غير معتمد للحجوزات الآجلة.",
       "VEHICLE_NOT_DISPATCHABLE": "لا يمكن تشغيل المركبة حالياً.",
       "COMMISSION_OVERRIDE_FORBIDDEN": "لا يمكنك تجاوز العمولة.",
@@ -83,7 +93,7 @@
       "PAYMENT_AMOUNT_MISMATCH": "السعر المعروض قديم — أعد تحميل الصفحة وحاول مجدداً.",
       "PAYMENT_DECLINED": "تم رفض الدفع.",
       "PAYMENT_METHOD_UNSUPPORTED": "طريقة الدفع هذه غير متاحة.",
-      "PAYMENT_NOT_REFUNDABLE": "لا يمكن استرداد هذه الدفعة.",
+      "PAYMENT_NOT_REFUNDABLE": "لا توجد دفعة محصّلة يمكن استردادها لهذا الحجز.",
       "PAYMENT_EXPIRED": "انتهت جلسة الدفع. ابدأ عملية دفع جديدة.",
       "PAYMENT_INVALID_TRANSITION": "هذا الإجراء غير متاح في حالة الدفع الحالية.",
       "PAYMENT_RETURN_URL_NOT_ALLOWED": "عنوان العودة غير مسموح به.",
@@ -125,14 +135,24 @@
       "VEHICLE_DOCUMENTS_INCOMPLETE": "مستندات إلزامية للمركبة ناقصة أو لم يتم التحقق منها بعد.",
       "PERMISSION_NOT_HELD": "يمكنك منح الصلاحيات التي تملكها فقط.",
       "EXPENSE_IMMUTABLE": "هذا المصروف ضمن فترة تسوية مدفوعة ولا يمكن تغييره.",
-      "RULE_CREDIT_LIMIT_EXCEEDED": "سيتجاوز هذا حد ائتمان العميل.",
       "TRIP_NOT_ACTIVE": "انتهت هذه الرحلة.",
       "TRIP_ALREADY_COMPLETED": "هذه الرحلة مكتملة بالفعل.",
       "TRIP_PROOF_REQUIRED": "يلزم إثبات التسليم أولاً.",
       "TRIP_ODOMETER_REQUIRED": "أدخل قراءة العداد.",
       "TRACKING_SESSION_NOT_ACTIVE": "لم يبدأ تتبع الرحلة بعد.",
-      "TRACKING_STALE_POINT": "عينة الموقع قديمة جداً."
-    }
+      "TRACKING_STALE_POINT": "عينة الموقع قديمة جداً.",
+      "WEBHOOK_SIGNATURE_INVALID": "لا يمكن إعادة تشغيل حدث فشل التحقق من توقيعه.",
+      "OUTBOX_EVENT_NOT_FAILED": "يمكن إعادة محاولة الأحداث الفاشلة فقط.",
+      "REPORT_NOT_FOUND": "تقرير غير معروف.",
+      "REPORT_FORMAT_NOT_AVAILABLE": "تصدير CSV فقط متاح حالياً.",
+      "REPORT_RANGE_TOO_WIDE": "الفترة أوسع مما يسمح به هذا التقرير.",
+      "EXPORT_NOT_READY": "التصدير ليس جاهزاً بعد.",
+      "EXPORT_EXPIRED": "انتهت صلاحية ملف التصدير — اطلبه مجدداً."
+    },
+    "yes": "نعم",
+    "no": "لا",
+    "previous": "السابق",
+    "next": "التالي"
   },
   "home": {
     "title": "منصة يونيجيت",
@@ -210,7 +230,15 @@
       "invoices": "الفواتير",
       "expenses": "المصروفات",
       "maintenance": "الصيانة",
-      "commissions": "قواعد العمولة"
+      "notifications": "الإشعارات",
+      "complaints": "الشكاوى",
+      "commissions": "قواعد العمولة",
+      "reports": "التقارير",
+      "adminDashboard": "لوحة العمليات",
+      "refunds": "الاستردادات",
+      "roles": "الأدوار",
+      "auditLogs": "سجل التدقيق",
+      "system": "النظام"
     },
     "welcome": "مرحبًا، {name}",
     "roles": "الأدوار",
@@ -401,18 +429,35 @@
       "form": {
         "title": "طلب جديد",
         "transportType": "ماذا ننقل؟",
-        "vertical": { "PASSENGER": "ركاب", "GOODS": "بضائع / شحن" },
+        "vertical": {
+          "PASSENGER": "ركاب",
+          "GOODS": "بضائع / شحن"
+        },
         "goods": {
           "title": "الشحنة",
           "cargoType": "نوع الشحنة",
-          "cargoTypes": { "GENERAL": "بضائع عامة", "FRAGILE": "قابلة للكسر", "PERISHABLE": "قابلة للتلف (مبردة)", "HAZARDOUS": "مواد خطرة", "LIVESTOCK": "مواشي", "VEHICLE": "مركبات", "BULK": "سائبة", "CONTAINER": "حاوية", "OTHER": "أخرى" },
+          "cargoTypes": {
+            "GENERAL": "بضائع عامة",
+            "FRAGILE": "قابلة للكسر",
+            "PERISHABLE": "قابلة للتلف (مبردة)",
+            "HAZARDOUS": "مواد خطرة",
+            "LIVESTOCK": "مواشي",
+            "VEHICLE": "مركبات",
+            "BULK": "سائبة",
+            "CONTAINER": "حاوية",
+            "OTHER": "أخرى"
+          },
           "description": "وصف الشحنة",
           "weight": "الوزن (كجم)",
           "volume": "الحجم (م³)",
           "packages": "الطرود",
           "loading": "التحميل بواسطة",
           "unloading": "التفريغ بواسطة",
-          "responsibility": { "CUSTOMER": "العميل", "DRIVER": "السائق", "THIRD_PARTY": "طرف ثالث" },
+          "responsibility": {
+            "CUSTOMER": "العميل",
+            "DRIVER": "السائق",
+            "THIRD_PARTY": "طرف ثالث"
+          },
           "refrigeration": "نقل مبرد",
           "tempMin": "الحد الأدنى °م",
           "tempMax": "الحد الأقصى °م",
@@ -625,6 +670,34 @@
         "PAYMENT_FAILED": "فشل الدفع",
         "PAYMENT_WINDOW_EXPIRED": "انتهت مهلة الدفع",
         "OTHER": "أخرى"
+      },
+      "ops": {
+        "title": "النزاعات وعدم الحضور",
+        "category": "الفئة",
+        "subject": "الموضوع",
+        "description": "ماذا حدث؟",
+        "dispute": "فتح نزاع",
+        "disputed": "تم فتح النزاع — الشكوى {number}.",
+        "outcome": "النتيجة",
+        "outcomes": {
+          "COMPLETED": "الخدمة صحيحة — اعتبار الحجز مكتملاً",
+          "REFUND": "استرداد للعميل"
+        },
+        "refundAmount": "مبلغ الاسترداد (فارغ = كامل)",
+        "resolution": "الحل (يُعرض لصاحب الشكوى)",
+        "resolve": "حل النزاع",
+        "resolvedCompleted": "تم حل النزاع — الحجز مكتمل.",
+        "resolvedRefund": "تم حل النزاع — طُلب الاسترداد {number} للموافقة.",
+        "party": "من لم يحضر",
+        "parties": {
+          "CUSTOMER": "العميل",
+          "OWNER": "المالك / السائق"
+        },
+        "reasonText": "ملاحظات",
+        "feeOverride": "رسوم بديلة (ر.س)",
+        "feeReason": "سبب التجاوز",
+        "recordNoShow": "تسجيل عدم الحضور",
+        "noShowRecorded": "تم تسجيل عدم الحضور — الرسوم {fee}، استرداد العميل {refund}."
       }
     },
     "payments": {
@@ -656,6 +729,173 @@
         "unknown": "جلسة الدفع هذه غير معروفة أو اكتملت بالفعل."
       }
     },
+    "engagement": {
+      "ratings": {
+        "title": "كيف كان الحجز {booking}؟",
+        "deadline": "يمكنك التقييم حتى {date}.",
+        "subjects": {
+          "DRIVER": "السائق",
+          "VEHICLE": "المركبة",
+          "OWNER": "الشركة",
+          "CUSTOMER": "العميل",
+          "TRIP": "الرحلة"
+        },
+        "rated": "شكراً — تم التقييم.",
+        "comment": "تعليق (اختياري)",
+        "submit": "تقييم"
+      },
+      "complaints": {
+        "title": "الشكاوى",
+        "subtitle": "ارفع شكوى بخصوص سائق أو شركة أو مركبة أو عميل أو المنصة. يرد فريقنا هنا.",
+        "queueTitle": "قائمة الشكاوى",
+        "queueSubtitle": "مهلة الاستجابة الأولى حسب الخطورة؛ عيّن، اسأل صاحب الشكوى، وأغلقها بحل مكتوب. الملاحظات الداخلية لا تغادر هذه الشاشة.",
+        "raise": "رفع شكوى",
+        "against": "ضد",
+        "againstTypes": {
+          "DRIVER": "سائق",
+          "OWNER": "شركة",
+          "CUSTOMER": "عميل",
+          "VEHICLE": "مركبة",
+          "PLATFORM": "يونيجيت"
+        },
+        "category": "الفئة",
+        "categories": {
+          "SERVICE_QUALITY": "جودة الخدمة",
+          "SAFETY": "السلامة",
+          "DRIVER_BEHAVIOUR": "سلوك السائق",
+          "VEHICLE_CONDITION": "حالة المركبة",
+          "DELAY": "تأخير",
+          "DAMAGE_OR_LOSS": "تلف أو فقدان",
+          "BILLING": "الفوترة",
+          "PLATFORM": "المنصة",
+          "OTHER": "أخرى"
+        },
+        "booking": "الحجز (اختياري)",
+        "subject": "الموضوع",
+        "severity": "الخطورة",
+        "severities": {
+          "LOW": "منخفضة",
+          "MEDIUM": "متوسطة",
+          "HIGH": "عالية",
+          "CRITICAL": "حرجة"
+        },
+        "description": "ماذا حدث؟",
+        "submit": "إرسال الشكوى",
+        "anyStatus": "أي حالة",
+        "anySeverity": "أي خطورة",
+        "overdueOnly": "المتأخرة فقط",
+        "number": "الرقم",
+        "status": "الحالة",
+        "statuses": {
+          "OPEN": "مفتوحة",
+          "IN_REVIEW": "قيد المراجعة",
+          "AWAITING_RESPONSE": "بانتظار ردك",
+          "RESOLVED": "محلولة",
+          "REJECTED": "مرفوضة",
+          "CLOSED": "مغلقة"
+        },
+        "assignee": "المسؤول",
+        "raised": "تاريخ الرفع",
+        "raisedBy": "رفعها",
+        "empty": "لا توجد شكاوى.",
+        "overdue": "تجاوزت المهلة",
+        "respondBy": "الرد قبل",
+        "resolution": "الحل",
+        "assignToMe": "تعيين لي",
+        "moveTo": "نقل إلى…",
+        "apply": "تطبيق",
+        "thread": "المحادثة",
+        "noNotes": "لا ردود بعد.",
+        "internal": "داخلي",
+        "reply": "اكتب رداً",
+        "send": "إرسال"
+      }
+    },
+    "notifications": {
+      "title": "الإشعارات",
+      "subtitle": "كل ما أخبرتك به المنصة، مع تفضيلات القنوات التي تحدد أين يصلك أيضاً.",
+      "bell": "الإشعارات ({n} غير مقروءة)",
+      "viewAll": "عرض الكل",
+      "empty": "لا يوجد شيء بعد.",
+      "allCategories": "كل الفئات",
+      "unreadOnly": "غير المقروءة فقط",
+      "readAll": "تحديد الكل كمقروء",
+      "open": "فتح",
+      "markRead": "تحديد كمقروء",
+      "remove": "إزالة",
+      "loadMore": "تحميل المزيد",
+      "categories": {
+        "OPPORTUNITY": "الفرص",
+        "BIDDING": "العروض",
+        "BOOKING": "الحجوزات",
+        "PAYMENT": "المدفوعات",
+        "TRIP": "الرحلات",
+        "DOCUMENTS": "المستندات",
+        "MAINTENANCE": "الصيانة",
+        "ONBOARDING": "التسجيل",
+        "SECURITY": "الأمان",
+        "FINANCE": "المالية",
+        "OPERATIONS": "الإعلانات",
+        "GENERAL": "عام"
+      },
+      "channels": {
+        "IN_APP": "داخل التطبيق",
+        "EMAIL": "البريد",
+        "SMS": "رسالة نصية",
+        "PUSH": "إشعار الجوال"
+      },
+      "preferences": {
+        "title": "تفضيلات القنوات",
+        "hint": "اختر أين يصلك كل نوع من الإشعارات. إشعارات الأمان والمدفوعات والرحلات تُرسل دائماً.",
+        "category": "الفئة",
+        "locked": "مفعّل دائماً"
+      },
+      "admin": {
+        "title": "الإشعارات — العمليات",
+        "subtitle": "تعديل صياغة القوالب دون نشر، وإرسال قوالب إلى جمهور محدد. لا يُرسل نص حر أبداً.",
+        "send": {
+          "title": "إرسال إلى جمهور",
+          "template": "رمز القالب",
+          "variables": "المتغيرات (JSON)",
+          "profileTypes": "أنواع الملفات",
+          "profile": {
+            "CUSTOMER": "العملاء",
+            "OWNER": "مالكو المركبات",
+            "DRIVER": "السائقون",
+            "SPO": "شركاء المبيعات"
+          },
+          "roleCodes": "رموز الأدوار (مفصولة بفواصل)",
+          "userIds": "معرّفات المستخدمين (مفصولة بفواصل)",
+          "channels": "القنوات",
+          "urgent": "عاجل — تجاهل ساعات الهدوء والتفضيلات (يُسجَّل)",
+          "submit": "إرسال",
+          "result": "تم القبول: {recipients} مستلم، {queued} إرسال في الانتظار، {suppressed} موقوف."
+        },
+        "templates": {
+          "title": "القوالب",
+          "code": "الرمز",
+          "channel": "القناة",
+          "locale": "اللغة",
+          "subject": "الموضوع / العنوان",
+          "version": "الإصدار",
+          "anyChannel": "أي قناة",
+          "anyLocale": "أي لغة",
+          "inactive": "غير مفعّل",
+          "edit": "تعديل",
+          "empty": "لا توجد قوالب مطابقة."
+        },
+        "editor": {
+          "title": "تعديل {code} · {channel} · {locale}",
+          "body": "النص",
+          "variablesHint": "المتغيرات: {vars}",
+          "active": "مفعّل",
+          "save": "حفظ الصياغة",
+          "sample": "متغيرات تجريبية (JSON)",
+          "preview": "معاينة النسخة المحفوظة",
+          "missing": "متغيرات غير معبأة: {vars}"
+        }
+      }
+    },
     "maintenance": {
       "title": "الصيانة",
       "subtitle": "زيارات الورشة تحجز المركبة في تقويمها؛ الإكمال يحدّث العداد ويرحّل الجدول ويقيّد التكلفة.",
@@ -663,11 +903,21 @@
       "vehicle": "المركبة",
       "serviceType": "الخدمة",
       "kind": "النوع",
-      "kinds": { "SCHEDULED": "مجدولة", "UNSCHEDULED": "غير مجدولة", "REPAIR": "إصلاح", "INSPECTION": "فحص" },
+      "kinds": {
+        "SCHEDULED": "مجدولة",
+        "UNSCHEDULED": "غير مجدولة",
+        "REPAIR": "إصلاح",
+        "INSPECTION": "فحص"
+      },
       "from": "من",
       "to": "إلى",
       "initialStatus": "تبدأ كـ",
-      "status": { "PLANNED": "مخطط", "IN_PROGRESS": "في الورشة", "COMPLETED": "مكتملة", "CANCELLED": "ملغاة" },
+      "status": {
+        "PLANNED": "مخطط",
+        "IN_PROGRESS": "في الورشة",
+        "COMPLETED": "مكتملة",
+        "CANCELLED": "ملغاة"
+      },
       "statusLabel": "الحالة",
       "cost": "التكلفة (صافي)",
       "vat": "الضريبة",
@@ -708,43 +958,67 @@
       }
     },
     "finance": {
-    "vendors": {
-      "title": "الموردون",
-      "subtitle": "يُضاف مالكو المركبات من الأطراف الثالثة هنا بواسطة يونيغيت، ثم يفعّلون حساباتهم ويرفعون مستنداتهم ويُعتمدون قبل تسجيل أسطولهم.",
-      "add": "إضافة مورد",
-      "contactName": "اسم جهة الاتصال",
-      "email": "البريد الإلكتروني",
-      "phone": "الهاتف",
-      "ownerType": "النوع",
-      "types": { "COMPANY": "شركة", "INDIVIDUAL": "فرد", "PLATFORM": "أسطول يونيغيت" },
-      "businessName": "الاسم التجاري",
-      "crNumber": "رقم السجل التجاري",
-      "verticals": { "PASSENGER": "نقل الركاب", "GOODS": "نقل البضائع" },
-      "create": "إنشاء المورد",
-      "createdTitle": "تم إنشاء حساب المورد لـ {name}",
-      "createdHint": "أرسل رابط التفعيل هذا (صالح حتى {until}) إلى المورد. يضبط كلمة المرور ويسجّل الدخول ويرفع المستندات؛ يدخل الملف قائمة المراجعة تلقائياً.",
-      "copy": "نسخ الرابط",
-      "copied": "تم النسخ",
-      "vendor": "المورد",
-      "contact": "جهة الاتصال",
-      "statusLabel": "التأهيل",
-      "status": { "DRAFT": "بانتظار المستندات", "DOCUMENTS_SUBMITTED": "المستندات مكتملة — للمراجعة", "UNDER_REVIEW": "قيد المراجعة", "APPROVED": "معتمد", "REJECTED": "مرفوض", "SUSPENDED": "موقوف" },
-      "review": "مراجعة",
-      "accessLink": "الصلاحيات",
-      "empty": "لا يوجد موردون بعد.",
-      "access": {
-        "title": "صلاحيات المورد",
-        "subtitle": "الأدوار: {roles}. حدّد ما يُسمح للمورد به؛ ما يزيد عن الدور يصبح منحاً وما يُزال منه يصبح منعاً.",
-        "module": "الوحدة",
-        "actions": { "read": "قراءة", "create": "إنشاء", "update": "تعديل", "delete": "حذف" },
-        "other": "إجراءات أخرى",
-        "changes": "التغييرات",
-        "changesHint": "{grant} منح · {deny} منع مقارنةً بالدور",
-        "note": "ملاحظة (تُسجَّل في التدقيق)",
-        "save": "حفظ الصلاحيات",
-        "saved": "تم الحفظ — يسري من الطلب التالي للمورد."
-      }
-    },
+      "vendors": {
+        "title": "الموردون",
+        "subtitle": "يُضاف مالكو المركبات من الأطراف الثالثة هنا بواسطة يونيغيت، ثم يفعّلون حساباتهم ويرفعون مستنداتهم ويُعتمدون قبل تسجيل أسطولهم.",
+        "add": "إضافة مورد",
+        "contactName": "اسم جهة الاتصال",
+        "email": "البريد الإلكتروني",
+        "phone": "الهاتف",
+        "ownerType": "النوع",
+        "types": {
+          "COMPANY": "شركة",
+          "INDIVIDUAL": "فرد",
+          "PLATFORM": "أسطول يونيغيت"
+        },
+        "businessName": "الاسم التجاري",
+        "crNumber": "رقم السجل التجاري",
+        "verticals": {
+          "PASSENGER": "نقل الركاب",
+          "GOODS": "نقل البضائع"
+        },
+        "create": "إنشاء المورد",
+        "createdTitle": "تم إنشاء حساب المورد لـ {name}",
+        "createdHint": "أرسل رابط التفعيل هذا (صالح حتى {until}) إلى المورد. يضبط كلمة المرور ويسجّل الدخول ويرفع المستندات؛ يدخل الملف قائمة المراجعة تلقائياً.",
+        "delivery": {
+          "SENT": "أُرسل الرابط إلى المورد عبر البريد/الرسائل النصية.",
+          "FAILED": "فشل الإرسال — سلّم الرابط يدوياً.",
+          "UNREACHABLE": "لا يوجد عنوان يمكن الوصول إليه — سلّم الرابط يدوياً."
+        },
+        "copy": "نسخ الرابط",
+        "copied": "تم النسخ",
+        "vendor": "المورد",
+        "contact": "جهة الاتصال",
+        "statusLabel": "التأهيل",
+        "status": {
+          "DRAFT": "بانتظار المستندات",
+          "DOCUMENTS_SUBMITTED": "المستندات مكتملة — للمراجعة",
+          "UNDER_REVIEW": "قيد المراجعة",
+          "APPROVED": "معتمد",
+          "REJECTED": "مرفوض",
+          "SUSPENDED": "موقوف"
+        },
+        "review": "مراجعة",
+        "accessLink": "الصلاحيات",
+        "empty": "لا يوجد موردون بعد.",
+        "access": {
+          "title": "صلاحيات المورد",
+          "subtitle": "الأدوار: {roles}. حدّد ما يُسمح للمورد به؛ ما يزيد عن الدور يصبح منحاً وما يُزال منه يصبح منعاً.",
+          "module": "الوحدة",
+          "actions": {
+            "read": "قراءة",
+            "create": "إنشاء",
+            "update": "تعديل",
+            "delete": "حذف"
+          },
+          "other": "إجراءات أخرى",
+          "changes": "التغييرات",
+          "changesHint": "{grant} منح · {deny} منع مقارنةً بالدور",
+          "note": "ملاحظة (تُسجَّل في التدقيق)",
+          "save": "حفظ الصلاحيات",
+          "saved": "تم الحفظ — يسري من الطلب التالي للمورد."
+        }
+      },
       "settlements": {
         "title": "التسويات",
         "subtitleOwner": "أرباحك المعلّقة وسجل التسويات.",
@@ -764,17 +1038,34 @@
         "heldCount": "حجوزات محجوزة",
         "belowMinimum": "أقل من الحد الأدنى للدفع {min} — يُرحَّل الرصيد.",
         "nothingPending": "لا شيء معلّق في هذه الفترة.",
-        "hold": { "HOLD_PERIOD": "فترة الحجز", "PAYMENT_PENDING": "بانتظار الدفع / الفاتورة" },
+        "hold": {
+          "HOLD_PERIOD": "فترة الحجز",
+          "PAYMENT_PENDING": "بانتظار الدفع / الفاتورة"
+        },
         "number": "التسوية",
         "period": "الفترة",
         "statusLabel": "الحالة",
         "empty": "لا توجد تسويات بعد.",
-        "status": { "DRAFT": "مسودة", "PENDING_APPROVAL": "بانتظار الاعتماد", "APPROVED": "معتمدة", "PROCESSING": "قيد المعالجة", "PAID": "مدفوعة", "FAILED": "فشلت", "CANCELLED": "ملغاة" },
+        "status": {
+          "DRAFT": "مسودة",
+          "PENDING_APPROVAL": "بانتظار الاعتماد",
+          "APPROVED": "معتمدة",
+          "PROCESSING": "قيد المعالجة",
+          "PAID": "مدفوعة",
+          "FAILED": "فشلت",
+          "CANCELLED": "ملغاة"
+        },
         "lineType": "النوع",
         "booking": "الحجز",
         "description": "الوصف",
         "amount": "المبلغ",
-        "lineTypes": { "BOOKING_EARNING": "أرباح", "COMMISSION": "عمولة", "ADJUSTMENT": "تعديل", "PENALTY": "غرامة", "REFUND_CLAWBACK": "استرداد" },
+        "lineTypes": {
+          "BOOKING_EARNING": "أرباح",
+          "COMMISSION": "عمولة",
+          "ADJUSTMENT": "تعديل",
+          "PENALTY": "غرامة",
+          "REFUND_CLAWBACK": "استرداد"
+        },
         "addLine": "إضافة تعديل",
         "submit": "إرسال للاعتماد",
         "approve": "اعتماد",
@@ -829,8 +1120,23 @@
         "void": "إلغاء",
         "creditFull": "إشعار دائن كامل",
         "correctionsHint": "الإلغاء يمحو فاتورة لا تحتفظ بها الهيئة؛ الإشعار الدائن يعكس فاتورة صادرة. لا يُعاد استخدام الرقم في الحالتين.",
-        "types": { "TAX_INVOICE": "فاتورة ضريبية", "SIMPLIFIED_TAX_INVOICE": "فاتورة ضريبية مبسطة", "CREDIT_NOTE": "إشعار دائن", "DEBIT_NOTE": "إشعار مدين" },
-        "status": { "DRAFT": "مسودة", "PENDING_CLEARANCE": "بانتظار الاعتماد", "ISSUED": "صادرة", "PARTIALLY_PAID": "مدفوعة جزئياً", "PAID": "مدفوعة", "OVERDUE": "متأخرة", "VOID": "ملغاة", "CREDITED": "معكوسة", "CLEARANCE_FAILED": "فشل الاعتماد" }
+        "types": {
+          "TAX_INVOICE": "فاتورة ضريبية",
+          "SIMPLIFIED_TAX_INVOICE": "فاتورة ضريبية مبسطة",
+          "CREDIT_NOTE": "إشعار دائن",
+          "DEBIT_NOTE": "إشعار مدين"
+        },
+        "status": {
+          "DRAFT": "مسودة",
+          "PENDING_CLEARANCE": "بانتظار الاعتماد",
+          "ISSUED": "صادرة",
+          "PARTIALLY_PAID": "مدفوعة جزئياً",
+          "PAID": "مدفوعة",
+          "OVERDUE": "متأخرة",
+          "VOID": "ملغاة",
+          "CREDITED": "معكوسة",
+          "CLEARANCE_FAILED": "فشل الاعتماد"
+        }
       },
       "expenses": {
         "title": "المصروفات",
@@ -872,9 +1178,21 @@
         "inactive": "غير فعّالة",
         "deactivate": "تعطيل",
         "save": "حفظ القاعدة",
-        "scopes": { "GLOBAL": "عام", "VEHICLE_CATEGORY": "فئة مركبة", "OWNER": "مالك", "OWNER_CATEGORY": "مالك + فئة" },
-        "types": { "PERCENTAGE": "نسبة", "FIXED": "ثابت", "NONE": "بدون" },
-        "bases": { "NET_OF_VAT": "صافي بعد الضريبة", "GROSS": "إجمالي" }
+        "scopes": {
+          "GLOBAL": "عام",
+          "VEHICLE_CATEGORY": "فئة مركبة",
+          "OWNER": "مالك",
+          "OWNER_CATEGORY": "مالك + فئة"
+        },
+        "types": {
+          "PERCENTAGE": "نسبة",
+          "FIXED": "ثابت",
+          "NONE": "بدون"
+        },
+        "bases": {
+          "NET_OF_VAT": "صافي بعد الضريبة",
+          "GROSS": "إجمالي"
+        }
       }
     },
     "tracking": {
@@ -908,6 +1226,174 @@
       },
       "live": "مباشر",
       "reconnecting": "جارٍ إعادة الاتصال…"
+    },
+    "adminDashboard": {
+      "title": "لوحة العمليات",
+      "subtitle": "المنصة في لمحة لفترة زمنية؛ الأرقام مخزّنة مؤقتاً لمدة 60 ثانية.",
+      "from": "من",
+      "to": "إلى",
+      "vertical": "القطاع",
+      "allVerticals": "كل القطاعات",
+      "passenger": "ركاب",
+      "goods": "بضائع",
+      "bucket": "التجميع",
+      "buckets": {
+        "day": "يومي",
+        "week": "أسبوعي",
+        "month": "شهري"
+      },
+      "computedAt": "حُسبت {at}",
+      "series": "عبر الزمن",
+      "kpi": {
+        "users": "المستخدمون النشطون",
+        "customers": "العملاء",
+        "owners": "المالكون المعتمدون",
+        "drivers": "السائقون المعتمدون",
+        "vehicles": "المركبات",
+        "activeVehicles": "المركبات النشطة",
+        "tripRequests": "طلبات الرحلات",
+        "bids": "العروض",
+        "bookings": "الحجوزات",
+        "activeTrips": "الرحلات الجارية",
+        "completedTrips": "الرحلات المكتملة",
+        "cancelledBookings": "الحجوزات الملغاة",
+        "grossBookingValue": "إجمالي قيمة الحجوزات",
+        "platformCommission": "عمولة المنصة",
+        "pendingSettlements": "التسويات المعلقة",
+        "openComplaints": "الشكاوى المفتوحة"
+      }
+    },
+    "adminSettings": {
+      "title": "الإعدادات",
+      "subtitle": "كل قيمة عمل تقرأها المنصة أثناء التشغيل، حسب القسم. التغييرات تُسجَّل وتحتاج رمز تحقق؛ الأسرار لا تظهر هنا أبداً.",
+      "codeManaged": "تُدار بالكود",
+      "save": "حفظ",
+      "saved": "تم حفظ {key}."
+    },
+    "adminRoles": {
+      "title": "الأدوار والصلاحيات",
+      "subtitle": "الأدوار بيانات: أنشئ دوراً بمجموعة الصلاحيات التي تحتاجها دون نشر. أدوار النظام للقراءة فقط.",
+      "create": "دور جديد",
+      "system": "نظام",
+      "grants": "{n} صلاحية",
+      "view": "عرض",
+      "edit": "تعديل",
+      "code": "الرمز",
+      "nameEn": "الاسم (إنجليزي)",
+      "nameAr": "الاسم (عربي)",
+      "description": "الوصف",
+      "save": "حفظ الدور",
+      "delete": "حذف الدور",
+      "stepUpHint": "حفظ الدور يطلب رمز تحقق لمرة واحدة؛ يسري التغيير على كل حامل للدور من طلبه التالي."
+    },
+    "adminAudit": {
+      "title": "سجل التدقيق",
+      "subtitle": "من فعل ماذا ومتى ومن أين. تم حجب القيم الحساسة عند الكتابة. الاطلاع على هذا السجل يُسجَّل بدوره.",
+      "action": "بادئة الإجراء",
+      "entityType": "نوع الكيان",
+      "entityId": "معرّف الكيان",
+      "severity": "الخطورة",
+      "any": "الكل",
+      "from": "من",
+      "to": "إلى",
+      "apply": "تطبيق",
+      "export": "تصدير CSV",
+      "exportQueued": "تم وضع التصدير في الانتظار (المهمة {id}) — استلمه من التقارير.",
+      "empty": "لا توجد سجلات مطابقة.",
+      "history": "السجل",
+      "loadMore": "تحميل المزيد"
+    },
+    "reports": {
+      "title": "التقارير",
+      "subtitle": "شغّل تقريراً على الشاشة أو صدّره بصيغة CSV. ترى صفوفك فقط؛ الموظفون يرون كل شيء.",
+      "financial": "مالي",
+      "run": "تشغيل",
+      "exportCsv": "تصدير CSV",
+      "rows": "{n} صف",
+      "empty": "لا توجد صفوف لهذه الفلاتر.",
+      "exports": {
+        "title": "التصديرات",
+        "report": "التقرير",
+        "status": "الحالة",
+        "rows": "الصفوف",
+        "requested": "طُلب",
+        "empty": "لا توجد تصديرات بعد.",
+        "download": "تنزيل"
+      }
+    },
+    "adminSystem": {
+      "title": "النظام",
+      "subtitle": "الصحة التفصيلية والطوابير وأداة حوادث الدفع وصندوق الصادر.",
+      "health": "الصحة",
+      "checks": {
+        "database": "قاعدة البيانات",
+        "redis": "Redis",
+        "storage": "تخزين الملفات"
+      },
+      "up": "يعمل",
+      "down": "متوقف",
+      "version": "الإصدار",
+      "environment": "البيئة",
+      "migration": "الترحيل",
+      "oldestWebhook": "أقدم إشعار دفع غير معالج",
+      "outbox": "صندوق الصادر",
+      "webhooks": "إشعارات بوابة الدفع",
+      "received": "الاستلام",
+      "provider": "المزود",
+      "event": "الحدث",
+      "signature": "التوقيع",
+      "processing": "المعالجة",
+      "valid": "صالح",
+      "invalid": "غير صالح",
+      "replay": "إعادة التشغيل",
+      "empty": "لا يوجد شيء مسجل.",
+      "failedOutbox": "أحداث الصادر الفاشلة",
+      "created": "أُنشئ",
+      "attempts": "المحاولات",
+      "lastError": "آخر خطأ",
+      "noFailed": "لا توجد أحداث فاشلة.",
+      "retryRow": "إعادة المحاولة"
+    },
+    "adminRefunds": {
+      "title": "الاستردادات",
+      "subtitle": "الاستردادات المطلوبة تنتظر موافقة شخص ثانٍ؛ الموافق عليها تُرسل إلى بوابة الدفع.",
+      "status": "الحالة",
+      "any": "أي حالة",
+      "number": "الاسترداد",
+      "booking": "الحجز",
+      "amount": "المبلغ",
+      "reason": "السبب",
+      "requested": "طُلب",
+      "empty": "لا توجد استردادات.",
+      "approve": "موافقة",
+      "reject": "رفض",
+      "process": "تنفيذ",
+      "rejectReason": "سبب الرفض",
+      "fourEyes": "أنت من طلب هذا الاسترداد — يجب أن يوافق عليه شخص آخر."
+    },
+    "statement": {
+      "title": "كشف الحساب",
+      "from": "من",
+      "to": "إلى",
+      "generate": "إنشاء",
+      "openingBalance": "الرصيد الافتتاحي",
+      "invoicedAmount": "المفوتر",
+      "paymentsAmount": "المدفوعات",
+      "creditsAmount": "الإشعارات الدائنة",
+      "closingBalance": "الرصيد الختامي",
+      "ageing": {
+        "current": "جارٍ",
+        "d1to30": "1–30 يوم",
+        "d31to60": "31–60 يوم",
+        "d61to90": "61–90 يوم",
+        "over90": "أكثر من 90 يوم"
+      },
+      "date": "التاريخ",
+      "description": "الوصف",
+      "reference": "المرجع",
+      "debit": "مدين",
+      "credit": "دائن",
+      "noMovements": "لا حركات في هذه الفترة."
     }
   },
   "driver": {

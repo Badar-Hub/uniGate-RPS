@@ -2,6 +2,7 @@ import type { Request, Response } from 'express';
 import type { z } from 'zod';
 import type {
   adminCreditBody,
+  statementQuery,
   adminVatNumberBody,
   assignSpoCustomerBody,
   convertSpoLeadBody,
@@ -82,6 +83,10 @@ export async function getCredit(req: Request, res: Response): Promise<void> {
   const { params } = (req as R<unknown, unknown, Id>).validated;
   // `invoices.read` is the code the corporate customer already holds; staff reach GLOBAL through customers.read (api.md §8.4).
   sendOk(res, await customers.getCredit(scopeFor(req, 'customers.read'), params.id));
+}
+export async function getStatement(req: Request, res: Response): Promise<void> {
+  const { params, query } = (req as R<unknown, z.infer<typeof statementQuery>, Id>).validated;
+  sendOk(res, await customers.getStatement(scopeFor(req, 'customers.read'), params.id, query));
 }
 export async function adminCredit(req: Request, res: Response): Promise<void> {
   const { params, body } = (req as R<z.infer<typeof adminCreditBody>, unknown, Id>).validated;

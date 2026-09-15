@@ -1416,9 +1416,11 @@ Settlement cycle and minimum payout are **OQ-06**; the endpoints are period-driv
 | GET | `/complaints/{id}` | `complaints.read` | party → global | Detail. **Internal notes are excluded** from every non-admin projection. |
 | PATCH | `/complaints/{id}` | `complaints.manage` | global | Severity, category, assignment. `POST /complaints/{id}/assign` is the dedicated assignment route. |
 | POST | `/complaints/{id}/status` | `complaints.manage` | global | Transition through `OPEN` → `IN_REVIEW` → `AWAITING_RESPONSE` → `RESOLVED`/`REJECTED` → `CLOSED`, with `resolution` required on resolve. |
-| POST | `/complaints/{id}/notes` | `complaints.read` | party → global | Add a note. `isInternal: true` requires `complaints.manage` and the note never leaves the admin portal. `GET` on the same path lists notes the actor may see. |
+| POST | `/complaints/{id}/notes` | `complaints.read` | party → global | Add a note. `isInternal: true` requires `complaints.manage` and the note never leaves the admin portal. `GET` on the same path lists notes the actor may see. A raiser's reply to an `AWAITING_RESPONSE` complaint moves it back to `IN_REVIEW`. |
 
-### 8.26 `/notifications` (7)
+**Rules.** Categories come from `platform.complaint_categories`; the first-response SLA (`respondBy`, `overdue`) from `platform.complaint_sla_hours` per severity and stops at the first assignment or status change. Rating subjects per role: customers rate DRIVER / VEHICLE / OWNER / TRIP, owners and drivers rate CUSTOMER / TRIP; `booking.rating_window_days` and `booking.rating_review_below_score` are settings. Rater names are masked in every rating projection.
+
+### 8.26 `/notifications` (9)
 
 | Method | Path | Permission | Scope | Description |
 |---|---|---|---|---|
@@ -1429,6 +1431,10 @@ Settlement cycle and minimum payout are **OQ-06**; the endpoints are period-driv
 | POST | `/notifications/send` | `notifications.send` | global | Ops broadcast or targeted send using a template code and audience filter. Goes through the outbox and the normal template renderer — never free text. Requires `Idempotency-Key`. |
 | GET | `/notifications/templates` | `notifications.templates.manage` | global | `notification_templates` by `code`, `channel`, `locale`. `POST`/`PATCH` on the same paths edit them so operations can correct wording without a deploy (BRIEF-§23). |
 | POST | `/notifications/templates/{id}/preview` | `notifications.templates.manage` | global | Render a template against sample variables in both locales without sending. Catches a broken interpolation before it reaches 4,000 devices. |
+| GET | `/notifications/preferences` | `notifications.read` | self | The category × channel matrix (`isEnabled`, `isLocked`). `PUT` on the same path updates it; a category in `notifications.locked_categories` (SECURITY, PAYMENT, TRIP) refuses `isEnabled: false` with `422 NOTIFICATION_CATEGORY_LOCKED` (FR-NOTIFICATIONS-06). |
+| POST | `/notifications/devices` | `notifications.read` | self | Register a push device token (`DELETE /notifications/devices/{token}` deactivates). Tokens are stored before a push provider is configured; with `PUSH_PROVIDER=none` PUSH rows are `SUPPRESSED`. |
+
+**Delivery model.** Business code never writes message text: subscribers in `notifications/event.subscribers.ts` map domain events to `notify(userIds, templateCode, variables)`; the service resolves each recipient's locale, preferences, reachable channels (`notifications.enabled_channels`), renders `{{placeholders}}` from `notification_templates` and inserts one row per user × channel. `IN_APP` is delivered by the row itself (and pushed to `user:{id}` sockets); EMAIL / SMS / PUSH rows are `QUEUED` for the `unigate-notifications` worker (row ids only in Redis), delayed to the end of `notifications.quiet_hours` unless the category is urgent; a sweeper delivers anything still QUEUED. The dedupe key is the outbox event id, so a retried job never sends twice. **One-time links** (vendor activation, password reset) never enter the outbox or a queue: they are rendered and delivered synchronously and the stored row carries the body with the link masked.
 
 ### 8.27 `/geo` — maps provider proxy (5)
 
@@ -1452,7 +1458,7 @@ Reports are asynchronous by construction. There is no endpoint that streams an u
 |---|---|---|---|---|
 | GET | `/reports` | `reports.read` | — | The report registry: `code`, name, description, supported filters, supported formats, maximum date span, and the permission each requires. The admin Reports screen is generated from this. |
 | GET | `/reports/{code}` | `reports.read` (+ `reports.financial.read` for financial codes) | own → global | Run a report **inline**, paginated, max 200 rows per page. For on-screen viewing. Scope applies: an owner running `owner-earnings` sees only their own. |
-| POST | `/reports/{code}/export` **†⧗** | `reports.export` | own → global | `202`. Queue a CSV/XLSX/PDF export job. |
+| POST | `/reports/{code}/export` **†⧗** | `reports.export` | own → global | `202`. Queue an export job. **CSV is generated today**; `XLSX` / `PDF` answer `422 REPORT_FORMAT_NOT_AVAILABLE` until a renderer lands (the registry's `formats` tells the client). Files are UTF-8 with BOM, CRLF, formula-injection neutralised, 100 000 rows max, 24 h expiry. |
 | GET | `/reports/exports` | `reports.export` | self → global | The actor's export jobs with status and expiry. |
 | GET | `/reports/exports/{jobId}` | `reports.export` | self → global | Job status: `QUEUED`, `RUNNING`, `COMPLETED`, `FAILED`, with `rowCount` and `errorMessage`. |
 | GET | `/reports/exports/{jobId}/download-url` | `reports.export` | self → global | 120-second signed URL for the generated file. Expires with `export_jobs.expires_at` (24 h). Every issuance is audited. |
@@ -1534,7 +1540,7 @@ Two codes exist because the confirmed business rules created reporting questions
 | `/me` | 10 | `/opportunities` | 3 | `/maintenance` | 8 |
 | `/users` | 8 | `/bids` | 7 | `/ratings` | 5 |
 | `/customers` | 9 | `/bookings` | 12 | `/complaints` | 6 |
-| `/owners` | 9 | `/trips` | 8 | `/notifications` | 7 |
+| `/owners` | 9 | `/trips` | 8 | `/notifications` | 9 |
 | `/drivers` | 8 | `/tracking` | 7 | `/geo` | 5 |
 | `/spo` | 6 | `/payments` | 8 | `/reports` | 6 |
 | `/vehicles` | 13 | `/refunds` | 5 | `/admin/*` | 9 |
@@ -1542,7 +1548,7 @@ Two codes exist because the confirmed business rules created reporting questions
 | `/documents` | 8 | `/commissions` | 5 | `/settings` | 4 |
 | | | `/settlements` + `/ledger` | 9 | webhooks/health/docs | 5 |
 
-**Total: 243.**
+**Total: 245.**
 
 `/customers` counts `PATCH /admin/customers/{id}/credit` (and `PATCH /admin/customers/{id}/vat-number`, which shares the `/customers/{id}/verify` row); `/invoices` counts `POST /admin/invoices/generate`, `POST /admin/invoices/{id}/retry-clearance` and `GET /admin/invoices/clearance-queue`. All are admin-only paths but belong to their resource's module and route file, not to the `/admin/*` platform group.
 

@@ -1416,6 +1416,8 @@ export interface VendorCreatedDto {
   /** Shown once to the admin who created the vendor; delivery by email lands with notifications. */
   activationUrl: string;
   activationExpiresAt: string;
+  /** Whether the link went out by email/SMS (SENT), failed at the provider (FAILED) or the account has no reachable address (UNREACHABLE). */
+  activationDelivery: 'SENT' | 'FAILED' | 'UNREACHABLE';
 }
 
 export interface PermissionCatalogueItemDto {
@@ -1504,4 +1506,330 @@ export interface MaintenanceDueDto {
   daysUntilDue: number | null;
   kmUntilDue: number | null;
   overdue: boolean;
+}
+
+// ── notifications (api.md §8.26) ────────────────────────────────────────────
+
+export interface NotificationDto {
+  id: string;
+  templateCode: string;
+  channel: string;
+  category: string;
+  title: string | null;
+  body: string;
+  /** Deep-link hints the client renders (`bookingId`, `tripId`, …) — never secrets. */
+  data: Record<string, unknown>;
+  status: string;
+  readAt: string | null;
+  createdAt: string;
+}
+
+export interface NotificationUnreadCountDto {
+  total: number;
+  byCategory: Record<string, number>;
+}
+
+export interface NotificationPreferenceDto {
+  category: string;
+  channel: string;
+  isEnabled: boolean;
+  /** Transactional categories cannot be disabled (FR-NOTIFICATIONS-06). */
+  isLocked: boolean;
+}
+
+export interface NotificationTemplateDto extends TimestampedDto {
+  id: string;
+  code: string;
+  channel: string;
+  locale: string;
+  subject: string | null;
+  body: string;
+  variables: string[];
+  category: string;
+  isActive: boolean;
+  version: number;
+}
+
+export interface NotificationPreviewDto {
+  locale: string;
+  channel: string;
+  subject: string | null;
+  body: string;
+  missingVariables: string[];
+}
+
+export interface NotificationSendResultDto {
+  templateCode: string;
+  recipients: number;
+  queued: number;
+  suppressed: number;
+}
+
+// ── engagement (api.md §8.24–8.25) ──────────────────────────────────────────
+
+export interface RatingDto {
+  id: string;
+  bookingId: string;
+  bookingNumber: string;
+  tripId: string | null;
+  raterRole: string;
+  /** Masked display name of the rater ("Ahmed A."); never the id for non-moderators. */
+  raterDisplayName: string;
+  subjectType: string;
+  subjectId: string;
+  score: number;
+  comment: string | null;
+  status: string;
+  createdAt: string;
+}
+
+export interface RatingEligibleSubjectDto {
+  subjectType: string;
+  subjectId: string;
+  label: string;
+  alreadyRated: boolean;
+}
+
+export interface RatingEligibleBookingDto {
+  bookingId: string;
+  bookingNumber: string;
+  tripId: string | null;
+  raterRole: string;
+  completedAt: string;
+  /** Last moment a rating is accepted (`booking.rating_window_days`). */
+  deadline: string;
+  subjects: RatingEligibleSubjectDto[];
+}
+
+export interface RatingSummaryDto {
+  subjectType: string;
+  subjectId: string;
+  ratingAvg: string;
+  ratingCount: number;
+  histogram: Record<'1' | '2' | '3' | '4' | '5', number>;
+}
+
+export interface ComplaintNoteDto {
+  id: string;
+  authorUserId: string;
+  authorName: string;
+  body: string;
+  isInternal: boolean;
+  createdAt: string;
+}
+
+export interface ComplaintDto extends TimestampedDto {
+  id: string;
+  complaintNumber: string;
+  raisedByUserId: string;
+  raisedByName: string;
+  bookingId: string | null;
+  bookingNumber: string | null;
+  tripId: string | null;
+  againstType: string;
+  againstId: string | null;
+  category: string;
+  subject: string;
+  description: string;
+  severity: string;
+  status: string;
+  assignedToUserId: string | null;
+  assignedToName: string | null;
+  resolution: string | null;
+  resolvedAt: string | null;
+  /** First-response SLA deadline from `platform.complaint_sla_hours`; null once past OPEN. */
+  respondBy: string | null;
+  overdue: boolean;
+  /** Notes the actor may see — internal notes never leave the admin portal. */
+  notes: ComplaintNoteDto[];
+}
+
+// ── disputes & no-show (api.md §8.15) ───────────────────────────────────────
+
+export interface BookingDisputeResultDto {
+  booking: BookingDto;
+  complaint: ComplaintDto;
+  /** Set when the dispute was resolved with a refund request (processed through the refund approval flow). */
+  refund: { id: string; refundNumber: string; status: string; amount: MoneyString; currency: string } | null;
+}
+
+// ── customer statement (api.md §8.4) ────────────────────────────────────────
+
+export interface CustomerStatementDto {
+  customerProfileId: string;
+  companyNameEn: string | null;
+  periodStart: string;
+  periodEnd: string;
+  currency: string;
+  /** Receivable balance at the start of the period (ledger-derived, same query as /credit). */
+  openingBalance: MoneyString;
+  invoicedAmount: MoneyString;
+  paymentsAmount: MoneyString;
+  creditsAmount: MoneyString;
+  closingBalance: MoneyString;
+  ageing: { current: MoneyString; d1to30: MoneyString; d31to60: MoneyString; d61to90: MoneyString; over90: MoneyString };
+  invoices: { id: string; invoiceNumber: string; invoiceType: string; issueDate: string; dueDate: string; totalAmount: MoneyString; outstandingAmount: MoneyString; status: string }[];
+  movements: { occurredAt: string; description: string; debit: MoneyString; credit: MoneyString; reference: string | null }[];
+}
+
+// ── admin (api.md §8.29) ────────────────────────────────────────────────────
+
+export interface AdminDashboardDto {
+  dateFrom: string;
+  dateTo: string;
+  transportType: string | null;
+  currency: string;
+  users: number;
+  customers: number;
+  owners: number;
+  drivers: number;
+  vehicles: number;
+  activeVehicles: number;
+  tripRequests: number;
+  bids: number;
+  bookings: number;
+  activeTrips: number;
+  completedTrips: number;
+  cancelledBookings: number;
+  grossBookingValue: MoneyString;
+  platformCommission: MoneyString;
+  pendingSettlements: MoneyString;
+  openComplaints: number;
+  /** Reflects the 60-second cache. */
+  computedAt: string;
+}
+
+export interface AdminDashboardSeriesDto {
+  bucket: 'day' | 'week' | 'month';
+  transportType: string | null;
+  currency: string;
+  points: { bucket: string; tripRequests: number; bookings: number; completedTrips: number; cancelledBookings: number; grossBookingValue: MoneyString; platformCommission: MoneyString }[];
+}
+
+export interface QueueStatsDto {
+  name: string;
+  waiting: number;
+  active: number;
+  delayed: number;
+  failed: number;
+  completed: number;
+  reachable: boolean;
+}
+
+export interface SystemQueuesDto {
+  queues: QueueStatsDto[];
+  outbox: { pending: number; failed: number; oldestPendingAt: string | null };
+  computedAt: string;
+}
+
+export interface SystemHealthDto {
+  status: 'ok' | 'degraded' | 'down';
+  version: string;
+  environment: string;
+  migration: string | null;
+  checks: Record<'database' | 'redis' | 'storage', { ok: boolean; latencyMs: number; error: string | null }>;
+  queues: QueueStatsDto[];
+  outbox: { pending: number; failed: number; oldestPendingAt: string | null };
+  oldestUnprocessedWebhookAt: string | null;
+  /** Provider CODES only — never keys or endpoints. */
+  providers: Record<string, string>;
+  computedAt: string;
+}
+
+export interface PaymentWebhookEventDto {
+  id: string;
+  providerCode: string;
+  providerEventId: string;
+  eventType: string;
+  signatureValid: boolean;
+  receivedAt: string;
+  processingStatus: string;
+  processedAt: string | null;
+  attemptCount: number;
+  lastError: string | null;
+  relatedPaymentId: string | null;
+}
+
+export interface OutboxEventDto {
+  id: string;
+  aggregateType: string;
+  aggregateId: string;
+  eventType: string;
+  status: string;
+  attemptCount: number;
+  lastError: string | null;
+  availableAt: string;
+  publishedAt: string | null;
+  createdAt: string;
+}
+
+// ── reports (api.md §8.28) ──────────────────────────────────────────────────
+
+export interface ReportColumnDto {
+  key: string;
+  labelEn: string;
+  labelAr: string;
+  type: 'string' | 'number' | 'money' | 'date' | 'datetime' | 'boolean';
+}
+
+export interface ReportDefinitionDto {
+  code: string;
+  nameEn: string;
+  nameAr: string;
+  descriptionEn: string;
+  financial: boolean;
+  scope: 'own-global' | 'global';
+  /** Filter keys the report accepts (an unknown key is a 422). */
+  filters: string[];
+  columns: ReportColumnDto[];
+  formats: string[];
+  maxDays: number;
+  /** Permission the caller needs to run it inline at its widest scope. */
+  permission: string;
+}
+
+export interface ReportRunDto {
+  code: string;
+  columns: ReportColumnDto[];
+  rows: Record<string, string | number | boolean | null>[];
+}
+
+export interface ExportJobDto extends TimestampedDto {
+  id: string;
+  reportCode: string;
+  format: string;
+  filters: Record<string, unknown>;
+  status: string;
+  rowCount: number | null;
+  errorMessage: string | null;
+  expiresAt: string | null;
+  downloadable: boolean;
+}
+
+export interface ExportDownloadUrlDto {
+  url: string;
+  expiresAt: string;
+  filename: string;
+}
+
+// ── audit logs (api.md §8.30) ───────────────────────────────────────────────
+
+export interface AuditLogDto {
+  id: string;
+  occurredAt: string;
+  actorUserId: string | null;
+  actorName: string | null;
+  actorType: string;
+  actorRoles: string[];
+  action: string;
+  entityType: string;
+  entityId: string;
+  severity: string;
+  /** Redaction-filtered at write time — there is no code path that could return a secret here. */
+  beforeValue: Record<string, unknown> | null;
+  afterValue: Record<string, unknown> | null;
+  changedFields: string[];
+  ipAddress: string | null;
+  userAgent: string | null;
+  requestId: string | null;
 }

@@ -1,6 +1,6 @@
 import { Router, type Request, type Response } from 'express';
 import type { z } from 'zod';
-import { cancelBookingBody, confirmBookingBody, dispatchDriverBody, idParams, listBookingsQuery, readyBody, waiveFeeBody } from '@unigate/validation';
+import { cancelBookingBody, confirmBookingBody, dispatchDriverBody, disputeBookingBody, idParams, listBookingsQuery, noShowBody, readyBody, resolveDisputeBody, waiveFeeBody } from '@unigate/validation';
 import { paginated, sendOk } from '@/common/envelope.js';
 import { h } from '@/common/handler.js';
 import { authenticate, requirePermission, requirePermissionOrProfile, scopeFor } from '@/middleware/authenticate.js';
@@ -47,6 +47,18 @@ export function bookingsRouter(): Router {
   r.post('/bookings/:id/cancel', requirePermission('bookings.cancel'), idempotent({ required: true }), validate({ params: idParams, body: cancelBookingBody }), h(async (req, res) => {
     const { params, body } = (req as R<z.infer<typeof cancelBookingBody>, unknown, Id>).validated;
     sendOk(res, await bookings.cancelBooking(scopeFor(req, 'bookings.manage', 'PARTY'), params.id, body));
+  }));
+  r.post('/bookings/:id/no-show', requirePermission('bookings.cancel'), idempotent({ required: true }), validate({ params: idParams, body: noShowBody }), h(async (req, res) => {
+    const { params, body } = (req as R<z.infer<typeof noShowBody>, unknown, Id>).validated;
+    sendOk(res, await bookings.recordNoShow(scopeFor(req, 'bookings.manage'), params.id, body));
+  }));
+  r.post('/bookings/:id/dispute', requirePermission('complaints.create'), idempotent({ required: false }), validate({ params: idParams, body: disputeBookingBody }), h(async (req, res) => {
+    const { params, body } = (req as R<z.infer<typeof disputeBookingBody>, unknown, Id>).validated;
+    sendOk(res, await bookings.disputeBooking(scopeFor(req, 'complaints.manage', 'PARTY'), params.id, body));
+  }));
+  r.post('/bookings/:id/resolve-dispute', requirePermission('complaints.manage'), idempotent({ required: false }), validate({ params: idParams, body: resolveDisputeBody }), h(async (req, res) => {
+    const { params, body } = (req as R<z.infer<typeof resolveDisputeBody>, unknown, Id>).validated;
+    sendOk(res, await bookings.resolveDispute(scopeFor(req, 'complaints.manage'), params.id, body));
   }));
   r.post('/bookings/:id/cancellation/waive-fee', requirePermission('bookings.manage'), idempotent({ required: false }), validate({ params: idParams, body: waiveFeeBody }), h(async (req, res) => {
     const { params, body } = (req as R<z.infer<typeof waiveFeeBody>, unknown, Id>).validated;

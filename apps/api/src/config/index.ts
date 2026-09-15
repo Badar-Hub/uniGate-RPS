@@ -51,6 +51,10 @@ export interface AppConfig {
     mapsServerKey: string | null;
     otpAllowedCountryCodes: readonly string[];
     email: Env['EMAIL_PROVIDER'];
+    emailFrom: string;
+    smtp: { host: string; port: number; user: string | null; password: string | null; secure: boolean };
+    sms: Env['SMS_PROVIDER'];
+    push: Env['PUSH_PROVIDER'];
   };
   version: string;
 }
@@ -104,6 +108,10 @@ export function buildConfig(env: Env): AppConfig {
       mapsServerKey: env.MAPS_SERVER_KEY ?? null,
       otpAllowedCountryCodes: env.OTP_ALLOWED_COUNTRY_CODES.split(',').map((s) => s.trim()),
       email: env.EMAIL_PROVIDER,
+      emailFrom: env.EMAIL_FROM,
+      smtp: { host: env.SMTP_HOST, port: env.SMTP_PORT, user: env.SMTP_USER ?? null, password: env.SMTP_PASSWORD ?? null, secure: env.SMTP_SECURE === 'true' },
+      sms: env.SMS_PROVIDER,
+      push: env.PUSH_PROVIDER,
     },
     version: process.env['GIT_SHA'] ?? process.env['npm_package_version'] ?? 'dev',
   };

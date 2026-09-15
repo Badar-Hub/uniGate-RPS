@@ -1,7 +1,7 @@
 import type { Prisma } from '@prisma/client';
-import type { ActorScope, AnyScope, BookingDto, BookingFinancialsDto, BookingStatusHistoryDto, CancelBookingResultDto, CancellationQuoteDto } from '@unigate/types';
+import type { ActorScope, AnyScope, BookingDisputeResultDto, BookingDto, BookingFinancialsDto, BookingStatusHistoryDto, CancelBookingResultDto, CancellationQuoteDto } from '@unigate/types';
 import { BOOKING_TRANSITIONS, CANCELLATION_REASONS_BY_ROLE } from '@unigate/types';
-import type { cancelBookingBody } from '@unigate/validation';
+import type { cancelBookingBody, disputeBookingBody, noShowBody, resolveDisputeBody } from '@unigate/validation';
 import type { z } from 'zod';
 import { BusinessRuleError, ConflictError, ForbiddenError, NotFoundError } from '@/common/errors.js';
 import { newId } from '@/common/ids.js';
@@ -12,6 +12,7 @@ import { recordBookingCancellation } from '@/modules/demand/trip-request.service
 import { computeFee, resolvePolicy, type FeeOverride, type FeeVerdict } from '@/modules/finance/cancellation-policy.service.js';
 import { CALCULATION_VERSION, computeFinancials, ruleSnapshot, type ResolvedCommission } from '@/modules/finance/commission.service.js';
 import { isDriverAssignedToVehicle } from '@/modules/fleet/vehicle.service.js';
+import { getComplaint, openDisputeComplaint, resolveDisputeComplaints } from '@/modules/engagement/engagement.service.js';
 import { requestRefundForCancellation } from '@/modules/payments/refund.service.js';
 import { writeAudit } from '@/modules/platform/audit.service.js';
 import { driverNominationCheck } from '@/modules/profiles/driver.service.js';
@@ -255,6 +256,99 @@ export async function waiveCancellationFee(scope: ActorScope, id: string, reason
   return { booking: bookingDtoFor(scope, after), cancellation: toCancellationDto(after.cancellation), refund: null, calendarEntryReleased: after.calendarEntry?.status === 'RELEASED' };
 }
 
+// ── no-show ──────────────────────────────────────────────────────────────────
+
+/**
+ * POST /bookings/{id}/no-show — ops records a customer or owner no-show (api.md §8.15, OQ-05).
+ * A NO_SHOW cancellation row is written with the policy charge for the party that failed to
+ * show: a customer no-show is charged out of the customer's payment (refund = total − fee); an
+ * owner no-show refunds the customer in full and the fee becomes a PENALTY line on the owner's
+ * next settlement (the builder picks up unsettled owner-payable fees).
+ */
+export async function recordNoShow(scope: ActorScope, id: string, body: z.infer<typeof noShowBody>): Promise<CancelBookingResultDto> {
+  if (scope.kind !== 'GLOBAL') throw new ForbiddenError('PERM_DENIED', 'No-show is recorded by operations');
+  const override = body.feeOverride ? feeOverrideFor(scope, body.feeOverride) : null;
+  const now = new Date();
+  const reasonCode = body.party === 'CUSTOMER' ? 'CUSTOMER_NO_SHOW' : 'OWNER_NO_SHOW';
+  await prisma().$transaction(async (tx) => {
+    await repo.lockBooking(scope, id, tx);
+    const b = await repo.findBooking(scope, id, tx);
+    if (!b) throw new NotFoundError();
+    if (b.status === 'CANCELLED') throw new ConflictError('BOOKING_ALREADY_CANCELLED', `Booking ${b.bookingNumber} is already cancelled`);
+    assertTransition(b, 'CANCELLED');
+    const hours = hoursBefore(b, now);
+    const policy = await resolvePolicy(scope, { eventType: 'NO_SHOW', role: body.party, customerProfileId: b.customerProfileId, ownerProfileId: b.ownerProfileId, vehicleCategoryId: b.tripRequest.vehicleCategoryId, at: now }, tx);
+    const verdict = computeFee({ total: b.totalAmount, hoursBeforePickup: hours, policy, override });
+    const fee = verdict.feeAmount;
+    // The customer is refunded in full when the owner failed to show; their own no-show costs them the fee.
+    const refund = body.party === 'OWNER' ? b.totalAmount : round2(b.totalAmount.sub(fee));
+    await tx.bookingCancellation.create({
+      data: {
+        bookingId: b.id, cancelledByUserId: scope.actor.userId, cancelledByRole: 'ADMIN', eventType: 'NO_SHOW', reasonCode, reasonText: body.reasonText ?? null, hoursBeforePickup: hours,
+        feePayer: fee.gt(0) ? body.party : 'NONE', cancellationFeeAmount: fee, refundAmount: refund, currency: b.currency, feeSource: verdict.feeSource,
+        feeRuleSnapshot: verdict.ruleSnapshot as Prisma.InputJsonValue, ...(verdict.overrideSnapshot ? { feeOverrideSnapshot: verdict.overrideSnapshot as Prisma.InputJsonValue } : {}),
+      },
+    });
+    await transition(scope, b, 'CANCELLED', reasonCode, { cancelledAt: now }, tx, { role: 'ADMIN', noShowParty: body.party, feeAmount: fee.toFixed(2) });
+    await repo.releaseReservation(scope, b.id, tx);
+    await recordBookingCancellation(scope, b.tripRequestId, tx);
+    const refundRow = body.requestRefund ? await requestRefundForCancellation(scope, b.id, refund, scope.actor.userId, tx, body.party === 'OWNER' ? 'OWNER_NO_SHOW' : 'BOOKING_CANCELLED') : null;
+    await writeAudit({ ...audit(scope), action: 'booking.no_show', entityType: 'booking', entityId: b.id, severity: 'NOTICE', beforeValue: { status: b.status }, afterValue: { status: 'CANCELLED', party: body.party, feeAmount: fee.toFixed(2), refundAmount: refund.toFixed(2), feeSource: verdict.feeSource, override: verdict.overrideSnapshot, refundRequested: refundRow?.refundNumber ?? null } }, tx);
+    await publishEvent('booking', b.id, 'booking.cancelled', { bookingNumber: b.bookingNumber, tripRequestId: b.tripRequestId, customerProfileId: b.customerProfileId, ownerProfileId: b.ownerProfileId, driverProfileId: b.driverProfileId, role: 'ADMIN', reasonCode, feeAmount: fee.toFixed(2), refundAmount: refund.toFixed(2) }, tx);
+  });
+  const after = await repo.findBooking(scope, id);
+  if (!after?.cancellation) throw new NotFoundError();
+  const refundRow = await prisma().refund.findFirst({ where: { bookingId: id }, orderBy: { createdAt: 'desc' }, select: { id: true, refundNumber: true, status: true, amount: true, currency: true } });
+  return { booking: bookingDtoFor(scope, after), cancellation: toCancellationDto(after.cancellation), refund: refundRow ? { id: refundRow.id, refundNumber: refundRow.refundNumber, status: refundRow.status, amount: toMoneyString(refundRow.amount), currency: refundRow.currency } : null, calendarEntryReleased: after.calendarEntry?.status === 'RELEASED' };
+}
+
+// ── disputes ─────────────────────────────────────────────────────────────────
+
+/** POST /bookings/{id}/dispute — IN_PROGRESS / COMPLETED → DISPUTED with a linked complaint (api.md §8.15). */
+export async function disputeBooking(scope: ActorScope, id: string, body: z.infer<typeof disputeBookingBody>): Promise<BookingDisputeResultDto> {
+  let complaintId = '';
+  await prisma().$transaction(async (tx) => {
+    await repo.lockBooking(scope, id, tx);
+    const b = await repo.findBooking(scope, id, tx);
+    if (!b) throw new NotFoundError();
+    // Who is disputing decides who it is against; staff disputes are against the platform's own handling.
+    const raiser = scope.kind === 'GLOBAL' ? 'ADMIN' : cancellerRole(scope, b);
+    const against = raiser === 'CUSTOMER' ? { againstType: 'OWNER' as const, againstId: b.ownerProfileId } : raiser === 'OWNER' ? { againstType: 'CUSTOMER' as const, againstId: b.customerProfileId } : { againstType: 'PLATFORM' as const, againstId: null };
+    await transition(scope, b, 'DISPUTED', 'dispute opened', {}, tx, { raiser, category: body.category });
+    complaintId = await openDisputeComplaint(scope, { bookingId: b.id, tripId: b.trip?.id ?? null, ...against, category: body.category, subject: body.subject, description: body.description, severity: body.severity ?? 'HIGH' }, tx);
+    await writeAudit({ ...audit(scope), action: 'booking.disputed', entityType: 'booking', entityId: b.id, severity: 'NOTICE', beforeValue: { status: b.status }, afterValue: { status: 'DISPUTED', complaintId, raiser } }, tx);
+    await publishEvent('booking', b.id, 'booking.disputed', { bookingNumber: b.bookingNumber, customerProfileId: b.customerProfileId, ownerProfileId: b.ownerProfileId, complaintId, raiser }, tx);
+  });
+  return { booking: await getBooking(scope, id), complaint: await getComplaint(scope.kind === 'GLOBAL' ? scope : { ...scope, kind: 'OWN' }, complaintId), refund: null };
+}
+
+/** POST /bookings/{id}/resolve-dispute — DISPUTED → COMPLETED, or a refund request whose completion moves it to REFUNDED. */
+export async function resolveDispute(scope: ActorScope, id: string, body: z.infer<typeof resolveDisputeBody>): Promise<BookingDisputeResultDto> {
+  const done = await prisma().$transaction(async (tx) => {
+    let refundRow: { id: string; refundNumber: string } | null = null;
+    await repo.lockBooking(scope, id, tx);
+    const b = await repo.findBooking(scope, id, tx);
+    if (!b) throw new NotFoundError();
+    if (b.status !== 'DISPUTED') throw new BusinessRuleError('BOOKING_INVALID_TRANSITION', `Booking ${b.bookingNumber} is not disputed`, { from: b.status });
+    if (body.outcome === 'COMPLETED') {
+      await transition(scope, b, 'COMPLETED', 'dispute resolved — service stands', {}, tx, { resolution: body.resolution });
+    } else {
+      const amount = body.refundAmount ? round2(money(body.refundAmount)) : b.totalAmount;
+      if (amount.lte(0) || amount.gt(b.totalAmount)) throw new BusinessRuleError('VALIDATION_FAILED', 'The refund must be between 0.01 and the booking total', { fieldErrors: { refundAmount: [`≤ ${b.totalAmount.toFixed(2)}`] }, formErrors: [] });
+      refundRow = await requestRefundForCancellation(scope, b.id, amount, scope.actor.userId, tx, 'DISPUTE_RESOLVED');
+      if (!refundRow) throw new BusinessRuleError('PAYMENT_NOT_REFUNDABLE', 'No captured payment to refund on this booking — resolve as COMPLETED and settle through an invoice credit note');
+      // The booking stays DISPUTED until the gateway confirms; applyRefundCompleted moves it to REFUNDED.
+    }
+    const complaintIds = await resolveDisputeComplaints(scope, b.id, body.resolution, tx);
+    await writeAudit({ ...audit(scope), action: 'booking.dispute_resolved', entityType: 'booking', entityId: b.id, severity: 'NOTICE', beforeValue: { status: 'DISPUTED' }, afterValue: { outcome: body.outcome, resolution: body.resolution, refund: refundRow?.refundNumber ?? null, complaints: complaintIds } }, tx);
+    return { refundId: refundRow?.id ?? null, complaintIds };
+  });
+  const r = done.refundId ? await prisma().refund.findUniqueOrThrow({ where: { id: done.refundId }, select: { id: true, refundNumber: true, status: true, amount: true, currency: true } }) : null;
+  const complaint = done.complaintIds[0] ? await getComplaint(scope, done.complaintIds[0]) : null;
+  if (!complaint) throw new NotFoundError('NOT_FOUND', 'No open complaint was linked to this dispute');
+  return { booking: await getBooking(scope, id), complaint, refund: r ? { id: r.id, refundNumber: r.refundNumber, status: r.status, amount: toMoneyString(r.amount), currency: r.currency } : null };
+}
+
 // ── confirm / dispatch / ready ───────────────────────────────────────────────
 
 /** Ops override PENDING_PAYMENT → CONFIRMED (offline payment reconciled). Never needed for INVOICED (A-46). */
@@ -380,6 +474,7 @@ export async function applyRefundCompleted(scope: AnyScope, bookingId: string, f
   if (!b) throw new NotFoundError();
   await tx.booking.update({ where: { id: bookingId }, data: { paymentStatus: fullyRefunded ? 'REFUNDED' : 'PARTIALLY_REFUNDED' } });
   if (fullyRefunded && b.status === 'CANCELLED') await transition(scope, b, 'REFUNDED', 'refund completed', {}, tx, { source: 'gateway' });
+  if (b.status === 'DISPUTED') await transition(scope, b, 'REFUNDED', 'dispute refund completed', {}, tx, { source: 'gateway', fullyRefunded });
 }
 
 // ── trip integration (Phase 10) ──────────────────────────────────────────────

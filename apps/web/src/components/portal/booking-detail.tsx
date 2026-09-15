@@ -9,6 +9,8 @@ import { useSession } from '@/lib/auth/session-provider';
 import { errorMessage } from '@/lib/errors';
 import { Link } from '@/lib/i18n/routing';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { RatingPrompt } from '@/components/portal/engagement/rating-prompt';
+import { BookingOpsActions } from '@/components/portal/booking-ops-actions';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -131,6 +133,8 @@ export function BookingDetail({ id, returnedPaymentId = null }: { id: string; re
           <AlertDescription>{errorMessage(tc, error)}</AlertDescription>
         </Alert>
       )}
+      {b.status === 'COMPLETED' && <RatingPrompt bookingId={b.id} />}
+      <BookingOpsActions booking={b} onChanged={load} />
 
       <div className="grid gap-4 md:grid-cols-2">
         <Card>

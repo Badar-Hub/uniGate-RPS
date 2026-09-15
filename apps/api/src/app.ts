@@ -24,6 +24,11 @@ import { tripsRouter } from '@/modules/trips/trips.routes.js';
 import { trackingRouter } from '@/modules/tracking/tracking.routes.js';
 import { financeRouter } from '@/modules/finance/finance.routes.js';
 import { maintenanceRouter } from '@/modules/maintenance/maintenance.routes.js';
+import { notificationsRouter } from '@/modules/notifications/notification.routes.js';
+import { engagementRouter } from '@/modules/engagement/engagement.routes.js';
+import { adminRouter } from '@/modules/admin/admin.routes.js';
+import { reportingRouter } from '@/modules/reporting/reporting.routes.js';
+import { platformRouter } from '@/modules/platform/platform.routes.js';
 import '@/docs/all.js';
 
 /**
@@ -98,6 +103,11 @@ export function createApp(cfg: AppConfig): Express {
   v1.use(tripsRouter());
   v1.use(financeRouter());
   v1.use(maintenanceRouter());
+  v1.use(notificationsRouter());
+  v1.use(engagementRouter());
+  v1.use(adminRouter());
+  v1.use(reportingRouter());
+  v1.use(platformRouter());
   v1.use(trackingRouter());
   if (cfg.apiDocsEnabled) v1.use(docsRouter(cfg.apiUrl, cfg.version));
   app.use('/api/v1', v1);

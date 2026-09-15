@@ -78,6 +78,7 @@ function ownerFor(scope: AnyScope, requested: string | undefined): string {
 
 interface Assessment {
   eligible: repo.EligibleBooking[];
+  penalties: repo.OwnerPenalty[];
   held: (repo.EligibleBooking & { holdReason: string; eligibleAt: Date })[];
   eligibleAtOf: (b: repo.EligibleBooking) => Date;
 }
@@ -97,7 +98,9 @@ async function assess(scope: AnyScope, ownerProfileId: string, from: Date, to: D
     else if (eligibleAt > now) held.push({ ...b, holdReason: 'HOLD_PERIOD', eligibleAt });
     else eligible.push(b);
   }
-  return { eligible, held, eligibleAtOf };
+  // Owner-payable no-show / cancellation fees become PENALTY lines (OQ-05).
+  const penalties = owner.isPlatformFleet ? [] : await repo.ownerPenaltiesInPeriod(scope, ownerProfileId, from, to, tx);
+  return { eligible, held, penalties, eligibleAtOf };
 }
 
 const sum = (rows: { ownerNetAmount: Decimal }[]) => rows.reduce((a, r) => a.add(r.ownerNetAmount), new Decimal(0));
@@ -108,13 +111,14 @@ export async function preview(scope: AnyScope, q: { ownerProfileId?: string | un
   const now = new Date();
   const a = await assess(scope, ownerProfileId, new Date(q.periodStart), new Date(q.periodEnd), s, now, null);
   const gross = a.eligible.reduce((x, b) => x.add(b.grossAmount), new Decimal(0));
-  const net = sum(a.eligible);
+  const penalties = a.penalties.reduce((x, p) => x.add(p.feeAmount), new Decimal(0));
+  const net = round2(sum(a.eligible).sub(penalties));
   const deductions = (b: repo.EligibleBooking) => b.commissionAmount.add(b.commissionVatAmount).add(b.paymentFeeAmount);
   return {
     ownerProfileId, periodStart: q.periodStart, periodEnd: q.periodEnd, currency: s.currency,
     eligible: a.eligible.map((b) => ({ bookingId: b.id, bookingNumber: b.bookingNumber, completedAt: b.completedAt?.toISOString() ?? null, eligibleAt: a.eligibleAtOf(b).toISOString(), grossAmount: toMoneyString(b.grossAmount), deductions: toMoneyString(deductions(b)), ownerNetAmount: toMoneyString(b.ownerNetAmount) })),
     held: a.held.map((b) => ({ bookingId: b.id, bookingNumber: b.bookingNumber, completedAt: b.completedAt?.toISOString() ?? null, eligibleAt: b.eligibleAt.toISOString(), holdReason: b.holdReason, ownerNetAmount: toMoneyString(b.ownerNetAmount) })),
-    grossAmount: toMoneyString(gross), commissionAmount: toMoneyString(gross.sub(net)), adjustmentsAmount: toMoneyString(0), netPayableAmount: toMoneyString(net), minimumPayoutAmount: toMoneyString(s.minimumPayout), belowMinimum: net.lt(s.minimumPayout),
+    grossAmount: toMoneyString(gross), commissionAmount: toMoneyString(gross.sub(sum(a.eligible))), adjustmentsAmount: toMoneyString(penalties.neg()), netPayableAmount: toMoneyString(net), minimumPayoutAmount: toMoneyString(s.minimumPayout), belowMinimum: net.lt(s.minimumPayout),
   };
 }
 
@@ -132,12 +136,17 @@ export async function createSettlement(scope: ActorScope, body: z.infer<typeof c
       const a = await assess(scope, body.ownerProfileId, from, to, s, now, tx);
       if (!a.eligible.length) throw new BusinessRuleError('SETTLEMENT_NO_ELIGIBLE_LINES', 'No completed, funded booking past its hold in this period', { held: a.held.length, ...((await ownerVatStatusOf(scope, body.ownerProfileId))?.isPlatformFleet ? { reason: 'PLATFORM_FLEET' } : {}) });
       const gross = a.eligible.reduce((x, b) => x.add(b.grossAmount), new Decimal(0));
-      const net = round2(sum(a.eligible));
+      const earnings = round2(sum(a.eligible));
+      const penalties = round2(a.penalties.reduce((x, p) => x.add(p.feeAmount), new Decimal(0)));
+      const net = round2(earnings.sub(penalties));
       if (net.lt(s.minimumPayout)) throw new BusinessRuleError('SETTLEMENT_BELOW_MINIMUM', `Net payable ${net.toFixed(2)} is below the minimum payout ${s.minimumPayout.toFixed(2)}; the balance carries forward`, { netPayableAmount: net.toFixed(2), minimumPayoutAmount: s.minimumPayout.toFixed(2) });
       const settlementNumber = await repo.nextSettlementNumber(scope, tx);
-      await tx.settlement.create({ data: { id, settlementNumber, ownerProfileId: body.ownerProfileId, periodStart: from, periodEnd: to, grossAmount: gross, commissionAmount: gross.sub(net), adjustmentsAmount: 0, netPayableAmount: net, currency: s.currency, status: 'DRAFT', notes: body.notes ?? null } });
+      await tx.settlement.create({ data: { id, settlementNumber, ownerProfileId: body.ownerProfileId, periodStart: from, periodEnd: to, grossAmount: gross, commissionAmount: gross.sub(earnings), adjustmentsAmount: penalties.neg(), netPayableAmount: net, currency: s.currency, status: 'DRAFT', notes: body.notes ?? null } });
       await tx.settlementLine.createMany({
-        data: a.eligible.map((b) => ({ id: newId(), settlementId: id, bookingId: b.id, lineType: 'BOOKING_EARNING' as const, amount: b.ownerNetAmount, currency: b.currency, description: `Earnings for booking ${b.bookingNumber}`, holdReason: 'NONE' as const, eligibleAt: a.eligibleAtOf(b) })),
+        data: [
+          ...a.eligible.map((b) => ({ id: newId(), settlementId: id, bookingId: b.id, lineType: 'BOOKING_EARNING' as const, amount: b.ownerNetAmount, currency: b.currency, description: `Earnings for booking ${b.bookingNumber}`, holdReason: 'NONE' as const, eligibleAt: a.eligibleAtOf(b) })),
+          ...a.penalties.map((p) => ({ id: newId(), settlementId: id, bookingId: p.bookingId, lineType: 'PENALTY' as const, amount: p.feeAmount.neg(), currency: p.currency, description: `${p.eventType === 'NO_SHOW' ? 'No-show' : 'Cancellation'} fee for booking ${p.bookingNumber} (${p.reasonCode})`, holdReason: 'NONE' as const, eligibleAt: p.cancelledAt })),
+        ],
       });
       await writeAudit({ ...audit(scope), action: 'settlement.created', entityType: 'settlement', entityId: id, afterValue: { settlementNumber, ownerProfileId: body.ownerProfileId, periodStart: body.periodStart, periodEnd: body.periodEnd, lines: a.eligible.length, netPayableAmount: net.toFixed(2) } }, tx);
       await publishEvent('settlement', id, 'settlement.created', { settlementNumber, ownerProfileId: body.ownerProfileId, netPayableAmount: net.toFixed(2) }, tx);

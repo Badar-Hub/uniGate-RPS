@@ -50,7 +50,7 @@ export async function bootHarness(opts: { resetDb?: boolean } = {}): Promise<Har
   // the test database BEFORE the lazy client is created, or the app under test hits dev data.
   process.env['DATABASE_URL'] = TEST_DB;
   process.env['NODE_ENV'] = 'test';
-  const env = loadEnv({ ...process.env, NODE_ENV: 'test', DATABASE_URL: TEST_DB, API_DOCS_ENABLED: 'false', OTP_PROVIDER: 'console' });
+  const env = loadEnv({ ...process.env, NODE_ENV: 'test', DATABASE_URL: TEST_DB, API_DOCS_ENABLED: 'false', OTP_PROVIDER: 'console', EMAIL_PROVIDER: 'console', SMS_PROVIDER: 'console' });
   setConfigForTests(buildConfig(env));
   initLogger({ level: 'error', env: 'test', service: 'unigate-api-test', version: 'test', pretty: false });
 

@@ -1,4 +1,5 @@
 import { Prisma } from '@prisma/client';
+import type { Decimal } from '@/common/money.js';
 import type { AnyScope } from '@unigate/types';
 import { prisma } from '@/database/prisma.js';
 
@@ -135,4 +136,25 @@ export async function submitterOf(_scope: AnyScope, settlementId: string, tx: Pr
 export async function paidSettlementCovering(_scope: AnyScope, ownerProfileId: string, at: Date): Promise<boolean> {
   const n = await prisma().settlement.count({ where: { ownerProfileId, status: 'PAID', periodStart: { lte: at }, periodEnd: { gt: at } } });
   return n > 0;
+}
+
+export interface OwnerPenalty {
+  bookingId: string;
+  bookingNumber: string;
+  eventType: string;
+  reasonCode: string;
+  feeAmount: Decimal;
+  currency: string;
+  cancelledAt: Date;
+}
+
+/** Owner-payable cancellation / no-show fees in the period not yet carried by a PENALTY line (OQ-05). */
+export async function ownerPenaltiesInPeriod(_scope: AnyScope, ownerProfileId: string, from: Date, to: Date, tx: Prisma.TransactionClient | null = null): Promise<OwnerPenalty[]> {
+  const db = tx ?? prisma();
+  const rows = await db.bookingCancellation.findMany({
+    where: { feePayer: 'OWNER', feeWaivedAt: null, cancellationFeeAmount: { gt: 0 }, cancelledAt: { gte: from, lt: to }, booking: { ownerProfileId, settlementLines: { none: { lineType: 'PENALTY', settlement: { status: { not: 'CANCELLED' } } } } } },
+    select: { bookingId: true, eventType: true, reasonCode: true, cancellationFeeAmount: true, currency: true, cancelledAt: true, booking: { select: { bookingNumber: true } } },
+    orderBy: { cancelledAt: 'asc' },
+  });
+  return rows.map((r) => ({ bookingId: r.bookingId, bookingNumber: r.booking.bookingNumber, eventType: r.eventType, reasonCode: r.reasonCode, feeAmount: r.cancellationFeeAmount, currency: r.currency, cancelledAt: r.cancelledAt }));
 }

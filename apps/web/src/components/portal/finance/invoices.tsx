@@ -9,6 +9,7 @@ import { useSession } from '@/lib/auth/session-provider';
 import { errorMessage } from '@/lib/errors';
 import { Link } from '@/lib/i18n/routing';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { CustomerStatement } from '@/components/portal/finance/customer-statement';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -27,7 +28,7 @@ const TONE: Record<string, 'default' | 'secondary' | 'destructive' | 'outline'> 
 export function InvoicesList() {
   const t = useTranslations('portal.finance.invoices');
   const tc = useTranslations('common');
-  const { can } = useSession();
+  const { me, can } = useSession();
   const staff = can('invoices.issue');
   const [rows, setRows] = useState<InvoiceDto[] | null>(null);
   const [queue, setQueue] = useState<ClearanceQueueItemDto[]>([]);
@@ -77,6 +78,7 @@ export function InvoicesList() {
       {error && (
         <Alert variant="destructive"><AlertCircle className="size-4" /><AlertDescription>{errorMessage(tc, error)}</AlertDescription></Alert>
       )}
+      {!staff && me?.profiles.customer && <CustomerStatement customerProfileId={me.profiles.customer.id} />}
       {staff && (
         <Card>
           <CardHeader><CardTitle className="text-base">{t('cycle')}</CardTitle></CardHeader>

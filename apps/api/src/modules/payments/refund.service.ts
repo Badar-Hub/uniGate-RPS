@@ -63,11 +63,11 @@ export async function createRefund(scope: ActorScope, body: z.infer<typeof creat
 }
 
 /** Cancellation hook: the captured payment (if any) gets a REQUESTED refund for the refundable amount. */
-export async function requestRefundForCancellation(scope: AnyScope, bookingId: string, amount: Decimal, actorUserId: string | null, tx: Prisma.TransactionClient): Promise<{ id: string; refundNumber: string } | null> {
+export async function requestRefundForCancellation(scope: AnyScope, bookingId: string, amount: Decimal, actorUserId: string | null, tx: Prisma.TransactionClient, reasonCode: 'BOOKING_CANCELLED' | 'OWNER_NO_SHOW' | 'DISPUTE_RESOLVED' = 'BOOKING_CANCELLED'): Promise<{ id: string; refundNumber: string } | null> {
   if (round2(amount).lte(0)) return null;
   const p = await tx.payment.findFirst({ where: { bookingId, status: { in: ['PAID', 'PARTIALLY_REFUNDED'] } }, select: { id: true }, orderBy: { paidAt: 'desc' } });
   if (!p) return null;
-  const id = await requestRefund(scope, { paymentId: p.id, amount, reasonCode: 'BOOKING_CANCELLED', reasonText: null, requestedByUserId: actorUserId }, tx);
+  const id = await requestRefund(scope, { paymentId: p.id, amount, reasonCode, reasonText: null, requestedByUserId: actorUserId }, tx);
   const r = await tx.refund.findUniqueOrThrow({ where: { id }, select: { id: true, refundNumber: true } });
   return r;
 }

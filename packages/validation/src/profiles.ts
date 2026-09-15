@@ -77,6 +77,8 @@ export const upsertCorporateBody = z
 
 export const verifyCustomerBody = z.object({ notes: safeText(500).optional() }).strict();
 
+export const statementQuery = z.object({ periodStart: isoDate, periodEnd: isoDate }).strict().refine((q) => q.periodEnd >= q.periodStart, 'periodEnd must not precede periodStart');
+
 export const adminCreditBody = z
   .object({
     creditStatus: z.enum(CREDIT_STATUS).optional(),

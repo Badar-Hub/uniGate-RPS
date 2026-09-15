@@ -12,6 +12,7 @@ import { scanProvider } from '@/integrations/scan/scan.provider.js';
 import { storageProvider } from '@/integrations/storage/storage.provider.js';
 import { logger } from '@/logging/logger.js';
 import { writeAudit } from '@/modules/platform/audit.service.js';
+import { getSettingValue } from '@/modules/reference/settings.service.js';
 import { onVehicleDocumentsChanged } from '@/modules/fleet/vehicle.service.js';
 import { onOwnerDocumentsChanged } from '@/modules/profiles/owner.service.js';
 import { targetColumn, toDocumentDto, toRequirementDto, targetOf } from './documents.mapper.js';
@@ -311,4 +312,25 @@ export async function markExpiredDocuments(): Promise<number> {
     });
   }
   return expired.length;
+}
+
+/**
+ * Expiry warnings (BRIEF-§9, `documents.expiry_warning_days_default`): one `document.expiring`
+ * event per VERIFIED document per configured day-before mark. The dedupe is the day mark itself —
+ * the job runs daily and a document is warned once per mark (the notification dedupe key is the
+ * outbox row, and the mark is part of the payload the subscriber can key on).
+ */
+export async function warnExpiringDocuments(): Promise<number> {
+  const marks = await getSettingValue<number[]>('documents.expiry_warning_days_default', [30, 7, 1]);
+  const today = new Date(new Date().toISOString().slice(0, 10));
+  let warned = 0;
+  for (const daysLeft of marks) {
+    const target = new Date(today.getTime() + daysLeft * 86_400_000);
+    const rows = await prisma().document.findMany({ where: { verificationStatus: 'VERIFIED', deletedAt: null, expiryDate: target }, select: { id: true, documentTypeCode: true, userId: true, ownerProfileId: true, driverProfileId: true, vehicleId: true, corporateCustomerProfileId: true, expenseId: true, maintenanceRecordId: true, tripProofId: true, expiryDate: true }, take: 2000 });
+    for (const d of rows) {
+      await publishEvent('document', d.id, 'document.expiring', { target: targetOf(d), documentTypeCode: d.documentTypeCode, daysLeft, expiryDate: d.expiryDate?.toISOString().slice(0, 10) ?? '' });
+      warned++;
+    }
+  }
+  return warned;
 }

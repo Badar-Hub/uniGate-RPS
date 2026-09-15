@@ -37,6 +37,16 @@
       "DOCUMENT_UPLOAD_INCOMPLETE": "The upload did not complete. Please try again.",
       "DOCUMENT_CHECKSUM_MISMATCH": "The uploaded file was altered in transit. Please try again.",
       "DOCUMENT_SCAN_QUARANTINED": "This file was rejected by the malware scan.",
+      "RATING_NOT_ELIGIBLE": "Only completed bookings can be rated.",
+      "RATING_WINDOW_CLOSED": "The rating window for this booking has closed.",
+      "RATING_ALREADY_SUBMITTED": "You already rated this.",
+      "RATING_SUBJECT_INVALID": "That is not something you can rate on this booking.",
+      "COMPLAINT_INVALID_TRANSITION": "This complaint cannot move to that status.",
+      "COMPLAINT_RESOLUTION_REQUIRED": "Write the resolution before resolving.",
+      "NOTIFICATION_TEMPLATE_NOT_FOUND": "No active template has that code.",
+      "NOTIFICATION_TEMPLATE_VARIABLES_MISSING": "The template needs variables that were not supplied.",
+      "NOTIFICATION_CATEGORY_LOCKED": "Security, payment and trip notifications cannot be switched off.",
+      "NOTIFICATION_AUDIENCE_EMPTY": "The audience filter matched nobody.",
       "MAINTENANCE_CALENDAR_CONFLICT": "The maintenance window overlaps a reservation or block on the vehicle.",
       "MAINTENANCE_INVALID_TRANSITION": "This maintenance record cannot change in its current state.",
       "VEHICLE_CALENDAR_CONFLICT": "Those dates overlap an existing reservation, maintenance window or block.",
@@ -66,7 +76,7 @@
       "TRIP_REQUEST_FULLY_AWARDED": "Every vehicle on this request has already been awarded.",
       "RULE_PARTIAL_AWARD_NOT_ALLOWED": "This request must be awarded as a whole — select bids covering all vehicles.",
       "RULE_AWARD_SET_INCOMPLETE": "Select exactly as many bids as vehicles remaining.",
-      "RULE_CREDIT_LIMIT_EXCEEDED": "This booking would exceed your credit limit.",
+      "RULE_CREDIT_LIMIT_EXCEEDED": "This would exceed the customer’s credit limit.",
       "RULE_CREDIT_NOT_APPROVED": "Your credit account is not approved for invoiced bookings.",
       "VEHICLE_NOT_DISPATCHABLE": "The vehicle cannot be dispatched right now.",
       "COMMISSION_OVERRIDE_FORBIDDEN": "You may not override the commission.",
@@ -83,7 +93,7 @@
       "PAYMENT_AMOUNT_MISMATCH": "The price shown was out of date — please reload and try again.",
       "PAYMENT_DECLINED": "The payment was declined.",
       "PAYMENT_METHOD_UNSUPPORTED": "That payment method is not available.",
-      "PAYMENT_NOT_REFUNDABLE": "This payment cannot be refunded.",
+      "PAYMENT_NOT_REFUNDABLE": "There is no captured payment to refund on this booking.",
       "PAYMENT_EXPIRED": "The checkout expired. Start a new payment.",
       "PAYMENT_INVALID_TRANSITION": "This action is not available for the payment’s current state.",
       "PAYMENT_RETURN_URL_NOT_ALLOWED": "The return address is not allowed.",
@@ -125,14 +135,24 @@
       "VEHICLE_DOCUMENTS_INCOMPLETE": "Mandatory vehicle documents are missing or not yet verified.",
       "PERMISSION_NOT_HELD": "You can only grant permissions you hold yourself.",
       "EXPENSE_IMMUTABLE": "This expense is inside a paid settlement period and cannot change.",
-      "RULE_CREDIT_LIMIT_EXCEEDED": "This would exceed the customer’s credit limit.",
       "TRIP_NOT_ACTIVE": "This trip has ended.",
       "TRIP_ALREADY_COMPLETED": "This trip is already completed.",
       "TRIP_PROOF_REQUIRED": "A delivery proof is required first.",
       "TRIP_ODOMETER_REQUIRED": "Enter the odometer reading.",
       "TRACKING_SESSION_NOT_ACTIVE": "The trip is not being tracked yet.",
-      "TRACKING_STALE_POINT": "The location sample was too old."
-    }
+      "TRACKING_STALE_POINT": "The location sample was too old.",
+      "WEBHOOK_SIGNATURE_INVALID": "An event whose signature failed verification cannot be replayed.",
+      "OUTBOX_EVENT_NOT_FAILED": "Only failed outbox events can be retried.",
+      "REPORT_NOT_FOUND": "Unknown report.",
+      "REPORT_FORMAT_NOT_AVAILABLE": "Only CSV exports are available today.",
+      "REPORT_RANGE_TOO_WIDE": "The date range is wider than this report allows.",
+      "EXPORT_NOT_READY": "The export is not ready yet.",
+      "EXPORT_EXPIRED": "The export file has expired — request it again."
+    },
+    "yes": "Yes",
+    "no": "No",
+    "previous": "Previous",
+    "next": "Next"
   },
   "home": {
     "title": "UniGate platform",
@@ -210,7 +230,15 @@
       "invoices": "Invoices",
       "expenses": "Expenses",
       "maintenance": "Maintenance",
-      "commissions": "Commission rules"
+      "notifications": "Notifications",
+      "complaints": "Complaints",
+      "commissions": "Commission rules",
+      "reports": "Reports",
+      "adminDashboard": "Dashboard (ops)",
+      "refunds": "Refunds",
+      "roles": "Roles",
+      "auditLogs": "Audit log",
+      "system": "System"
     },
     "welcome": "Welcome, {name}",
     "roles": "Roles",
@@ -401,18 +429,35 @@
       "form": {
         "title": "New request",
         "transportType": "What are we moving?",
-        "vertical": { "PASSENGER": "Passengers", "GOODS": "Goods / freight" },
+        "vertical": {
+          "PASSENGER": "Passengers",
+          "GOODS": "Goods / freight"
+        },
         "goods": {
           "title": "Cargo",
           "cargoType": "Cargo type",
-          "cargoTypes": { "GENERAL": "General cargo", "FRAGILE": "Fragile", "PERISHABLE": "Perishable (chilled)", "HAZARDOUS": "Hazardous", "LIVESTOCK": "Livestock", "VEHICLE": "Vehicles", "BULK": "Bulk", "CONTAINER": "Container", "OTHER": "Other" },
+          "cargoTypes": {
+            "GENERAL": "General cargo",
+            "FRAGILE": "Fragile",
+            "PERISHABLE": "Perishable (chilled)",
+            "HAZARDOUS": "Hazardous",
+            "LIVESTOCK": "Livestock",
+            "VEHICLE": "Vehicles",
+            "BULK": "Bulk",
+            "CONTAINER": "Container",
+            "OTHER": "Other"
+          },
           "description": "Cargo description",
           "weight": "Weight (kg)",
           "volume": "Volume (m³)",
           "packages": "Packages",
           "loading": "Loading by",
           "unloading": "Unloading by",
-          "responsibility": { "CUSTOMER": "Customer", "DRIVER": "Driver", "THIRD_PARTY": "Third party" },
+          "responsibility": {
+            "CUSTOMER": "Customer",
+            "DRIVER": "Driver",
+            "THIRD_PARTY": "Third party"
+          },
           "refrigeration": "Refrigerated transport",
           "tempMin": "Min °C",
           "tempMax": "Max °C",
@@ -625,6 +670,34 @@
         "PAYMENT_FAILED": "Payment failed",
         "PAYMENT_WINDOW_EXPIRED": "Payment window expired",
         "OTHER": "Other"
+      },
+      "ops": {
+        "title": "Disputes & no-show",
+        "category": "Category",
+        "subject": "Subject",
+        "description": "What happened?",
+        "dispute": "Open a dispute",
+        "disputed": "Dispute opened — complaint {number}.",
+        "outcome": "Outcome",
+        "outcomes": {
+          "COMPLETED": "Service stands — mark completed",
+          "REFUND": "Refund the customer"
+        },
+        "refundAmount": "Refund amount (blank = full)",
+        "resolution": "Resolution (shown to the raiser)",
+        "resolve": "Resolve dispute",
+        "resolvedCompleted": "Dispute resolved — the booking is completed.",
+        "resolvedRefund": "Dispute resolved — refund {number} requested for approval.",
+        "party": "Who failed to show",
+        "parties": {
+          "CUSTOMER": "Customer",
+          "OWNER": "Owner / driver"
+        },
+        "reasonText": "Notes",
+        "feeOverride": "Fee override (SAR)",
+        "feeReason": "Override reason",
+        "recordNoShow": "Record no-show",
+        "noShowRecorded": "No-show recorded — fee {fee}, customer refund {refund}."
       }
     },
     "payments": {
@@ -656,6 +729,173 @@
         "unknown": "This checkout session is unknown or has already completed."
       }
     },
+    "engagement": {
+      "ratings": {
+        "title": "How was booking {booking}?",
+        "deadline": "You can rate until {date}.",
+        "subjects": {
+          "DRIVER": "Driver",
+          "VEHICLE": "Vehicle",
+          "OWNER": "Company",
+          "CUSTOMER": "Customer",
+          "TRIP": "Trip"
+        },
+        "rated": "Thanks — rated.",
+        "comment": "Comment (optional)",
+        "submit": "Rate"
+      },
+      "complaints": {
+        "title": "Complaints",
+        "subtitle": "Raise a concern about a driver, company, vehicle, customer or the platform. Our team replies here.",
+        "queueTitle": "Complaints queue",
+        "queueSubtitle": "First-response SLA per severity; assign, ask the raiser, resolve with a written resolution. Internal notes never leave this screen.",
+        "raise": "Raise a complaint",
+        "against": "Against",
+        "againstTypes": {
+          "DRIVER": "Driver",
+          "OWNER": "Company",
+          "CUSTOMER": "Customer",
+          "VEHICLE": "Vehicle",
+          "PLATFORM": "UniGate"
+        },
+        "category": "Category",
+        "categories": {
+          "SERVICE_QUALITY": "Service quality",
+          "SAFETY": "Safety",
+          "DRIVER_BEHAVIOUR": "Driver behaviour",
+          "VEHICLE_CONDITION": "Vehicle condition",
+          "DELAY": "Delay",
+          "DAMAGE_OR_LOSS": "Damage or loss",
+          "BILLING": "Billing",
+          "PLATFORM": "Platform",
+          "OTHER": "Other"
+        },
+        "booking": "Booking (optional)",
+        "subject": "Subject",
+        "severity": "Severity",
+        "severities": {
+          "LOW": "Low",
+          "MEDIUM": "Medium",
+          "HIGH": "High",
+          "CRITICAL": "Critical"
+        },
+        "description": "What happened?",
+        "submit": "Submit complaint",
+        "anyStatus": "Any status",
+        "anySeverity": "Any severity",
+        "overdueOnly": "Overdue only",
+        "number": "Number",
+        "status": "Status",
+        "statuses": {
+          "OPEN": "Open",
+          "IN_REVIEW": "In review",
+          "AWAITING_RESPONSE": "Awaiting your reply",
+          "RESOLVED": "Resolved",
+          "REJECTED": "Rejected",
+          "CLOSED": "Closed"
+        },
+        "assignee": "Assignee",
+        "raised": "Raised",
+        "raisedBy": "Raised by",
+        "empty": "No complaints.",
+        "overdue": "SLA breached",
+        "respondBy": "Respond by",
+        "resolution": "Resolution",
+        "assignToMe": "Assign to me",
+        "moveTo": "Move to…",
+        "apply": "Apply",
+        "thread": "Thread",
+        "noNotes": "No replies yet.",
+        "internal": "internal",
+        "reply": "Write a reply",
+        "send": "Send"
+      }
+    },
+    "notifications": {
+      "title": "Notifications",
+      "subtitle": "Everything the platform told you, with the channel preferences that decide where else it goes.",
+      "bell": "Notifications ({n} unread)",
+      "viewAll": "View all",
+      "empty": "Nothing here yet.",
+      "allCategories": "All categories",
+      "unreadOnly": "Unread only",
+      "readAll": "Mark all read",
+      "open": "Open",
+      "markRead": "Mark read",
+      "remove": "Remove",
+      "loadMore": "Load more",
+      "categories": {
+        "OPPORTUNITY": "Opportunities",
+        "BIDDING": "Bidding",
+        "BOOKING": "Bookings",
+        "PAYMENT": "Payments",
+        "TRIP": "Trips",
+        "DOCUMENTS": "Documents",
+        "MAINTENANCE": "Maintenance",
+        "ONBOARDING": "Onboarding",
+        "SECURITY": "Security",
+        "FINANCE": "Finance",
+        "OPERATIONS": "Announcements",
+        "GENERAL": "General"
+      },
+      "channels": {
+        "IN_APP": "In-app",
+        "EMAIL": "Email",
+        "SMS": "SMS",
+        "PUSH": "Push"
+      },
+      "preferences": {
+        "title": "Channel preferences",
+        "hint": "Choose where each kind of notification reaches you. Security, payment and trip notices are always delivered.",
+        "category": "Category",
+        "locked": "always on"
+      },
+      "admin": {
+        "title": "Notifications — operations",
+        "subtitle": "Template wording without a deploy, and template-based sends to an audience. Free text is never sent.",
+        "send": {
+          "title": "Send to an audience",
+          "template": "Template code",
+          "variables": "Variables (JSON)",
+          "profileTypes": "Profile types",
+          "profile": {
+            "CUSTOMER": "Customers",
+            "OWNER": "Vehicle owners",
+            "DRIVER": "Drivers",
+            "SPO": "Sales partners"
+          },
+          "roleCodes": "Role codes (comma-separated)",
+          "userIds": "User IDs (comma-separated)",
+          "channels": "Channels",
+          "urgent": "Urgent — ignore quiet hours and preferences (audited)",
+          "submit": "Send",
+          "result": "Accepted: {recipients} recipients, {queued} deliveries queued, {suppressed} suppressed."
+        },
+        "templates": {
+          "title": "Templates",
+          "code": "Code",
+          "channel": "Channel",
+          "locale": "Locale",
+          "subject": "Subject / title",
+          "version": "Version",
+          "anyChannel": "Any channel",
+          "anyLocale": "Any locale",
+          "inactive": "inactive",
+          "edit": "Edit",
+          "empty": "No templates match."
+        },
+        "editor": {
+          "title": "Edit {code} · {channel} · {locale}",
+          "body": "Body",
+          "variablesHint": "Placeholders: {vars}",
+          "active": "Active",
+          "save": "Save wording",
+          "sample": "Sample variables (JSON)",
+          "preview": "Preview saved version",
+          "missing": "Unfilled placeholders: {vars}"
+        }
+      }
+    },
     "maintenance": {
       "title": "Maintenance",
       "subtitle": "Workshop visits hold the vehicle on its calendar; completion moves the odometer, rolls the schedule and books the cost.",
@@ -663,11 +903,21 @@
       "vehicle": "Vehicle",
       "serviceType": "Service",
       "kind": "Kind",
-      "kinds": { "SCHEDULED": "Scheduled", "UNSCHEDULED": "Unscheduled", "REPAIR": "Repair", "INSPECTION": "Inspection" },
+      "kinds": {
+        "SCHEDULED": "Scheduled",
+        "UNSCHEDULED": "Unscheduled",
+        "REPAIR": "Repair",
+        "INSPECTION": "Inspection"
+      },
       "from": "From",
       "to": "To",
       "initialStatus": "Starts as",
-      "status": { "PLANNED": "Planned", "IN_PROGRESS": "In workshop", "COMPLETED": "Completed", "CANCELLED": "Cancelled" },
+      "status": {
+        "PLANNED": "Planned",
+        "IN_PROGRESS": "In workshop",
+        "COMPLETED": "Completed",
+        "CANCELLED": "Cancelled"
+      },
       "statusLabel": "Status",
       "cost": "Cost (net)",
       "vat": "VAT",
@@ -708,43 +958,67 @@
       }
     },
     "finance": {
-    "vendors": {
-      "title": "Vendors",
-      "subtitle": "Third-party vehicle owners are added here by UniGate, activate their account, upload their documents and are approved before they register a fleet.",
-      "add": "Add a vendor",
-      "contactName": "Contact name",
-      "email": "Email",
-      "phone": "Phone",
-      "ownerType": "Type",
-      "types": { "COMPANY": "Company", "INDIVIDUAL": "Individual", "PLATFORM": "UniGate fleet" },
-      "businessName": "Business name",
-      "crNumber": "CR number",
-      "verticals": { "PASSENGER": "Passenger transport", "GOODS": "Goods transport" },
-      "create": "Create vendor",
-      "createdTitle": "Vendor account created for {name}",
-      "createdHint": "Send this one-time activation link to the vendor (valid until {until}). They set their password, sign in and upload documents; the profile enters your review queue automatically.",
-      "copy": "Copy link",
-      "copied": "Copied",
-      "vendor": "Vendor",
-      "contact": "Contact",
-      "statusLabel": "Onboarding",
-      "status": { "DRAFT": "Awaiting documents", "DOCUMENTS_SUBMITTED": "Documents in — review", "UNDER_REVIEW": "Under review", "APPROVED": "Approved", "REJECTED": "Rejected", "SUSPENDED": "Suspended" },
-      "review": "Review",
-      "accessLink": "Access",
-      "empty": "No vendors yet.",
-      "access": {
-        "title": "Vendor access",
-        "subtitle": "Roles: {roles}. Tick what this vendor may do; anything beyond the role becomes a grant, anything removed from it a deny.",
-        "module": "Module",
-        "actions": { "read": "Read", "create": "Create", "update": "Update", "delete": "Delete" },
-        "other": "Other actions",
-        "changes": "Changes",
-        "changesHint": "{grant} grants · {deny} denies compared with the role",
-        "note": "Note (audited)",
-        "save": "Save access",
-        "saved": "Saved — takes effect on the vendor's next request."
-      }
-    },
+      "vendors": {
+        "title": "Vendors",
+        "subtitle": "Third-party vehicle owners are added here by UniGate, activate their account, upload their documents and are approved before they register a fleet.",
+        "add": "Add a vendor",
+        "contactName": "Contact name",
+        "email": "Email",
+        "phone": "Phone",
+        "ownerType": "Type",
+        "types": {
+          "COMPANY": "Company",
+          "INDIVIDUAL": "Individual",
+          "PLATFORM": "UniGate fleet"
+        },
+        "businessName": "Business name",
+        "crNumber": "CR number",
+        "verticals": {
+          "PASSENGER": "Passenger transport",
+          "GOODS": "Goods transport"
+        },
+        "create": "Create vendor",
+        "createdTitle": "Vendor account created for {name}",
+        "createdHint": "Send this one-time activation link to the vendor (valid until {until}). They set their password, sign in and upload documents; the profile enters your review queue automatically.",
+        "delivery": {
+          "SENT": "The link was sent to the vendor by email/SMS.",
+          "FAILED": "Delivery failed — hand the link over manually.",
+          "UNREACHABLE": "No reachable address — hand the link over manually."
+        },
+        "copy": "Copy link",
+        "copied": "Copied",
+        "vendor": "Vendor",
+        "contact": "Contact",
+        "statusLabel": "Onboarding",
+        "status": {
+          "DRAFT": "Awaiting documents",
+          "DOCUMENTS_SUBMITTED": "Documents in — review",
+          "UNDER_REVIEW": "Under review",
+          "APPROVED": "Approved",
+          "REJECTED": "Rejected",
+          "SUSPENDED": "Suspended"
+        },
+        "review": "Review",
+        "accessLink": "Access",
+        "empty": "No vendors yet.",
+        "access": {
+          "title": "Vendor access",
+          "subtitle": "Roles: {roles}. Tick what this vendor may do; anything beyond the role becomes a grant, anything removed from it a deny.",
+          "module": "Module",
+          "actions": {
+            "read": "Read",
+            "create": "Create",
+            "update": "Update",
+            "delete": "Delete"
+          },
+          "other": "Other actions",
+          "changes": "Changes",
+          "changesHint": "{grant} grants · {deny} denies compared with the role",
+          "note": "Note (audited)",
+          "save": "Save access",
+          "saved": "Saved — takes effect on the vendor's next request."
+        }
+      },
       "settlements": {
         "title": "Settlements",
         "subtitleOwner": "Your pending earnings and settlement history.",
@@ -764,17 +1038,34 @@
         "heldCount": "Held bookings",
         "belowMinimum": "Below the minimum payout of {min} — the balance carries forward.",
         "nothingPending": "Nothing pending in this period.",
-        "hold": { "HOLD_PERIOD": "hold period", "PAYMENT_PENDING": "awaiting payment / invoice" },
+        "hold": {
+          "HOLD_PERIOD": "hold period",
+          "PAYMENT_PENDING": "awaiting payment / invoice"
+        },
         "number": "Settlement",
         "period": "Period",
         "statusLabel": "Status",
         "empty": "No settlements yet.",
-        "status": { "DRAFT": "Draft", "PENDING_APPROVAL": "Pending approval", "APPROVED": "Approved", "PROCESSING": "Processing", "PAID": "Paid", "FAILED": "Failed", "CANCELLED": "Cancelled" },
+        "status": {
+          "DRAFT": "Draft",
+          "PENDING_APPROVAL": "Pending approval",
+          "APPROVED": "Approved",
+          "PROCESSING": "Processing",
+          "PAID": "Paid",
+          "FAILED": "Failed",
+          "CANCELLED": "Cancelled"
+        },
         "lineType": "Type",
         "booking": "Booking",
         "description": "Description",
         "amount": "Amount",
-        "lineTypes": { "BOOKING_EARNING": "Earning", "COMMISSION": "Commission", "ADJUSTMENT": "Adjustment", "PENALTY": "Penalty", "REFUND_CLAWBACK": "Refund clawback" },
+        "lineTypes": {
+          "BOOKING_EARNING": "Earning",
+          "COMMISSION": "Commission",
+          "ADJUSTMENT": "Adjustment",
+          "PENALTY": "Penalty",
+          "REFUND_CLAWBACK": "Refund clawback"
+        },
         "addLine": "Add adjustment",
         "submit": "Submit for approval",
         "approve": "Approve",
@@ -829,8 +1120,23 @@
         "void": "Void",
         "creditFull": "Credit in full",
         "correctionsHint": "A void erases an invoice the authority does not hold; a credit note reverses an issued one. Neither reuses a number.",
-        "types": { "TAX_INVOICE": "Tax invoice", "SIMPLIFIED_TAX_INVOICE": "Simplified tax invoice", "CREDIT_NOTE": "Credit note", "DEBIT_NOTE": "Debit note" },
-        "status": { "DRAFT": "Draft", "PENDING_CLEARANCE": "Pending clearance", "ISSUED": "Issued", "PARTIALLY_PAID": "Partially paid", "PAID": "Paid", "OVERDUE": "Overdue", "VOID": "Void", "CREDITED": "Credited", "CLEARANCE_FAILED": "Clearance failed" }
+        "types": {
+          "TAX_INVOICE": "Tax invoice",
+          "SIMPLIFIED_TAX_INVOICE": "Simplified tax invoice",
+          "CREDIT_NOTE": "Credit note",
+          "DEBIT_NOTE": "Debit note"
+        },
+        "status": {
+          "DRAFT": "Draft",
+          "PENDING_CLEARANCE": "Pending clearance",
+          "ISSUED": "Issued",
+          "PARTIALLY_PAID": "Partially paid",
+          "PAID": "Paid",
+          "OVERDUE": "Overdue",
+          "VOID": "Void",
+          "CREDITED": "Credited",
+          "CLEARANCE_FAILED": "Clearance failed"
+        }
       },
       "expenses": {
         "title": "Expenses",
@@ -872,9 +1178,21 @@
         "inactive": "Inactive",
         "deactivate": "Deactivate",
         "save": "Save rule",
-        "scopes": { "GLOBAL": "Global", "VEHICLE_CATEGORY": "Vehicle category", "OWNER": "Owner", "OWNER_CATEGORY": "Owner + category" },
-        "types": { "PERCENTAGE": "Percentage", "FIXED": "Fixed", "NONE": "None" },
-        "bases": { "NET_OF_VAT": "Net of VAT", "GROSS": "Gross" }
+        "scopes": {
+          "GLOBAL": "Global",
+          "VEHICLE_CATEGORY": "Vehicle category",
+          "OWNER": "Owner",
+          "OWNER_CATEGORY": "Owner + category"
+        },
+        "types": {
+          "PERCENTAGE": "Percentage",
+          "FIXED": "Fixed",
+          "NONE": "None"
+        },
+        "bases": {
+          "NET_OF_VAT": "Net of VAT",
+          "GROSS": "Gross"
+        }
       }
     },
     "tracking": {
@@ -908,6 +1226,174 @@
       },
       "live": "Live",
       "reconnecting": "Reconnecting…"
+    },
+    "adminDashboard": {
+      "title": "Operations dashboard",
+      "subtitle": "The platform at a glance for a date range; figures are cached for 60 seconds.",
+      "from": "From",
+      "to": "To",
+      "vertical": "Vertical",
+      "allVerticals": "All verticals",
+      "passenger": "Passenger",
+      "goods": "Goods",
+      "bucket": "Bucket",
+      "buckets": {
+        "day": "Daily",
+        "week": "Weekly",
+        "month": "Monthly"
+      },
+      "computedAt": "Computed {at}",
+      "series": "Over time",
+      "kpi": {
+        "users": "Active users",
+        "customers": "Customers",
+        "owners": "Approved owners",
+        "drivers": "Approved drivers",
+        "vehicles": "Vehicles",
+        "activeVehicles": "Active vehicles",
+        "tripRequests": "Trip requests",
+        "bids": "Bids",
+        "bookings": "Bookings",
+        "activeTrips": "Active trips",
+        "completedTrips": "Completed trips",
+        "cancelledBookings": "Cancelled bookings",
+        "grossBookingValue": "Gross booking value",
+        "platformCommission": "Platform commission",
+        "pendingSettlements": "Pending settlements",
+        "openComplaints": "Open complaints"
+      }
+    },
+    "adminSettings": {
+      "title": "Settings",
+      "subtitle": "Every business value the platform reads at run time, by section. Changes are audited and need a step-up code; secrets never appear here.",
+      "codeManaged": "code-managed",
+      "save": "Save",
+      "saved": "Saved {key}."
+    },
+    "adminRoles": {
+      "title": "Roles & permissions",
+      "subtitle": "Roles are data: create a role with the permission subset you need, no deployment required. System roles are read-only.",
+      "create": "New role",
+      "system": "system",
+      "grants": "{n} permissions",
+      "view": "View",
+      "edit": "Edit",
+      "code": "Code",
+      "nameEn": "Name (English)",
+      "nameAr": "Name (Arabic)",
+      "description": "Description",
+      "save": "Save role",
+      "delete": "Delete role",
+      "stepUpHint": "Saving a role asks for a one-time code; the change applies to every holder on their next request."
+    },
+    "adminAudit": {
+      "title": "Audit log",
+      "subtitle": "Who did what, when, from where. Values were redacted at write time. Viewing this trail is itself recorded.",
+      "action": "Action prefix",
+      "entityType": "Entity type",
+      "entityId": "Entity id",
+      "severity": "Severity",
+      "any": "Any",
+      "from": "From",
+      "to": "To",
+      "apply": "Apply",
+      "export": "Export CSV",
+      "exportQueued": "Export queued (job {id}) — collect it from Reports.",
+      "empty": "No entries match.",
+      "history": "History",
+      "loadMore": "Load more"
+    },
+    "reports": {
+      "title": "Reports",
+      "subtitle": "Run a report on screen or export it as CSV. You see your own rows; staff see everything.",
+      "financial": "financial",
+      "run": "Run",
+      "exportCsv": "Export CSV",
+      "rows": "{n} rows",
+      "empty": "No rows for these filters.",
+      "exports": {
+        "title": "Exports",
+        "report": "Report",
+        "status": "Status",
+        "rows": "Rows",
+        "requested": "Requested",
+        "empty": "No exports yet.",
+        "download": "Download"
+      }
+    },
+    "adminSystem": {
+      "title": "System",
+      "subtitle": "Deep health, queues, the payment-incident tool and the outbox.",
+      "health": "Health",
+      "checks": {
+        "database": "Database",
+        "redis": "Redis",
+        "storage": "Object storage"
+      },
+      "up": "up",
+      "down": "down",
+      "version": "Version",
+      "environment": "Environment",
+      "migration": "Migration",
+      "oldestWebhook": "Oldest unprocessed webhook",
+      "outbox": "Outbox",
+      "webhooks": "Payment webhooks",
+      "received": "Received",
+      "provider": "Provider",
+      "event": "Event",
+      "signature": "Signature",
+      "processing": "Processing",
+      "valid": "valid",
+      "invalid": "invalid",
+      "replay": "Replay",
+      "empty": "Nothing recorded.",
+      "failedOutbox": "Failed outbox events",
+      "created": "Created",
+      "attempts": "Attempts",
+      "lastError": "Last error",
+      "noFailed": "No failed events.",
+      "retryRow": "Retry"
+    },
+    "adminRefunds": {
+      "title": "Refunds",
+      "subtitle": "Requested refunds await a second pair of eyes; approved ones are sent to the gateway.",
+      "status": "Status",
+      "any": "Any status",
+      "number": "Refund",
+      "booking": "Booking",
+      "amount": "Amount",
+      "reason": "Reason",
+      "requested": "Requested",
+      "empty": "No refunds.",
+      "approve": "Approve",
+      "reject": "Reject",
+      "process": "Process",
+      "rejectReason": "Reason for rejecting",
+      "fourEyes": "You requested this refund — someone else must approve it."
+    },
+    "statement": {
+      "title": "Account statement",
+      "from": "From",
+      "to": "To",
+      "generate": "Generate",
+      "openingBalance": "Opening balance",
+      "invoicedAmount": "Invoiced",
+      "paymentsAmount": "Payments",
+      "creditsAmount": "Credits",
+      "closingBalance": "Closing balance",
+      "ageing": {
+        "current": "Current",
+        "d1to30": "1–30 days",
+        "d31to60": "31–60 days",
+        "d61to90": "61–90 days",
+        "over90": "90+ days"
+      },
+      "date": "Date",
+      "description": "Description",
+      "reference": "Reference",
+      "debit": "Debit",
+      "credit": "Credit",
+      "noMovements": "No movements in this period."
     }
   },
   "driver": {

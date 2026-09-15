@@ -1,11 +1,11 @@
 import { Worker, type Job } from 'bullmq';
 import { logger } from '@/logging/logger.js';
+import { handleDomainEvent } from '@/modules/notifications/event.subscribers.js';
 import { bullConnection, QUEUE } from './queues.js';
 
 /**
- * Domain event consumers. Phase 3 registers the auth/security events and logs them; the
- * notifications module (OTP path now, full system in Phase 13) replaces the log lines with
- * template-rendered deliveries. Handlers must be idempotent — BullMQ retries on failure and
+ * Domain event consumers. The notifications module subscribes to the business events
+ * (FR-NOTIFICATIONS-03); anything without a subscriber falls through to the log-only handlers. Handlers must be idempotent — BullMQ retries on failure and
  * the outbox may (rarely) enqueue twice; the job id is the outbox row id, which dedupes.
  */
 interface EventJobData {
@@ -50,7 +50,9 @@ export function startEventWorker(): Worker<EventJobData> {
   const worker = new Worker<EventJobData>(
     QUEUE.events,
     async (job) => {
+      const handled = await handleDomainEvent({ id: job.data.id, eventType: job.name, aggregateType: job.data.aggregateType, aggregateId: job.data.aggregateId, payload: job.data.payload ?? {} });
       const h = handlers[job.name];
+      if (handled) return;
       if (!h) {
         logger().warn({ event: job.name }, 'no handler registered; acknowledging');
         return;

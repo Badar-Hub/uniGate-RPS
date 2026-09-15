@@ -12,6 +12,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { RatingPrompt } from '@/components/portal/engagement/rating-prompt';
 
 const STATUS_TONE: Record<string, 'default' | 'secondary' | 'destructive' | 'outline'> = {
   DRAFT: 'outline',
@@ -60,6 +61,7 @@ export function Dashboard() {
   return (
     <div className="space-y-6">
       <h1 className="text-2xl font-semibold tracking-tight">{t('welcome', { name: me.fullNameEn })}</h1>
+      <RatingPrompt />
 
       <div className="grid gap-4 md:grid-cols-2">
         <Card>

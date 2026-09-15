@@ -15,3 +15,7 @@ import '@/modules/payments/payments.openapi.js';
 import '@/modules/trips/trips.openapi.js';
 import '@/modules/finance/finance.openapi.js';
 import '@/modules/maintenance/maintenance.openapi.js';
+import '@/modules/notifications/notification.openapi.js';
+import '@/modules/engagement/engagement.openapi.js';
+import '@/modules/admin/admin.openapi.js';
+import '@/modules/reporting/reporting.openapi.js';

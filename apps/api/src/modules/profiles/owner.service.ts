@@ -9,6 +9,7 @@ import { publishEvent } from '@/events/outbox.js';
 import { mandatoryDocumentsSatisfied } from '@/modules/documents/documents.service.js';
 import { activationUrl, createVendorAccount, getUser } from '@/modules/iam/admin.service.js';
 import { bumpPermissionVersion } from '@/modules/iam/permission.service.js';
+import { sendSecretLink } from '@/modules/notifications/notification.service.js';
 import { writeAudit } from '@/modules/platform/audit.service.js';
 import { getSettingValue } from '@/modules/reference/settings.service.js';
 import * as repo from './owner.repository.js';
@@ -61,8 +62,8 @@ export async function createOwner(scope: ActorScope, body: z.infer<typeof create
 
 /**
  * POST /admin/vendors — UniGate adds a third-party vendor: account + owner profile + the verticals
- * applied for, in one transaction. The vendor activates through the link (shown once to the admin
- * until notifications deliver it), signs in, uploads documents; the profile enters the review queue
+ * applied for, in one transaction. The activation link is delivered to the vendor (email, else SMS)
+ * and shown once to the admin as a fallback; the vendor signs in, uploads documents; the profile enters the review queue
  * by itself when every mandatory document is in (`onOwnerDocumentsChanged`).
  */
 export async function createVendor(scope: ActorScope, body: z.infer<typeof createVendorBody>): Promise<VendorCreatedDto> {
@@ -75,7 +76,10 @@ export async function createVendor(scope: ActorScope, body: z.infer<typeof creat
     await publishEvent('owner', ownerId, 'owner.vendor_created', { userId: account.userId, transportTypes: body.transportTypes }, tx);
     return account;
   });
-  return { user: await getUser(scope, userId), owner: await getOwner(scope, ownerId), activationUrl: activationUrl(body.preferredLocale, activationToken), activationExpiresAt: expiresAt.toISOString() };
+  const url = activationUrl(body.preferredLocale, activationToken);
+  // The one-time link never enters the outbox (redacted) or a queue: delivered synchronously, stored masked.
+  const delivery = await sendSecretLink({ userId, templateCode: 'VENDOR_ACTIVATION', variables: { companyName: body.businessNameEn ?? body.fullNameEn, expiresAt: expiresAt.toISOString().slice(0, 16).replace('T', ' ') + ' UTC' }, secrets: { activationUrl: url } });
+  return { user: await getUser(scope, userId), owner: await getOwner(scope, ownerId), activationUrl: url, activationExpiresAt: expiresAt.toISOString(), activationDelivery: delivery };
 }
 
 const systemScope: AnyScope = { kind: 'SYSTEM', jobName: 'owners.documents', requestId: 'internal' };

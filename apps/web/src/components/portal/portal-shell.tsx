@@ -2,11 +2,12 @@
 
 import { useEffect, type ReactNode } from 'react';
 import { useTranslations } from 'next-intl';
-import { Building2, CalendarCheck2, CarFront, Smartphone, ClipboardList, FileCheck2, FileText, Gavel, LayoutDashboard, Loader2, LogOut, Percent, Receipt, Sparkles, Truck, UserCircle2, Users, Wallet, WalletCards, Wrench } from 'lucide-react';
+import { Activity, BarChart3, BellRing, Building2, CalendarCheck2, KeyRound, MessageSquareWarning, RotateCcw, ScrollText, Settings, CarFront, Smartphone, ClipboardList, FileCheck2, FileText, Gavel, LayoutDashboard, Loader2, LogOut, Percent, Receipt, Sparkles, Truck, UserCircle2, Users, Wallet, WalletCards, Wrench } from 'lucide-react';
 import { useSession } from '@/lib/auth/session-provider';
 import { Link, usePathname, useRouter } from '@/lib/i18n/routing';
 import { cn } from '@/lib/utils';
 import { LanguageSwitch } from '@/components/language-switch';
+import { NotificationBell } from '@/components/portal/notifications/notification-bell';
 import { Button } from '@/components/ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 
@@ -49,8 +50,17 @@ export function PortalShell({ children }: { children: ReactNode }) {
     { href: '/invoices', label: t('invoices'), icon: Receipt, show: Boolean(me.profiles.customer) || can('invoices.issue') },
     { href: '/expenses', label: t('expenses'), icon: WalletCards, show: Boolean(me.profiles.owner) || can('expenses.read_any') },
     { href: '/maintenance', label: t('maintenance'), icon: Wrench, show: Boolean(me.profiles.owner) || can('maintenance.read_any') },
+    { href: '/complaints', label: t('complaints'), icon: MessageSquareWarning, show: can('complaints.read') },
+    { href: '/reports', label: t('reports'), icon: BarChart3, show: can('reports.read') },
+    { href: '/admin/dashboard', label: t('adminDashboard'), icon: Activity, show: can('dashboard.read') && can('bookings.read_any') },
     { href: '/admin/commissions', label: t('commissions'), icon: Percent, show: can('commissions.manage') },
+    { href: '/admin/notifications', label: t('notifications'), icon: BellRing, show: can('notifications.send') || can('notifications.templates.manage') },
     { href: '/admin/vendors', label: t('vendors'), icon: Building2, show: can('owners.create') && can('users.create') },
+    { href: '/admin/refunds', label: t('refunds'), icon: RotateCcw, show: can('payments.refund') },
+    { href: '/admin/settings', label: t('settings'), icon: Settings, show: can('settings.read') },
+    { href: '/admin/roles', label: t('roles'), icon: KeyRound, show: can('roles.read') },
+    { href: '/admin/audit-logs', label: t('auditLogs'), icon: ScrollText, show: can('audit_logs.read') },
+    { href: '/admin/system', label: t('system'), icon: Activity, show: can('system.health.read') || can('payments.manage') || can('platform.jobs.manage') },
     { href: '/admin/owners', label: t('adminReview'), icon: FileCheck2, show: can('owners.approve') },
     { href: '/admin/vehicles', label: t('vehicleApprovals'), icon: Truck, show: can('vehicles.approve') },
     { href: '/admin/customers', label: t('customers'), icon: Users, show: false },
@@ -81,6 +91,7 @@ export function PortalShell({ children }: { children: ReactNode }) {
           <span className="hidden text-sm text-muted-foreground md:inline">{tp('welcome', { name: me.fullNameEn })}</span>
           <div className="flex items-center gap-1">
             <LanguageSwitch />
+            {can('notifications.read') && <NotificationBell />}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="icon" aria-label={me.fullNameEn}>

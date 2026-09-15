@@ -1,7 +1,7 @@
 # UniGate — Implementation Status
 
 **Last updated:** 2026-09-15
-**Current phase:** **Phase 12 complete** (Maintenance) 2026-09-15 → Phase 13 (Admin & reporting) ready to start
+**Current phase:** **Phase 13 complete** (13a Notifications, 13b Engagement, 13c Admin & reporting) 2026-09-15 → Phase 14 (Hardening) ready to start
 **Overall:** Foundation built and verified end to end: monorepo, typed packages, API core, full Prisma schema (82 tables) with hand-written constraints, seeds, migration-integrity test, web scaffold (shadcn/ui, ar/en RTL), CI. `pnpm ci` is green (20/20 tasks). See [development.md](development.md).
 
 > **Schema-blocking questions resolved 2026-09-14.**
@@ -36,7 +36,7 @@ Status values: `NOT_STARTED` · `IN_PROGRESS` · `BLOCKED` · `COMPLETE`
 | 11 | Finance | **COMPLETE** 2026-09-15 | See *Phase 11 exit* below. Settlements, invoices (clearance flow behind the `EInvoicingProvider` port — no compliance claimed, OQ-04), expenses, commission admin, ledger reads. Supplier invoicing (OQ-25/OQ-30) and SPO (OQ-09) carried forward |
 | 11b | **Goods vertical** | **COMPLETE** 2026-09-15 | See *Phase 11b exit* below. Built behind `platform.verticals_enabled` (seed PASSENGER only); the Bayan gate and zero-rating are hooks awaiting OQ-29 / OQ-27; TGA licensing OQ-13 |
 | 12 | Maintenance | **COMPLETE** 2026-09-15 | See *Phase 12 exit* below. Records hold the vehicle on its calendar (EXCLUDE), completion feeds odometer / schedule / expenses; the reminder job publishes `maintenance.due` (fan-out lands with notifications, Phase 13) |
-| 13 | Admin & reporting | `NOT_STARTED` | Per-vertical admin sections; `platform.verticals_enabled` toggle |
+| 13 | Admin & reporting | **COMPLETE** 2026-09-15 | See the *Phase 13a / 13b / 13c exit* tables. Notifications, engagement, disputes / no-show, statements, dashboard, system tooling, audit explorer, 15 reports + CSV exports, settings / roles / refunds screens; per-vertical dashboard filter; `platform.verticals_enabled` editable in the settings screen |
 | 14 | Hardening | `NOT_STARTED` | ~~Performance targets pending OQ-15~~ estimates agreed 2026-09-15 |
 | 15 | Testing | `NOT_STARTED` | |
 | 16 | Deployment | `NOT_STARTED` | Hosting region **BLOCKED** on OQ-12 (data residency) |
@@ -303,6 +303,55 @@ Verified on 2026-09-15 with `pnpm turbo run typecheck lint test build --force` (
 
 ---
 
+## Phase 13a exit — notifications — what was verified (2026-09-15)
+
+| Area | Delivered | Proof |
+|---|---|---|
+| Channel ports | `integrations/notifications`: `EmailProvider` (console dev-only; **SMTP via nodemailer** — MailHog in dev, any relay in production; SES = the SMTP endpoint), `SmsProvider` (console; vendor adapter with procurement, OQ-10), `PushProvider` (`none` — tokens stored, rows SUPPRESSED until FCM lands); env `EMAIL_PROVIDER` / `EMAIL_FROM` / `SMTP_*` / `SMS_PROVIDER` / `PUSH_PROVIDER`, console/mailhog refused in production | env test, providers |
+| Templates | 36 codes × en/ar × channels = 218 seeded rows (BRIEF-§23 list + security, finance, onboarding, ops); `{{placeholder}}` renderer that never interprets values; seed refreshes only rows never edited (version 1); `GET/POST/PATCH /notifications/templates`, `POST …/preview` reporting unfilled placeholders; edits bump `version` and are audited | notifications test 4 |
+| Fan-out | `event.subscribers.ts` maps 30 domain events (opportunity, bid, booking, payment, refund, trip status, documents incl. the new daily `document.expiring` job at 30/7/1 days, maintenance due, onboarding decisions, security, access changes, settlement paid, invoice issued/overdue) to recipients + template; recipients resolved from profile ids; per-locale label overrides | notifications tests 1–3 |
+| Delivery | One row per user × channel; IN_APP delivered by the row (+ socket `user:{id}`); EMAIL/SMS/PUSH QUEUED → `unigate-notifications` worker (ids only in Redis) with retries, FAILED only on the final attempt; quiet hours delay non-urgent categories; sweeper + daily purge (`notifications.retention_days`); dedupe key = outbox id (replay never duplicates) | notifications tests 1, 3 |
+| Preferences | Category × channel matrix; `notifications.locked_categories` (SECURITY, PAYMENT, TRIP) cannot be disabled (`422 NOTIFICATION_CATEGORY_LOCKED`); a disabled channel is SUPPRESSED with the reason while IN_APP still lands | notifications test 2 |
+| Ops send | `POST /notifications/send` (Idempotency-Key required): template + variables to userIds / roleCodes / profileTypes; `422` for missing variables or an empty audience; audited with counts; never free text | notifications test 5, matrix |
+| One-time links | Password reset and vendor activation are delivered synchronously (email, else SMS) and stored with the link masked — the outbox redacts tokens by design; `VendorCreatedDto.activationDelivery` tells the admin whether to hand the link over | notifications test 6, vendors test |
+| Web | Header bell (unread badge polled every 60 s, latest eight, one click marks read and deep-links), `/notifications` inbox (cursor paging, category / unread filters, read-all, delete, preferences matrix with locked rows), `/admin/notifications` (send to an audience; templates by code/channel/locale with an editor and saved-version preview) | typecheck/lint |
+
+**Carried forward:** the SMS vendor adapter (OQ-10 / B-9) and FCM push; HTML email layout (plain text today); the OTP path still goes through its own `OtpProvider` (unchanged); Socket.IO fan-out from the worker process needs the Redis adapter (Phase 16).
+
+---
+
+## Phase 13b exit — engagement — what was verified (2026-09-15)
+
+| Area | Delivered | Proof |
+|---|---|---|
+| Rating eligibility | `POST /ratings`: booking COMPLETED, rater a party in the claimed role (a stranger — or the wrong role — gets **404**, never 403), inside `booking.rating_window_days` (`422 RATING_WINDOW_CLOSED`), only subjects the role may rate (customers → driver / vehicle / company / trip; supply side → customer / trip; `422 RATING_SUBJECT_INVALID`), once per subject (`409 RATING_ALREADY_SUBMITTED`) | engagement test 1 |
+| Aggregates & prompt | Published ratings recompute `rating_avg` / `rating_count` on the subject after commit (not by trigger); `GET /ratings/summary` (avg, count, histogram) agrees with the columns; `GET /ratings/eligible` lists what is still rateable with the deadline and drives the "rate your trip" cards | engagement test 1 |
+| Moderation | `booking.rating_review_below_score` parks low commented scores in PENDING_REVIEW (not counted); non-moderators see PUBLISHED only; `POST /ratings/{id}/moderate` and `DELETE` (HIDDEN) recompute and are audited; the rater's name is masked ("Ahmed A.") | engagement test 1, matrix |
+| Complaints | `POST /complaints` (category from `platform.complaint_categories`; a booking the raiser is not party to → 404), `CMP-YYYY-NNNNNN`, first-response SLA from `platform.complaint_sla_hours` per severity (`respondBy`, `overdue`, `?overdueOnly`); raisers see their own, `complaints.read_any` sees all; assign (OPEN → IN_REVIEW stops the clock); OPEN → IN_REVIEW → AWAITING_RESPONSE → RESOLVED / REJECTED → CLOSED with a required resolution; internal notes excluded from every non-manager projection (raisers cannot write them); a raiser reply to AWAITING_RESPONSE hands it back to staff; `complaint.raised` / `.awaiting_response` / `.resolved` notify the raiser | engagement test 2, matrix |
+| Web | Rate-your-trip cards on the dashboard and on a completed booking (stars per subject, optional comment); `/complaints` — raisers: raise form (categories from public settings, optional booking) + thread; managers: queue with severity / status / overdue filters, assign-to-me, transitions with resolution, internal notes | typecheck/lint |
+
+**Carried forward:** rating-aggregate recomputation as a scheduled job (today inline after commit); complaint attachments from the documents module (the model allows it); complaint SLA reminders through notifications.
+
+---
+
+## Phase 13c exit — admin & reporting — what was verified (2026-09-15)
+
+| Area | Delivered | Proof |
+|---|---|---|
+| Disputes | `POST /bookings/{id}/dispute` (party → global; strangers 404): IN_PROGRESS / COMPLETED → DISPUTED with a linked HIGH complaint against the other side; `POST …/resolve-dispute` (complaints.manage): COMPLETED (service stands) or a `DISPUTE_RESOLVED` refund request whose gateway completion moves the booking to REFUNDED; linked complaints resolve; no captured payment → `422 PAYMENT_NOT_REFUNDABLE` | admin test 1 |
+| No-show | `POST /bookings/{id}/no-show` (ops, Idempotency-Key): NO_SHOW cancellation row with the party's policy charge (production default none) or a fee override; customer no-show → refund = total − fee; **owner no-show → full customer refund and the fee becomes a PENALTY line on the owner's next settlement** (builder + preview pick up unsettled owner-payable fees; OQ-05) | admin test 1 |
+| Customer statement | `GET /customers/{id}/statement` (invoices.read; own → global): opening / invoiced / payments / credits / closing from CUSTOMER_RECEIVABLE — the same ledger as `/credit` — plus invoice list, movements and ageing buckets on due date | admin test 2 |
+| Dashboard | `GET /admin/dashboard` (BRIEF-§24 block, 60-second cache, `transportType` for the per-vertical view) and `…/series` (day / week / month) | admin test 2, matrix |
+| System | `GET /admin/system/health` (DB / Redis / storage latency, queue depths, outbox backlog, oldest unprocessed webhook, migration, provider codes — never secrets), `/admin/system/queues`, `GET /admin/webhooks/payments` + `POST …/{id}/replay` (refused for invalid signatures; idempotent handler), `GET /admin/outbox` + `POST …/{id}/retry` (FAILED only) | admin test 2 |
+| Audit explorer | `GET /audit-logs` cursor-paginated with filters, `GET /audit-logs/entities/{type}/{id}` history, `POST /audit-logs/export` (max 90 days, through the export pipeline); reading the trail is itself audited; before/after already redacted at write time | admin test 3, matrix |
+| Reports | Registry of **15 codes** (BRIEF-§25 incl. `order-fulfilment` A-45 and `accounts-receivable-ageing` A-46) with strict per-report filters (unknown → 422), columns, max span; `GET /reports/{code}` inline ≤ 200 rows, own → global (owners / customers / SPOs on their own rows; staff global; financial + global needs `reports.financial.read`) | admin test 4, matrix |
+| Exports | `POST /reports/{code}/export` → QUEUED job; the worker pages the same `run()` into a UTF-8-BOM CSV with formula-injection neutralisation, stores it in object storage as a `REPORT_EXPORT` document, 24 h expiry; `GET /reports/exports`, `…/{jobId}`, `…/download-url` (120 s signed URL, every issuance audited); XLSX / PDF → `422 REPORT_FORMAT_NOT_AVAILABLE` | admin test 4 (real MinIO round-trip) |
+| Web | `/admin/dashboard`, `/admin/settings` (13 sections, typed inline edit with step-up, code-managed locked), `/admin/roles` (role editor with the permission catalogue by module, step-up), `/admin/audit-logs` (explorer + entity history + export), `/reports` (generated from the registry: filters, inline table, CSV export, downloads), `/admin/system`, `/admin/refunds` (four-eyes approve / reject / process), booking detail: dispute / resolve / no-show card, invoices page: customer statement | typecheck/lint |
+
+**Carried forward:** XLSX / PDF export rendering; report scheduling / e-mailed reports; dashboard charts beyond the bar table; the vertical toggle is a setting (`platform.verticals_enabled`) rather than a dedicated switch screen.
+
+---
+
 ## Module status
 
 | Module | Status | Backend | Frontend | Tests | Notes |
@@ -320,9 +369,11 @@ Verified on 2026-09-15 with `pnpm turbo run typecheck lint test build --force` (
 | `payments` | **DONE (Phase 9, MockGateway)** | payment.repository, payment.service (intent, state machine, capture postings, sync, reconciliation), webhook.service (verify → persist → 200 → job), refund.service (four-eyes, process, pro-rata reversal), jobs, routes, openapi; `integrations/payments` port + mock | ✅ | db (payments 4, matrix) | Real adapter when UniGate names the provider (OQ-03). |
 | `finance` | **DONE (Phase 11)** | commission.service + commission-admin.service (rules CRUD, preview, request override, earnings), cancellation-policy.service, ledger.service (+ reads), settlement.repository/service, invoice.repository/service (builder, clearance flow, corrections, overdue), expense.repository/service, mapper, routes, openapi; `integrations/einvoicing` port + mock | ✅ | db (finance 4, matrix) | Supplier invoices / self-billing, SPO commissions: later. |
 | `maintenance` | **DONE (Phase 12)** | maintenance.repository (OWN/GLOBAL through the vehicle relation, calendar hold via raw INSERT, due query), maintenance.service (records + hold in one tx, start/complete/cancel/delete, schedules, due, reminder job), mapper, routes, openapi | ✅ | db (maintenance 3, matrix) | Reminder fan-out with notifications (Phase 13). |
-| `engagement` | NOT_STARTED | — | — | — | Ratings + complaints. Phase 13. |
-| `notifications` | NOT_STARTED | — | — | — | OTP path lands in Phase 3; full system Phase 13. |
-| `reporting` | NOT_STARTED | — | — | — | Async exports. Phase 13. |
+| `engagement` | **DONE (Phase 13b)** | engagement.repository (ratings by subject, aggregates, eligible bookings; complaints OWN → GLOBAL), engagement.service (eligibility, window, subjects, moderation, complaint lifecycle, SLA, notes), mapper (masked rater), routes, openapi | ✅ prompt, complaints | db (engagement 2, matrix 4) | Attachments + SLA reminders later. |
+| `notifications` | **DONE (Phase 13a)** | notification.repository (SELF inbox, preferences, delivery rows, audience), notification.service (notify, sendSecretLink, deliver, sweeper, purge, inbox, preferences, templates, ops send), event.subscribers (30 events), recipients, render, notifications.jobs (queue + worker), routes, openapi; `integrations/notifications` ports (console / SMTP / none) | ✅ bell, inbox, admin | db (notifications 6, matrix 3) | SMS vendor + FCM adapters with procurement. |
+| `reporting` | **DONE (Phase 13c)** | report.registry (15 reports + audit export), reporting.service (inline runs, exports, download URLs, worker), csv, repository, routes, openapi | ✅ `/reports` | db (admin 4, matrix 2) | XLSX / PDF later. |
+| `admin` | **DONE (Phase 13c)** | admin.repository (KPI / series SQL, webhooks, outbox), admin.service (dashboard cache, health, queues, replay, retry), routes, openapi | ✅ dashboard, system, refunds, settings, roles | db (admin 2, matrix 2) | — |
+| `platform` | **DONE (Phase 13c)** | audit.service (writer), audit.repository + audit-log.service (explorer, history, export), platform.routes | ✅ audit explorer | db (admin 3, matrix) | — |
 | `admin` | NOT_STARTED | — | — | — | Phase 13. |
 | `platform` | IN_PROGRESS | audit writer (`writeAudit`, redacted, request-id correlated); `outbox_events` and `idempotency_keys` tables | — | unit (redact) + db (append-only trigger) | Outbox relay and idempotency middleware land in Phase 3 with the first money-moving endpoint. |
 | `passenger` | **DONE** | `plugin.ts`: capacity rules, checklist extras, request detail + matching, trip map, regulatory (none), invoice wording + VAT category | — | fleet, demand, trips, goods tests | — |

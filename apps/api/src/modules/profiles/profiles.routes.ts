@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import {
   adminCreditBody,
+  statementQuery,
   adminVatNumberBody,
   assignSpoCustomerBody,
   convertSpoLeadBody,
@@ -63,6 +64,7 @@ export function profilesRouter(): Router {
   r.put('/customers/:id/corporate', requirePermissionOrProfile('customers.update', 'customer'), validate({ params: idParams, body: upsertCorporateBody }), h(c.upsertCorporate));
   r.post('/customers/:id/verify', requirePermission('customers.verify'), validate({ params: idParams, body: verifyCustomerBody }), h(c.verifyCustomer));
   r.get('/customers/:id/credit', requirePermission('invoices.read'), validate({ params: idParams }), h(c.getCredit));
+  r.get('/customers/:id/statement', requirePermission('invoices.read'), validate({ params: idParams, query: statementQuery }), h(c.getStatement));
   // UniGate adds vendors (A: only admins onboard third-party owners); both codes are ADMIN/SUPER_ADMIN only.
   r.post('/admin/vendors', requirePermission('users.create', 'owners.create'), idempotent({ required: false }), validate({ body: createVendorBody }), h(c.createVendor));
   r.patch('/admin/customers/:id/credit', requirePermission('customers.verify'), validate({ params: idParams, body: adminCreditBody }), h(c.adminCredit));

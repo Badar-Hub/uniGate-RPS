@@ -92,3 +92,43 @@ export async function outstandingReceivable(_scope: AnyScope, customerProfileId:
     WHERE la.code = 'CUSTOMER_RECEIVABLE' AND le.customer_profile_id = ${customerProfileId}::uuid`;
   return money(rows[0]?.balance ?? 0);
 }
+
+export interface StatementRows {
+  opening: Decimal;
+  movements: { occurredAt: Date; description: string; direction: string; amount: Decimal; invoiceNumber: string | null; paymentNumber: string | null }[];
+  invoices: { id: string; invoiceNumber: string; invoiceType: string; issueDate: Date; dueDate: Date; totalAmount: Decimal; outstandingAmount: Decimal; status: string }[];
+  ageing: { bucket: string; amount: Decimal }[];
+}
+
+/** Statement figures over CUSTOMER_RECEIVABLE — the same ledger the credit check reads (api.md §8.4). */
+export async function statementRows(_scope: AnyScope, customerProfileId: string, from: Date, to: Date): Promise<StatementRows> {
+  const db = prisma();
+  const opening = await db.$queryRaw<{ balance: Decimal | null }[]>`
+    SELECT COALESCE(SUM(CASE WHEN le.direction = 'DEBIT' THEN le.amount ELSE -le.amount END), 0) AS balance
+    FROM ledger_entries le JOIN ledger_accounts la ON la.id = le.ledger_account_id
+    WHERE la.code = 'CUSTOMER_RECEIVABLE' AND le.customer_profile_id = ${customerProfileId}::uuid AND le.occurred_at < ${from}`;
+  const movements = await db.$queryRaw<{ occurredAt: Date; description: string; direction: string; amount: Decimal; invoiceNumber: string | null; paymentNumber: string | null }[]>`
+    SELECT le.occurred_at AS "occurredAt", le.description, le.direction::text AS direction, le.amount, i.invoice_number AS "invoiceNumber", p.payment_number AS "paymentNumber"
+    FROM ledger_entries le
+    JOIN ledger_accounts la ON la.id = le.ledger_account_id
+    LEFT JOIN invoices i ON i.id = le.invoice_id
+    LEFT JOIN payments p ON p.id = le.payment_id
+    WHERE la.code = 'CUSTOMER_RECEIVABLE' AND le.customer_profile_id = ${customerProfileId}::uuid AND le.occurred_at >= ${from} AND le.occurred_at < ${to}
+    ORDER BY le.occurred_at ASC`;
+  const invoices = await db.invoice.findMany({
+    where: { issuedToCustomerProfileId: customerProfileId, status: { notIn: ['DRAFT', 'VOID'] }, issueDate: { gte: from, lt: to } },
+    select: { id: true, invoiceNumber: true, invoiceType: true, issueDate: true, dueDate: true, totalAmount: true, outstandingAmount: true, status: true },
+    orderBy: { issueDate: 'asc' },
+  });
+  const ageing = await db.$queryRaw<{ bucket: string; amount: Decimal }[]>`
+    SELECT CASE WHEN due_date >= ${to}::date THEN 'current'
+                WHEN ${to}::date - due_date <= 30 THEN 'd1to30'
+                WHEN ${to}::date - due_date <= 60 THEN 'd31to60'
+                WHEN ${to}::date - due_date <= 90 THEN 'd61to90'
+                ELSE 'over90' END AS bucket,
+           COALESCE(SUM(outstanding_amount), 0) AS amount
+    FROM invoices
+    WHERE issued_to_customer_profile_id = ${customerProfileId}::uuid AND status NOT IN ('DRAFT', 'VOID', 'PAID') AND outstanding_amount > 0 AND issue_date < ${to}::date
+    GROUP BY 1`;
+  return { opening: money(opening[0]?.balance ?? 0), movements, invoices, ageing };
+}

@@ -74,7 +74,7 @@ export function AdminVendors() {
         <Card className="border-primary/40">
           <CardHeader>
             <CardTitle className="text-base">{t('createdTitle', { name: created.user.fullNameEn })}</CardTitle>
-            <CardDescription>{t('createdHint', { until: new Date(created.activationExpiresAt).toLocaleString() })}</CardDescription>
+            <CardDescription>{t('createdHint', { until: new Date(created.activationExpiresAt).toLocaleString() })} {t(`delivery.${created.activationDelivery}`)}</CardDescription>
           </CardHeader>
           <CardContent className="flex flex-wrap items-center gap-2">
             <Input readOnly dir="ltr" className="min-w-0 flex-1 font-mono text-xs" value={created.activationUrl} onFocus={(e) => { e.currentTarget.select(); }} />

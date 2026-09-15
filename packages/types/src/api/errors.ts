@@ -209,3 +209,35 @@ export const MAINTENANCE_ERROR_CODES = [
   'MAINTENANCE_INVALID_TRANSITION',
 ] as const;
 export type MaintenanceErrorCode = (typeof MAINTENANCE_ERROR_CODES)[number];
+
+/** notifications codes (api.md §8.26). */
+export const NOTIFICATION_ERROR_CODES = [
+  'NOTIFICATION_TEMPLATE_NOT_FOUND',
+  'NOTIFICATION_TEMPLATE_VARIABLES_MISSING',
+  'NOTIFICATION_CATEGORY_LOCKED',
+  'NOTIFICATION_AUDIENCE_EMPTY',
+] as const;
+export type NotificationErrorCode = (typeof NOTIFICATION_ERROR_CODES)[number];
+
+/** engagement codes (api.md §8.24–8.25). */
+export const ENGAGEMENT_ERROR_CODES = [
+  'RATING_NOT_ELIGIBLE',
+  'RATING_WINDOW_CLOSED',
+  'RATING_ALREADY_SUBMITTED',
+  'RATING_SUBJECT_INVALID',
+  'COMPLAINT_INVALID_TRANSITION',
+  'COMPLAINT_RESOLUTION_REQUIRED',
+] as const;
+export type EngagementErrorCode = (typeof ENGAGEMENT_ERROR_CODES)[number];
+
+/** admin / reporting codes (api.md §8.28–8.30). */
+export const ADMIN_ERROR_CODES = [
+  'WEBHOOK_SIGNATURE_INVALID',
+  'OUTBOX_EVENT_NOT_FAILED',
+  'REPORT_NOT_FOUND',
+  'REPORT_FORMAT_NOT_AVAILABLE',
+  'REPORT_RANGE_TOO_WIDE',
+  'EXPORT_NOT_READY',
+  'EXPORT_EXPIRED',
+] as const;
+export type AdminErrorCode = (typeof ADMIN_ERROR_CODES)[number];

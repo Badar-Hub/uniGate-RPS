@@ -11,6 +11,7 @@ import { z } from 'zod';
 const PLACEHOLDER = /^(changeme|secret|password|test|example|xxx+|todo|placeholder|your[-_]|sample)/i;
 
 const SECRET_KEYS = [
+  'SMTP_PASSWORD',
   'JWT_SECRET',
   'JWT_REFRESH_SECRET',
   'ENCRYPTION_KEY',
@@ -78,9 +79,18 @@ export const envSchema = z
     CLAMAV_PORT: z.coerce.number().int().positive().default(3310),
     MAPS_SERVER_KEY: z.string().optional(),
     NEXT_PUBLIC_MAPS_BROWSER_KEY: z.string().optional(),
-    EMAIL_PROVIDER: z.enum(['mailhog', 'ses', 'smtp']).default('mailhog'),
+    /** Notification channels (FR-NOTIFICATIONS-01). Provider CHOICE is env; behaviour is settings. 'console' variants are dev-only. */
+    EMAIL_PROVIDER: z.enum(['console', 'mailhog', 'smtp', 'ses']).default('mailhog'),
+    EMAIL_FROM: z.string().default('UniGate <no-reply@unigate.local>'),
     SMTP_HOST: z.string().default('localhost'),
     SMTP_PORT: z.coerce.number().int().positive().default(1025),
+    SMTP_USER: z.string().optional(),
+    SMTP_PASSWORD: optionalSecret,
+    SMTP_SECURE: z.enum(['true', 'false']).default('false'),
+    /** Transactional SMS (OQ-10 / B-9) — the adapter lands with procurement; 'console' prints. */
+    SMS_PROVIDER: z.enum(['console', 'unifonic', 'taqnyat', 'msegat', 'twilio']).default('console'),
+    /** Mobile push (FCM) — 'none' skips the channel; device tokens are still stored. */
+    PUSH_PROVIDER: z.enum(['none', 'fcm']).default('none'),
 
     SEED_ADMIN_EMAIL: z.string().email().optional(),
     SEED_ADMIN_PASSWORD: z.string().min(12).optional(),
@@ -111,6 +121,12 @@ export const envSchema = z
       }
       if (e.OTP_PROVIDER === 'console' && e.NODE_ENV === 'production') {
         ctx.addIssue({ code: 'custom', path: ['OTP_PROVIDER'], message: 'console OTP provider is forbidden in production' });
+      }
+      if (e.SMS_PROVIDER === 'console' && e.NODE_ENV === 'production') {
+        ctx.addIssue({ code: 'custom', path: ['SMS_PROVIDER'], message: 'console SMS provider is forbidden in production' });
+      }
+      if ((e.EMAIL_PROVIDER === 'console' || e.EMAIL_PROVIDER === 'mailhog') && e.NODE_ENV === 'production') {
+        ctx.addIssue({ code: 'custom', path: ['EMAIL_PROVIDER'], message: 'console/mailhog email providers are forbidden in production' });
       }
       if (!e.APP_URL.startsWith('https://')) {
         ctx.addIssue({ code: 'custom', path: ['APP_URL'], message: 'must be https outside development' });

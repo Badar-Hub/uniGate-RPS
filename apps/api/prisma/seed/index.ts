@@ -17,6 +17,7 @@ import { PrismaClient, Prisma } from '@prisma/client';
 import argon2 from 'argon2';
 import { v7 as uuidv7 } from 'uuid';
 import { PERMISSIONS, ROLES } from './permissions.js';
+import { NOTIFICATION_TEMPLATES } from './notification-templates.js';
 import { CITIES, DOCUMENT_TYPES, EXPENSE_CATEGORIES, LEDGER_ACCOUNTS, MAINTENANCE_SERVICE_TYPES, REGIONS, VEHICLE_CATEGORIES, VEHICLE_MAKES } from './reference.js';
 import { SETTINGS } from '../../src/modules/reference/settings.registry.js';
 
@@ -101,10 +102,24 @@ async function seedReference(): Promise<Map<string, string>> {
       models++;
     }
   }
+  // Notification templates: create missing rows; refresh rows never edited through the API (version 1).
+  let templates = 0;
+  for (const t of NOTIFICATION_TEMPLATES) {
+    for (const channel of t.channels) {
+      for (const locale of ['en', 'ar'] as const) {
+        const copy = t[locale];
+        const data = { subject: copy.title, body: copy.body, variables: t.variables, category: t.category };
+        const existing = await prisma.notificationTemplate.findUnique({ where: { code_channel_locale: { code: t.code, channel, locale } }, select: { id: true, version: true } });
+        if (!existing) await prisma.notificationTemplate.create({ data: { id: uuidv7(), code: t.code, channel, locale, ...data } });
+        else if (existing.version === 1) await prisma.notificationTemplate.update({ where: { id: existing.id }, data });
+        templates++;
+      }
+    }
+  }
   for (const l of LEDGER_ACCOUNTS) {
     await prisma.ledgerAccount.upsert({ where: { code: l.code }, create: { id: uuidv7(), code: l.code, nameEn: l.nameEn, nameAr: l.nameAr, type: l.type }, update: { nameEn: l.nameEn, nameAr: l.nameAr, type: l.type } });
   }
-  console.log(`✓ ${REGIONS.length} regions, ${CITIES.length} cities, ${VEHICLE_CATEGORIES.length} vehicle categories, ${DOCUMENT_TYPES.length} document types, ${EXPENSE_CATEGORIES.length} expense categories, ${MAINTENANCE_SERVICE_TYPES.length} maintenance types, ${VEHICLE_MAKES.length} makes / ${models} models, ${LEDGER_ACCOUNTS.length} ledger accounts`);
+  console.log(`✓ ${REGIONS.length} regions, ${CITIES.length} cities, ${VEHICLE_CATEGORIES.length} vehicle categories, ${DOCUMENT_TYPES.length} document types, ${EXPENSE_CATEGORIES.length} expense categories, ${MAINTENANCE_SERVICE_TYPES.length} maintenance types, ${VEHICLE_MAKES.length} makes / ${models} models, ${LEDGER_ACCOUNTS.length} ledger accounts, ${templates} notification templates`);
   return cityIds;
 }
 

@@ -1,0 +1,36 @@
+/** OpenAPI registrations for /ratings and /complaints (api.md §8.24–8.25). */
+import { z } from 'zod';
+import { assignComplaintBody, complaintNoteBody, complaintStatusBody, createComplaintBody, createRatingBody, idParams, listComplaintsQuery, listRatingsQuery, moderateRatingBody, patchComplaintBody, ratingSummaryQuery } from '@unigate/validation';
+import { registry, successEnvelope } from '@/docs/registry.js';
+
+const errorRef = z.object({}).openapi({ $ref: '#/components/schemas/ErrorEnvelope' } as never);
+const err = (description: string) => ({ description, content: { 'application/json': { schema: errorRef } } });
+const ok = <T extends z.ZodTypeAny>(schema: T, name: string, description = 'OK') => ({ description, content: { 'application/json': { schema: successEnvelope(schema, name) } } });
+const json = <T extends z.ZodTypeAny>(schema: T) => ({ content: { 'application/json': { schema } } });
+const bearer = [{ bearerAuth: [] }];
+const ts = z.string().datetime();
+
+const rating = z.object({ id: z.string().uuid(), bookingId: z.string().uuid(), bookingNumber: z.string(), tripId: z.string().uuid().nullable(), raterRole: z.string(), raterDisplayName: z.string(), subjectType: z.string(), subjectId: z.string().uuid(), score: z.number().int(), comment: z.string().nullable(), status: z.string(), createdAt: ts }).openapi('Rating');
+const eligible = z.object({ bookingId: z.string().uuid(), bookingNumber: z.string(), tripId: z.string().uuid().nullable(), raterRole: z.string(), completedAt: ts, deadline: ts, subjects: z.array(z.object({ subjectType: z.string(), subjectId: z.string().uuid(), label: z.string(), alreadyRated: z.boolean() })) }).openapi('RatingEligibleBooking');
+const summary = z.object({ subjectType: z.string(), subjectId: z.string().uuid(), ratingAvg: z.string(), ratingCount: z.number().int(), histogram: z.record(z.string(), z.number().int()) }).openapi('RatingSummary');
+const note = z.object({ id: z.string().uuid(), authorUserId: z.string().uuid(), authorName: z.string(), body: z.string(), isInternal: z.boolean(), createdAt: ts }).openapi('ComplaintNote');
+const complaint = z.object({
+  id: z.string().uuid(), complaintNumber: z.string(), raisedByUserId: z.string().uuid(), raisedByName: z.string(), bookingId: z.string().uuid().nullable(), bookingNumber: z.string().nullable(), tripId: z.string().uuid().nullable(), againstType: z.string(), againstId: z.string().uuid().nullable(),
+  category: z.string(), subject: z.string(), description: z.string(), severity: z.string(), status: z.string(), assignedToUserId: z.string().uuid().nullable(), assignedToName: z.string().nullable(), resolution: z.string().nullable(), resolvedAt: ts.nullable(), respondBy: ts.nullable(), overdue: z.boolean(), notes: z.array(note), createdAt: ts, updatedAt: ts,
+}).openapi('Complaint');
+
+registry.registerPath({ method: 'get', path: '/ratings', tags: ['engagement'], summary: 'Published ratings for a subject (moderators see every status with ?status=)', security: bearer, request: { query: listRatingsQuery }, responses: { 200: ok(z.array(rating), 'RatingListEnvelope', 'OK — paginated') } });
+registry.registerPath({ method: 'post', path: '/ratings', tags: ['engagement'], summary: 'Rate a driver, vehicle, owner, customer or the trip: booking COMPLETED, rater a party in the claimed role, inside the rating window; not a party → 404', security: bearer, request: { body: json(createRatingBody) }, responses: { 201: ok(rating, 'RatingEnvelope', 'Created'), 404: err('NOT_FOUND'), 409: err('RATING_ALREADY_SUBMITTED'), 422: err('RATING_NOT_ELIGIBLE / RATING_WINDOW_CLOSED / RATING_SUBJECT_INVALID') } });
+registry.registerPath({ method: 'get', path: '/ratings/eligible', tags: ['engagement'], summary: 'Completed bookings the actor may still rate, with subjects and the deadline', security: bearer, responses: { 200: ok(z.array(eligible), 'RatingEligibleListEnvelope') } });
+registry.registerPath({ method: 'get', path: '/ratings/summary', tags: ['engagement'], summary: 'Aggregate for a subject: average, count, histogram', security: bearer, request: { query: ratingSummaryQuery }, responses: { 200: ok(summary, 'RatingSummaryEnvelope') } });
+registry.registerPath({ method: 'post', path: '/ratings/{id}/moderate', tags: ['engagement'], summary: 'PUBLISHED ⇄ PENDING_REVIEW ⇄ HIDDEN with a reason; aggregates recomputed', security: bearer, request: { params: idParams, body: json(moderateRatingBody) }, responses: { 200: ok(rating, 'RatingEnvelope'), 404: err('NOT_FOUND') } });
+registry.registerPath({ method: 'delete', path: '/ratings/{id}', tags: ['engagement'], summary: 'Hide abusive content (HIDDEN; audited)', security: bearer, request: { params: idParams }, responses: { 204: { description: 'Hidden' } } });
+
+registry.registerPath({ method: 'get', path: '/complaints', tags: ['engagement'], summary: 'Raisers see their own; complaints.read_any sees all', security: bearer, request: { query: listComplaintsQuery }, responses: { 200: ok(z.array(complaint), 'ComplaintListEnvelope', 'OK — paginated') } });
+registry.registerPath({ method: 'post', path: '/complaints', tags: ['engagement'], summary: 'Raise a complaint (optionally on a booking the raiser is party to — otherwise 404)', security: bearer, request: { body: json(createComplaintBody) }, responses: { 201: ok(complaint, 'ComplaintEnvelope', 'Created'), 404: err('NOT_FOUND'), 422: err('VALIDATION_FAILED') } });
+registry.registerPath({ method: 'get', path: '/complaints/{id}', tags: ['engagement'], summary: 'Detail; internal notes excluded from every non-manager projection', security: bearer, request: { params: idParams }, responses: { 200: ok(complaint, 'ComplaintEnvelope'), 404: err('NOT_FOUND') } });
+registry.registerPath({ method: 'patch', path: '/complaints/{id}', tags: ['engagement'], summary: 'Severity, category, assignment', security: bearer, request: { params: idParams, body: json(patchComplaintBody) }, responses: { 200: ok(complaint, 'ComplaintEnvelope') } });
+registry.registerPath({ method: 'post', path: '/complaints/{id}/assign', tags: ['engagement'], summary: 'Assign (OPEN → IN_REVIEW stops the SLA clock)', security: bearer, request: { params: idParams, body: json(assignComplaintBody) }, responses: { 200: ok(complaint, 'ComplaintEnvelope') } });
+registry.registerPath({ method: 'post', path: '/complaints/{id}/status', tags: ['engagement'], summary: 'OPEN → IN_REVIEW → AWAITING_RESPONSE → RESOLVED / REJECTED → CLOSED; resolution required to resolve', security: bearer, request: { params: idParams, body: json(complaintStatusBody) }, responses: { 200: ok(complaint, 'ComplaintEnvelope'), 422: err('COMPLAINT_INVALID_TRANSITION / COMPLAINT_RESOLUTION_REQUIRED') } });
+registry.registerPath({ method: 'get', path: '/complaints/{id}/notes', tags: ['engagement'], summary: 'Notes the actor may see', security: bearer, request: { params: idParams }, responses: { 200: ok(z.array(note), 'ComplaintNoteListEnvelope') } });
+registry.registerPath({ method: 'post', path: '/complaints/{id}/notes', tags: ['engagement'], summary: 'Add a note; isInternal requires complaints.manage; a raiser reply to AWAITING_RESPONSE hands it back to staff', security: bearer, request: { params: idParams, body: json(complaintNoteBody) }, responses: { 201: ok(complaint, 'ComplaintEnvelope', 'Created'), 403: err('PERM_DENIED') } });

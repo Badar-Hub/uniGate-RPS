@@ -1,5 +1,5 @@
 import type { Prisma } from '@prisma/client';
-import type { ActorScope, AnyScope, CustomerCreditDto, CustomerDto } from '@unigate/types';
+import type { ActorScope, AnyScope, CustomerCreditDto, CustomerStatementDto, CustomerDto } from '@unigate/types';
 import type { adminCreditBody, adminVatNumberBody, createCustomerBody, patchCustomerBody, upsertCorporateBody } from '@unigate/validation';
 import type { z } from 'zod';
 import { normaliseIdentifier } from '@/common/crypto.js';
@@ -300,5 +300,27 @@ export async function invoiceBuyerOf(_scope: AnyScope, customerProfileId: string
     customerProfileId: c.id, corporateCustomerProfileId: corp?.id ?? null, vatNumber: c.vatNumber,
     nameEn: corp?.companyNameEn ?? c.user.fullNameEn, nameAr: corp?.companyNameAr ?? c.user.fullNameAr ?? null,
     creditTermsDays: corp?.creditTermsDays ?? null, billingCycle: corp?.billingCycle ?? null, creditStatus: corp?.creditStatus ?? 'NONE', creditLimitAmount: corp ? corp.creditLimitAmount.toFixed(2) : '0.00', invoiceLineGranularity: corp?.invoiceLineGranularity ?? null,
+  };
+}
+
+/** GET /customers/{id}/statement — accounts-receivable statement for a period (api.md §8.4). */
+export async function getStatement(scope: AnyScope, id: string, q: { periodStart: string; periodEnd: string }): Promise<CustomerStatementDto> {
+  const c = await repo.findCustomer(scope, id);
+  if (!c) throw new NotFoundError();
+  const from = new Date(q.periodStart);
+  const to = new Date(new Date(q.periodEnd).getTime() + 86_400_000);
+  const rows = await repo.statementRows(scope, id, from, to);
+  const sum = (dir: 'DEBIT' | 'CREDIT', pick: (m: repo.StatementRows['movements'][number]) => boolean) => rows.movements.filter((m) => m.direction === dir && pick(m)).reduce((a, m) => a.add(m.amount), money(0));
+  const invoiced = sum('DEBIT', () => true);
+  const payments = sum('CREDIT', (m) => m.paymentNumber !== null);
+  const credits = sum('CREDIT', (m) => m.paymentNumber === null);
+  const closing = rows.opening.add(invoiced).sub(payments).sub(credits);
+  const bucket = (k: string) => toMoneyString(rows.ageing.find((a) => a.bucket === k)?.amount ?? 0);
+  return {
+    customerProfileId: id, companyNameEn: c.corporate?.companyNameEn ?? null, periodStart: q.periodStart, periodEnd: q.periodEnd, currency: 'SAR',
+    openingBalance: toMoneyString(rows.opening), invoicedAmount: toMoneyString(invoiced), paymentsAmount: toMoneyString(payments), creditsAmount: toMoneyString(credits), closingBalance: toMoneyString(closing),
+    ageing: { current: bucket('current'), d1to30: bucket('d1to30'), d31to60: bucket('d31to60'), d61to90: bucket('d61to90'), over90: bucket('over90') },
+    invoices: rows.invoices.map((i) => ({ id: i.id, invoiceNumber: i.invoiceNumber, invoiceType: i.invoiceType, issueDate: i.issueDate.toISOString().slice(0, 10), dueDate: i.dueDate.toISOString().slice(0, 10), totalAmount: toMoneyString(i.totalAmount), outstandingAmount: toMoneyString(i.outstandingAmount), status: i.status })),
+    movements: rows.movements.map((m) => ({ occurredAt: m.occurredAt.toISOString(), description: m.description, debit: toMoneyString(m.direction === 'DEBIT' ? m.amount : 0), credit: toMoneyString(m.direction === 'CREDIT' ? m.amount : 0), reference: m.invoiceNumber ?? m.paymentNumber })),
   };
 }

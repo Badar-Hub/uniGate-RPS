@@ -134,19 +134,28 @@ All items delivered; residuals moved to Phase 3 below.
 - [x] Admin-only vendor creation with activation link; public owner registration behind a setting (off)
 - [x] Document-driven review queue (auto DOCUMENTS_SUBMITTED), approval needs verified documents, fleet registration only after approval, vehicle approval needs verified documents
 - [x] Per-vendor module × CRUD access on top of roles (overrides, step-up, audit) + admin screens
-- [ ] Email/SMS delivery of the activation link (notifications — Phase 13)
+- [x] Email/SMS delivery of the activation link (13a — synchronous, masked at rest)
 
 ## Phase 12 — Maintenance — COMPLETE 2026-09-15
 
 - [x] `/maintenance` records with the calendar hold (EXCLUDE, both-way 409s), start / complete / cancel / delete, odometer + vehicle status + schedule roll-forward + MAINTENANCE expense on completion
 - [x] Schedules (km / days, one active per vehicle × service type), `/maintenance/due`, daily reminder job → `maintenance.due` events, settings `notifications.maintenance_reminder_days_before` / `_km_before`
 - [x] Web `/maintenance` screen (due panel, plan, start/complete/cancel, schedules) + nav + en/ar
-- [ ] Notification fan-out of `maintenance.due` (Phase 13)
+- [x] Notification fan-out of `maintenance.due` (13a)
 - [ ] Workshop invoice upload from the maintenance screen (API accepts `documentIds` already)
+
+## Phase 13 — Admin & reporting — COMPLETE 2026-09-15
+
+- [x] **13a Notifications** — channel ports (SMTP real, console dev, SMS/push pending procurement), 218 seeded en/ar templates, 30 event subscribers, delivery worker + sweeper + purge, preferences with locked categories, ops send, template editor + preview, bell + inbox screens; password-reset and vendor-activation links delivered synchronously
+- [ ] SMS vendor adapter (OQ-10 / B-9) and FCM push adapter; HTML email layout
+- [x] **13b Engagement** — ratings (eligibility, window, subjects, aggregates, review threshold, moderation, prompt) and complaints (categories/SLA from settings, lifecycle, assignment, internal notes, raiser reply, notifications) + screens
+- [ ] Complaint attachments (documents) and SLA breach reminders; rating aggregates as a scheduled job
+- [x] **13c Admin & reporting** — disputes / resolve, no-show with owner penalties into settlements, customer statement, dashboard KPIs + series (per-vertical), system health / queues / webhook replay / outbox retry, audit explorer + export, 15 reports with CSV exports through object storage, settings / roles / audit / reports / system / refunds screens
+- [ ] XLSX / PDF export rendering; scheduled or e-mailed reports; richer dashboard charts
 
 ## Immediate — next phase (UniGate's call)
 
-- [ ] **Phase 13 — Admin & reporting**: refunds admin screen, disputes / no-show, customer statements, dashboards
+- [ ] **Phase 14 — Hardening**: rate-limit review, security headers audit, load test against the agreed estimates (OQ-15), dependency audit, backup/restore drill
 
 ## Deferred design work
 

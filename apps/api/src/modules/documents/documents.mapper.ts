@@ -31,7 +31,7 @@ export function targetColumn(kind: DocumentAppliesTo): keyof Prisma.DocumentUnch
   }
 }
 
-export function targetOf(d: DocumentRow): { kind: string; id: string } {
+export function targetOf(d: Pick<DocumentRow, 'id' | 'userId' | 'ownerProfileId' | 'driverProfileId' | 'vehicleId' | 'corporateCustomerProfileId' | 'expenseId' | 'maintenanceRecordId' | 'tripProofId'>): { kind: string; id: string } {
   if (d.userId) return { kind: 'USER', id: d.userId };
   if (d.ownerProfileId) return { kind: 'OWNER', id: d.ownerProfileId };
   if (d.driverProfileId) return { kind: 'DRIVER', id: d.driverProfileId };

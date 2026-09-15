@@ -41,6 +41,32 @@ export const feeOverride = z
     if (o.type === 'PERCENTAGE' && o.value !== undefined && Number(o.value) > 100) ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['value'], message: 'percentage must be 0–100' });
   });
 
+/** Ops records a customer or owner no-show (api.md §8.15, OQ-05). */
+export const noShowBody = z
+  .object({
+    party: z.enum(['CUSTOMER', 'OWNER']),
+    reasonText: safeText(1000).optional(),
+    feeOverride: feeOverride.optional(),
+    requestRefund: z.boolean().default(true),
+  })
+  .strict();
+export const disputeBookingBody = z
+  .object({
+    category: z.string().regex(/^[A-Z_]{2,48}$/),
+    subject: safeText(200).pipe(z.string().min(3)),
+    description: safeText(4000).pipe(z.string().min(10)),
+    severity: z.enum(['LOW', 'MEDIUM', 'HIGH', 'CRITICAL']).optional(),
+  })
+  .strict();
+export const resolveDisputeBody = z
+  .object({
+    outcome: z.enum(['COMPLETED', 'REFUND']),
+    resolution: safeText(2000).pipe(z.string().min(3)),
+    /** Refund amount for outcome REFUND; defaults to the booking total. */
+    refundAmount: decimalString.optional(),
+  })
+  .strict();
+
 export const cancelBookingBody = z
   .object({
     reasonCode: z.enum(CANCELLATION_REASON_CODE),

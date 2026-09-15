@@ -195,7 +195,7 @@ export const ROLES: readonly RoleSeed[] = [
     code: 'FINANCE_OFFICER', nameEn: 'Finance Officer', nameAr: 'موظف مالية', description: 'Settlements, refunds, invoices, commissions and financial reports.', isSystem: true,
     permissions: [
       ...byModule('finance', 'reports', 'payments', 'expenses'),
-      'customers.read', 'customers.verify', 'owners.read', 'vehicles.read_any', 'bookings.read_any', 'trip_requests.read_any', 'dashboard.read', 'settings.read', 'audit_logs.read', 'reference.read',
+      'customers.read', 'customers.verify', 'owners.read', 'vehicles.read_any', 'bookings.read_any', 'trip_requests.read_any', 'dashboard.read', 'settings.read', 'audit_logs.read', 'reference.read', 'notifications.read',
     ].filter((c) => c !== 'payments.config.manage'),
   },
   {
@@ -211,7 +211,7 @@ export const ROLES: readonly RoleSeed[] = [
     permissions: [
       'trip_requests.read', 'trip_requests.create', 'trip_requests.update', 'trip_requests.cancel', 'bids.read', 'bids.accept', 'bookings.read', 'bookings.cancel',
       'trips.read', 'tracking.read', 'payments.read', 'payments.create', 'invoices.read', 'documents.read', 'documents.upload', 'ratings.read', 'ratings.create',
-      'complaints.read', 'complaints.create', 'notifications.read', 'reference.read', 'geo.use',
+      'complaints.read', 'complaints.create', 'notifications.read', 'reference.read', 'geo.use', 'reports.read', 'reports.export',
     ],
   },
   {
@@ -221,7 +221,7 @@ export const ROLES: readonly RoleSeed[] = [
       'documents.read', 'documents.upload', 'documents.delete', 'trip_requests.read', 'opportunities.dismiss', 'bids.read', 'bids.create', 'bids.update', 'bids.withdraw',
       'bookings.read', 'bookings.cancel', 'bookings.assign_driver', 'trips.read', 'tracking.read', 'commissions.read', 'settlements.read', 'invoices.read',
       'expenses.read', 'expenses.create', 'expenses.update', 'expenses.delete', 'maintenance.read', 'maintenance.create', 'maintenance.update', 'maintenance.delete',
-      'ratings.read', 'ratings.create', 'complaints.read', 'complaints.create', 'notifications.read', 'reference.read', 'geo.use', 'dashboard.read',
+      'ratings.read', 'ratings.create', 'complaints.read', 'complaints.create', 'notifications.read', 'reference.read', 'geo.use', 'dashboard.read', 'reports.read', 'reports.export',
     ],
   },
   {
@@ -230,6 +230,6 @@ export const ROLES: readonly RoleSeed[] = [
   },
   {
     code: 'SPO', nameEn: 'Sales Promotion Officer', nameAr: 'مندوب مبيعات', description: 'Acquires customers, manages leads, views attributed commissions.', isSystem: true,
-    permissions: ['spo.read', 'spo.leads.manage', 'spo.commissions.read', 'customers.read', 'customers.create', 'trip_requests.read', 'trip_requests.create', 'notifications.read', 'reference.read', 'geo.use', 'dashboard.read'],
+    permissions: ['spo.read', 'spo.leads.manage', 'spo.commissions.read', 'customers.read', 'customers.create', 'trip_requests.read', 'trip_requests.create', 'notifications.read', 'reference.read', 'geo.use', 'dashboard.read', 'reports.read', 'reports.export'],
   },
 ];

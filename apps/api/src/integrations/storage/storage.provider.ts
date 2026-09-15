@@ -27,6 +27,8 @@ export interface StorageProvider {
   /** Full object as a Node stream — used only by the malware scanner, never by a request handler. */
   readStream(bucket: string, key: string): Promise<NodeJS.ReadableStream>;
   delete(bucket: string, key: string): Promise<void>;
+  /** Server-side write (report exports). Request handlers never stream user uploads through here. */
+  put(bucket: string, key: string, body: Buffer, contentType: string): Promise<void>;
 }
 
 /** RFC 6266 filename*: keep it ASCII-safe; the original name is still shown by the client. */
@@ -91,6 +93,10 @@ export class S3StorageProvider implements StorageProvider {
 
   async delete(bucket: string, key: string): Promise<void> {
     await this.client.send(new DeleteObjectCommand({ Bucket: bucket, Key: key }));
+  }
+
+  async put(bucket: string, key: string, body: Buffer, contentType: string): Promise<void> {
+    await this.client.send(new PutObjectCommand({ Bucket: bucket, Key: key, Body: body, ContentType: contentType, ContentLength: body.length }));
   }
 }
 
