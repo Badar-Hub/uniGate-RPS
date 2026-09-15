@@ -36,7 +36,17 @@
       "DOCUMENT_SIZE_EXCEEDED": "حجم الملف أكبر من المسموح لهذا المستند.",
       "DOCUMENT_UPLOAD_INCOMPLETE": "لم يكتمل الرفع. يرجى المحاولة مرة أخرى.",
       "DOCUMENT_CHECKSUM_MISMATCH": "تغيّر الملف أثناء الرفع. يرجى المحاولة مرة أخرى.",
-      "DOCUMENT_SCAN_QUARANTINED": "رفض فحص البرمجيات الخبيثة هذا الملف."
+      "DOCUMENT_SCAN_QUARANTINED": "رفض فحص البرمجيات الخبيثة هذا الملف.",
+      "VEHICLE_CALENDAR_CONFLICT": "تتداخل هذه التواريخ مع حجز أو صيانة أو حجب موجود.",
+      "VEHICLE_PLATE_TAKEN": "توجد مركبة مسجلة بهذه اللوحة.",
+      "VEHICLE_VIN_TAKEN": "توجد مركبة مسجلة برقم الهيكل هذا.",
+      "VEHICLE_INVALID_TRANSITION": "هذا الإجراء غير ممكن في حالة المركبة الحالية.",
+      "VEHICLE_HAS_ACTIVE_BOOKINGS": "للمركبة حجوزات ولا يمكن إزالتها.",
+      "OWNER_NOT_APPROVED": "يجب اعتماد ملف المالك أولاً.",
+      "DRIVER_NOT_APPROVED": "السائق غير معتمد بعد.",
+      "DRIVER_LICENSE_EXPIRED": "انتهت صلاحية رخصة السائق.",
+      "DRIVER_ALREADY_ON_TRIP": "السائق في رحلة حاليًا.",
+      "CONFLICT": "هذا موجود بالفعل أو لا يزال مستخدمًا."
     }
   },
   "home": {
@@ -96,7 +106,9 @@
       "customers": "العملاء",
       "owners": "المالكون",
       "adminReview": "الموافقات",
-      "settings": "الإعدادات"
+      "settings": "الإعدادات",
+      "fleet": "الأسطول",
+      "vehicleApprovals": "اعتماد المركبات"
     },
     "welcome": "مرحبًا، {name}",
     "roles": "الأدوار",
@@ -163,7 +175,8 @@
         "rejectReason": "سبب الرفض",
         "empty": "لا يوجد مالكون مطابقون لهذا الفلتر.",
         "approved": "تم اعتماد المالك.",
-        "rejected": "تم رفض المالك."
+        "rejected": "تم رفض المالك.",
+        "review": "مراجعة"
       },
       "documents": {
         "title": "التحقق من المستندات",
@@ -172,6 +185,85 @@
         "rejectReason": "سبب الرفض",
         "pendingCount": "{count} بانتظار التحقق",
         "download": "فتح الملف"
+      },
+      "vehicles": {
+        "title": "اعتماد المركبات",
+        "subtitle": "المركبات بانتظار القرار. يجب التحقق من جميع المستندات الإلزامية.",
+        "approve": "اعتماد",
+        "reject": "رفض",
+        "rejectReason": "سبب الرفض",
+        "empty": "لا توجد مركبات مطابقة لهذا الفلتر.",
+        "approved": "تم اعتماد المركبة.",
+        "rejected": "تم رفض المركبة.",
+        "owner": "المالك",
+        "vehicle": "المركبة",
+        "review": "مراجعة"
+      }
+    },
+    "fleet": {
+      "title": "الأسطول",
+      "subtitle": "سجّل المركبات وارفع مستنداتها وأرسلها للاعتماد.",
+      "register": "تسجيل مركبة",
+      "empty": "لا توجد مركبات بعد.",
+      "plate": "اللوحة",
+      "category": "الفئة",
+      "year": "السنة",
+      "approval": "الاعتماد",
+      "lifecycle": "الحالة",
+      "dispatchable": "جاهزة للتشغيل",
+      "notDispatchable": "غير جاهزة للتشغيل",
+      "form": {
+        "title": "تسجيل مركبة",
+        "category": "الفئة",
+        "make": "الشركة المصنعة",
+        "model": "الطراز",
+        "noMake": "— بدون —",
+        "modelYear": "سنة الصنع",
+        "plateEn": "اللوحة (لاتيني)",
+        "plateAr": "اللوحة (عربي)",
+        "registrationNumber": "رقم الاستمارة",
+        "vin": "رقم الهيكل (اختياري)",
+        "colour": "اللون",
+        "passengerCapacity": "عدد المقاعد",
+        "payloadKg": "الحمولة (كجم)",
+        "baseCity": "المدينة الأساسية",
+        "insuranceExpiry": "انتهاء التأمين",
+        "registrationExpiry": "انتهاء الاستمارة",
+        "inspectionExpiry": "انتهاء الفحص",
+        "submit": "تسجيل",
+        "created": "تم تسجيل المركبة كمسودة. ارفع مستنداتها الآن."
+      },
+      "detail": {
+        "documents": "المستندات",
+        "calendar": "التقويم",
+        "drivers": "السائقون",
+        "submit": "إرسال للاعتماد",
+        "submitted": "تم الإرسال للاعتماد.",
+        "reasons": "سبب عدم الجاهزية",
+        "block": "حجب تواريخ",
+        "blockFrom": "من",
+        "blockTo": "إلى",
+        "blockNotes": "ملاحظات",
+        "addBlock": "إضافة حجب",
+        "release": "إلغاء",
+        "noEntries": "لا يوجد شيء في التقويم لهذه الفترة.",
+        "assign": "تعيين سائق",
+        "primary": "أساسي",
+        "unassign": "إلغاء التعيين",
+        "noDrivers": "لا يوجد سائقون معتمدون للتعيين.",
+        "assignmentHistory": "سجل التعيينات",
+        "window": "الفترة",
+        "rejectedReason": "سبب الرفض"
+      },
+      "status": {
+        "DRAFT": "مسودة",
+        "PENDING_APPROVAL": "بانتظار الاعتماد",
+        "APPROVED": "معتمدة",
+        "REJECTED": "مرفوضة",
+        "ACTIVE": "نشطة",
+        "INACTIVE": "غير نشطة",
+        "SUSPENDED": "موقوفة",
+        "ARCHIVED": "مؤرشفة"
       }
     }
   }

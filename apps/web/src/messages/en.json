@@ -36,7 +36,17 @@
       "DOCUMENT_SIZE_EXCEEDED": "The file is too large for this document type.",
       "DOCUMENT_UPLOAD_INCOMPLETE": "The upload did not complete. Please try again.",
       "DOCUMENT_CHECKSUM_MISMATCH": "The uploaded file was altered in transit. Please try again.",
-      "DOCUMENT_SCAN_QUARANTINED": "This file was rejected by the malware scan."
+      "DOCUMENT_SCAN_QUARANTINED": "This file was rejected by the malware scan.",
+      "VEHICLE_CALENDAR_CONFLICT": "Those dates overlap an existing reservation, maintenance window or block.",
+      "VEHICLE_PLATE_TAKEN": "A vehicle with this plate is already registered.",
+      "VEHICLE_VIN_TAKEN": "A vehicle with this VIN is already registered.",
+      "VEHICLE_INVALID_TRANSITION": "This action is not possible in the vehicle’s current state.",
+      "VEHICLE_HAS_ACTIVE_BOOKINGS": "The vehicle has reservations and cannot be removed.",
+      "OWNER_NOT_APPROVED": "Your owner profile must be approved first.",
+      "DRIVER_NOT_APPROVED": "The driver is not approved yet.",
+      "DRIVER_LICENSE_EXPIRED": "The driver’s licence has expired.",
+      "DRIVER_ALREADY_ON_TRIP": "The driver is on a trip.",
+      "CONFLICT": "This already exists or is still in use."
     }
   },
   "home": {
@@ -96,7 +106,9 @@
       "customers": "Customers",
       "owners": "Owners",
       "adminReview": "Approvals",
-      "settings": "Settings"
+      "settings": "Settings",
+      "fleet": "Fleet",
+      "vehicleApprovals": "Vehicle approvals"
     },
     "welcome": "Welcome, {name}",
     "roles": "Roles",
@@ -163,7 +175,8 @@
         "rejectReason": "Reason for rejection",
         "empty": "No owners match this filter.",
         "approved": "Owner approved.",
-        "rejected": "Owner rejected."
+        "rejected": "Owner rejected.",
+        "review": "Review"
       },
       "documents": {
         "title": "Document verification",
@@ -172,6 +185,85 @@
         "rejectReason": "Reason for rejection",
         "pendingCount": "{count} awaiting verification",
         "download": "Open file"
+      },
+      "vehicles": {
+        "title": "Vehicle approvals",
+        "subtitle": "Vehicles waiting for a decision. Every mandatory document must be verified.",
+        "approve": "Approve",
+        "reject": "Reject",
+        "rejectReason": "Reason for rejection",
+        "empty": "No vehicles match this filter.",
+        "approved": "Vehicle approved.",
+        "rejected": "Vehicle rejected.",
+        "owner": "Owner",
+        "vehicle": "Vehicle",
+        "review": "Review"
+      }
+    },
+    "fleet": {
+      "title": "Fleet",
+      "subtitle": "Register vehicles, upload their documents and submit them for approval.",
+      "register": "Register a vehicle",
+      "empty": "No vehicles yet.",
+      "plate": "Plate",
+      "category": "Category",
+      "year": "Year",
+      "approval": "Approval",
+      "lifecycle": "Lifecycle",
+      "dispatchable": "Dispatchable",
+      "notDispatchable": "Not dispatchable",
+      "form": {
+        "title": "Register a vehicle",
+        "category": "Category",
+        "make": "Make",
+        "model": "Model",
+        "noMake": "— none —",
+        "modelYear": "Model year",
+        "plateEn": "Plate (Latin)",
+        "plateAr": "Plate (Arabic)",
+        "registrationNumber": "Registration (Istimara) number",
+        "vin": "VIN (optional)",
+        "colour": "Colour",
+        "passengerCapacity": "Seats",
+        "payloadKg": "Payload (kg)",
+        "baseCity": "Base city",
+        "insuranceExpiry": "Insurance expiry",
+        "registrationExpiry": "Registration expiry",
+        "inspectionExpiry": "Inspection expiry",
+        "submit": "Register",
+        "created": "Vehicle registered in draft. Upload its documents next."
+      },
+      "detail": {
+        "documents": "Documents",
+        "calendar": "Calendar",
+        "drivers": "Drivers",
+        "submit": "Submit for approval",
+        "submitted": "Submitted for approval.",
+        "reasons": "Why not dispatchable",
+        "block": "Block dates",
+        "blockFrom": "From",
+        "blockTo": "To",
+        "blockNotes": "Notes",
+        "addBlock": "Add block",
+        "release": "Release",
+        "noEntries": "Nothing on the calendar in this window.",
+        "assign": "Assign driver",
+        "primary": "Primary",
+        "unassign": "Unassign",
+        "noDrivers": "No approved drivers to assign.",
+        "assignmentHistory": "Assignment history",
+        "window": "Window",
+        "rejectedReason": "Rejection reason"
+      },
+      "status": {
+        "DRAFT": "Draft",
+        "PENDING_APPROVAL": "Pending approval",
+        "APPROVED": "Approved",
+        "REJECTED": "Rejected",
+        "ACTIVE": "Active",
+        "INACTIVE": "Inactive",
+        "SUSPENDED": "Suspended",
+        "ARCHIVED": "Archived"
       }
     }
   }

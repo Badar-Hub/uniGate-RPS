@@ -1,7 +1,7 @@
 # UniGate — Implementation Status
 
 **Last updated:** 2026-09-15
-**Current phase:** **Phase 4 complete** (2026-09-15) → Phase 5 (Vehicle management) ready to start
+**Current phase:** **Phase 5 complete** (2026-09-15) → Phase 6 (Trip requests — core `demand` + passenger vertical) ready to start
 **Overall:** Foundation built and verified end to end: monorepo, typed packages, API core, full Prisma schema (82 tables) with hand-written constraints, seeds, migration-integrity test, web scaffold (shadcn/ui, ar/en RTL), CI. `pnpm ci` is green (20/20 tasks). See [development.md](development.md).
 
 > **Schema-blocking questions resolved 2026-09-14.**
@@ -27,7 +27,7 @@ Status values: `NOT_STARTED` · `IN_PROGRESS` · `BLOCKED` · `COMPLETE`
 | 2 | Project foundation | **COMPLETE** 2026-09-15 | Everything on the TODO list delivered and verified: see *Phase 2 exit* below |
 | 3 | Authentication & RBAC | **COMPLETE** 2026-09-15 | See *Phase 3 exit* below. Production OTP delivery still needs **procurement B-9**; `ConsoleOtpProvider` refuses to run in production |
 | 4 | User profiles & documents | **COMPLETE** 2026-09-15 | See *Phase 4 exit* below. Malware scanning runs with `SCAN_PROVIDER=none` until a scanner is procured (A-25) |
-| 5 | Vehicle management | `NOT_STARTED` | ~~Approval workflow detail pending OQ-07~~ settings (ADR-009) |
+| 5 | Vehicle management | **COMPLETE** 2026-09-15 | See *Phase 5 exit* below. VerticalPlugin seam introduced (ADR-010); calendar EXCLUDE guarantee proven under concurrency |
 | 6 | Trip requests | `NOT_STARTED` | Core `demand` + **`passenger` vertical**; goods tables migrated, goods endpoints `501 VERTICAL_NOT_ENABLED` ([ADR-010](decisions/ADR-010-vertical-modules-over-a-shared-core.md)) |
 | 7 | Bidding | `NOT_STARTED` | ~~Bid window pending OQ-02~~ settings (ADR-009); ~~OQ-16~~ answered |
 | 8 | Bookings | `NOT_STARTED` | ~~Cancellation fee tiers pending OQ-05~~ answered 2026-09-15 (admin-configured policies + per-case override/waiver); no open blocker |
@@ -110,15 +110,35 @@ Verified on 2026-09-15 with `pnpm turbo run typecheck lint test build --force` (
 
 ---
 
+## Phase 5 exit — what was verified
+
+Verified on 2026-09-15 with `pnpm turbo run typecheck lint test build --force` (20/20 tasks), 79 tests (65 API: 12 migration-integrity, 10 auth lifecycle, 24 authorization matrix, 6 profiles & documents, 6 fleet, 7 unit; 14 package), plus a live browser session: register a vehicle → the vertical's capacity rule surfaces on the field ("at most 25 for MINIBUS") → draft detail with dispatchability reasons → vehicle document checklist → calendar block → overlapping block refused with the blocking window named.
+
+| Area | Delivered | Proof |
+|---|---|---|
+| VerticalPlugin seam (ADR-010) | `src/verticals/{plugin,registry}.ts`; `modules/passenger/plugin.ts` (enabled) and `modules/goods/plugin.ts` (`enabled: false`). Core resolves capacity rules and checklist extras through it — no `transport_type` branch in `fleet` (lint-enforced) | lint + fleet test |
+| Reference catalogue | Public, cacheable reads (ETag, `Cache-Control: public, max-age=300`, 304): categories, regions, cities, makes/models (20 makes / 66 models seeded), document types, expense/maintenance types, enum + transition catalogue; managed writes under `reference.manage` | fleet test "reference catalogue is public and cacheable" |
+| Vehicles | Register in DRAFT with vertical-validated capacity; plate uniqueness on the normalised plate and VIN uniqueness among live rows (`VEHICLE_PLATE_TAKEN` / `VEHICLE_VIN_TAKEN`); DRAFT/REJECTED → PENDING_APPROVAL only when every mandatory VEHICLE document is VERIFIED and unexpired; approve/reject/suspend/reactivate audited; plate/VIN/category edits after approval → PENDING_APPROVAL; soft delete → ARCHIVED refused with future reservations; plate freed for re-registration | fleet test "registers…", "approval is gated…", "suspend/reactivate…" |
+| Dispatchability | `fleet/vehicle.policy.ts` — pure predicate over approval, lifecycle, owner status, mandatory documents (respecting `documents.expired_document_blocks_dispatch`) and the vehicle's own expiry dates; returned on every DTO with reasons | fleet test |
+| Calendar | Owner blocks as half-open `tstzrange` rows; **the EXCLUDE constraint is the guarantee** — 23P01 maps to `409 VEHICLE_CALENDAR_CONFLICT` with the blocking entries; **8 concurrent inserts for one window → exactly one 201, seven 409s, one live row** (Phase 5 exit criterion, real PostgreSQL); adjacent windows allowed; release; `GET /availability` combines dispatchability + overlaps + documents expiring inside the window | fleet test "calendar: … EXCLUDE guarantee under concurrent inserts" |
+| Driver assignments | Approved, unexpired, same-owner drivers only; a new primary closes the previous primary (`REPLACED_AS_PRIMARY`) — rows are never overwritten; closing blocked while the vehicle is on a trip | fleet test "driver assignments…" |
+| Authorization | Fleet and reference rows added to the matrix; **router guards are now path-scoped** — a bare `router.use(authenticate())` ran for every request passing through, which made `/settings/public` and the new catalogue reads 401 for anonymous callers (found by the fleet test) | matrix 24/24 |
+| Web | Fleet list, registration form (categories/makes/models/cities from the catalogue, capacity field per vertical), vehicle page (status, dispatchability reasons, submit, document checklist reused from Phase 4, calendar with blocks and conflict display, driver assignment with history), admin vehicle-approval queue | browser session |
+| OpenAPI | 94 paths / 113 schemas, diff-checked | `openapi:check` |
+
+**Carried forward:** `operational_status` transitions (RESERVED/ON_TRIP/UNDER_MAINTENANCE) are system-driven and land with bookings (8), trips (10) and maintenance (12); PARTY scope for a customer viewing a booked vehicle lands with bookings (8); GPS device linkage waits for tracking (10).
+
+---
+
 ## Module status
 
 | Module | Status | Backend | Frontend | Tests | Notes |
 |---|---|---|---|---|---|
 | `iam` | **DONE (Phase 3)** | jwt · permission/otp/auth/admin services · session + user repositories · auth/me/admin controllers & routes · mapper · openapi · `cli/create-admin.ts` | ✅ | db (auth lifecycle 10, authorization matrix 12) | Highest review priority. Impersonation (`typ: impersonation`) reserved for Phase 13. |
 | `profiles` | **DONE (Phase 4)** | customer/owner/driver/spo repositories + services, saved locations, mapper (privacy + PII masking), controller, routes, openapi | ✅ | db (profiles.flow 6, matrix) | Statement endpoint waits for invoices (Phase 11). |
-| `reference` | IN_PROGRESS | settings: routes/controller/service/repository/mapper/openapi; registry of 75 keys with per-key Zod + cross-field rules | — | unit + db | Seeded master data done. Settings API live (`/settings`, `/settings/public`, `/settings/sections`, `PUT /settings/{key}` — mutating route is unauthenticated until Phase 3 and mounted outside production only). Remaining reference CRUD lands with Phases 4–5. |
+| `reference` | **DONE (Phase 5)** | settings (Phase 2/3) + catalogue.service/routes: public cacheable reads, managed writes; makes/models seed | ✅ | db (fleet + settings) | — |
 | `documents` | **DONE (Phase 4)** | repository (ownership from typed FKs), service (presigned two-step, hash + sniff, scan hook, requirements, expiry/sweep jobs), controller, routes, openapi; `StorageProvider` (S3/MinIO), `ScanProvider` (none/clamav) | ✅ | db (real MinIO) | Uploads are unscanned until A-25 is resolved. |
-| `fleet` | NOT_STARTED | — | — | — | Vehicle calendar + exclusion constraint. Phase 5. **Critical path.** |
+| `fleet` | **DONE (Phase 5)** | vehicle.repository (scope, raw tstzrange calendar), vehicle.policy (dispatchability), vehicle.service, routes, mapper, openapi | ✅ | db (fleet 6, matrix) | operational_status transitions arrive with bookings/trips/maintenance. |
 | `demand` | NOT_STARTED | — | — | — | Trip requests + matching. Phase 6. |
 | `bidding` | NOT_STARTED | — | — | — | Acceptance transaction. Phase 7. **Critical path.** |
 | `bookings` | NOT_STARTED | — | — | — | Phase 8. |
@@ -132,6 +152,8 @@ Verified on 2026-09-15 with `pnpm turbo run typecheck lint test build --force` (
 | `reporting` | NOT_STARTED | — | — | — | Async exports. Phase 13. |
 | `admin` | NOT_STARTED | — | — | — | Phase 13. |
 | `platform` | IN_PROGRESS | audit writer (`writeAudit`, redacted, request-id correlated); `outbox_events` and `idempotency_keys` tables | — | unit (redact) + db (append-only trigger) | Outbox relay and idempotency middleware land in Phase 3 with the first money-moving endpoint. |
+| `passenger` | IN_PROGRESS | `plugin.ts` (capacity rules, checklist extras) — the first VerticalPlugin (ADR-010) | — | fleet test | Request schema, trip map, invoice descriptor, VAT decision land in Phases 6–11. |
+| `goods` | IN_PROGRESS (seam only) | `plugin.ts` with `enabled: false` — goods vehicles can be registered ahead of the vertical | — | — | Phase 11b. |
 
 ---
 
@@ -151,7 +173,7 @@ Verified on 2026-09-15 with `pnpm turbo run typecheck lint test build --force` (
 | Audit logging | **DONE (helper)** | `writeAudit()` in the business transaction; before/after redacted; DB-level append-only trigger proven by test |
 | CI pipeline | **DONE** | GitHub Actions: services (Postgres+Redis) → gitleaks → `turbo run typecheck lint test build` → migrate deploy + seed twice (idempotency) → openapi diff → docs cross-reference check |
 | E2E golden path | NOT_STARTED | Phase 15, but scaffolded from Phase 7 |
-| Concurrency test | NOT_STARTED | Phase 7 exit criterion — must run against real PostgreSQL |
+| Concurrency test | **DONE (calendar)** | 8 concurrent owner blocks on one window → 1 × 201, 7 × 409, one live row (real PostgreSQL EXCLUDE). Bid acceptance (Phase 7) adds its own. |
 | Authorization matrix test | **DONE (IAM surface)** | `test/db/authorization.matrix.test.ts` — 9 roles × IAM endpoints, step-up, pv bump, anti-enumeration 404s, self-modification, suspension, idempotency. Grows with every phase. |
 
 ---

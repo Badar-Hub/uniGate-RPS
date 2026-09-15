@@ -3668,6 +3668,1447 @@
           "message",
           "meta"
         ]
+      },
+      "Dispatchability": {
+        "type": "object",
+        "properties": {
+          "ok": {
+            "type": "boolean"
+          },
+          "reasons": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "ok",
+          "reasons"
+        ],
+        "description": "fleet/vehicle.policy — approved + active + owner approved + mandatory documents verified & unexpired"
+      },
+      "Vehicle": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "ownerProfileId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "category": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "code": {
+                "type": "string"
+              },
+              "nameEn": {
+                "type": "string"
+              },
+              "nameAr": {
+                "type": "string"
+              },
+              "transportType": {
+                "type": "string",
+                "enum": [
+                  "PASSENGER",
+                  "GOODS"
+                ]
+              }
+            },
+            "required": [
+              "id",
+              "code",
+              "nameEn",
+              "nameAr",
+              "transportType"
+            ]
+          },
+          "make": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "properties": {
+              "id": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "name": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "id",
+              "name"
+            ]
+          },
+          "model": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "properties": {
+              "id": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "name": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "id",
+              "name"
+            ]
+          },
+          "modelYear": {
+            "type": "integer"
+          },
+          "plateNumberEn": {
+            "type": "string"
+          },
+          "plateNumberAr": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "sequenceNumber": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "registrationNumber": {
+            "type": "string"
+          },
+          "vin": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "masked to the last 4 for anyone but the owner and staff"
+          },
+          "colorCode": {
+            "type": "string"
+          },
+          "passengerCapacity": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "payloadCapacityKg": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "pattern": "^-?\\d+\\.\\d{2}$"
+          },
+          "cargoVolumeM3": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "pattern": "^-?\\d+\\.\\d{2}$"
+          },
+          "cargoLengthCm": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "cargoWidthCm": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "cargoHeightCm": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "bodyType": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "hasRefrigeration": {
+            "type": "boolean"
+          },
+          "hasTailLift": {
+            "type": "boolean"
+          },
+          "approvalStatus": {
+            "type": "string"
+          },
+          "lifecycleStatus": {
+            "type": "string"
+          },
+          "operationalStatus": {
+            "type": "string"
+          },
+          "approvedAt": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "rejectionReason": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "insurancePolicyNumber": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "insuranceExpiryDate": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "registrationExpiryDate": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "inspectionExpiryDate": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "odometerKm": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "baseCityId": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid"
+          },
+          "notes": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "ratingAvg": {
+            "type": "string"
+          },
+          "ratingCount": {
+            "type": "integer"
+          },
+          "currentDrivers": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "assignmentId": {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                "driverProfileId": {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                "driverName": {
+                  "type": "string"
+                },
+                "isPrimary": {
+                  "type": "boolean"
+                },
+                "assignedFrom": {
+                  "type": "string",
+                  "format": "date-time"
+                }
+              },
+              "required": [
+                "assignmentId",
+                "driverProfileId",
+                "driverName",
+                "isPrimary",
+                "assignedFrom"
+              ]
+            }
+          },
+          "dispatchable": {
+            "$ref": "#/components/schemas/Dispatchability"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "ownerProfileId",
+          "category",
+          "make",
+          "model",
+          "modelYear",
+          "plateNumberEn",
+          "plateNumberAr",
+          "sequenceNumber",
+          "registrationNumber",
+          "vin",
+          "colorCode",
+          "passengerCapacity",
+          "payloadCapacityKg",
+          "cargoVolumeM3",
+          "cargoLengthCm",
+          "cargoWidthCm",
+          "cargoHeightCm",
+          "bodyType",
+          "hasRefrigeration",
+          "hasTailLift",
+          "approvalStatus",
+          "lifecycleStatus",
+          "operationalStatus",
+          "approvedAt",
+          "rejectionReason",
+          "insurancePolicyNumber",
+          "insuranceExpiryDate",
+          "registrationExpiryDate",
+          "inspectionExpiryDate",
+          "odometerKm",
+          "baseCityId",
+          "notes",
+          "ratingAvg",
+          "ratingCount",
+          "currentDrivers",
+          "dispatchable",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
+      "VehicleListEnvelope": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "enum": [
+              true
+            ]
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Vehicle"
+            }
+          },
+          "message": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "meta": {
+            "type": "object",
+            "additionalProperties": {}
+          }
+        },
+        "required": [
+          "success",
+          "data",
+          "message",
+          "meta"
+        ]
+      },
+      "VehicleEnvelope": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "enum": [
+              true
+            ]
+          },
+          "data": {
+            "$ref": "#/components/schemas/Vehicle"
+          },
+          "message": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "meta": {
+            "type": "object",
+            "additionalProperties": {}
+          }
+        },
+        "required": [
+          "success",
+          "data",
+          "message",
+          "meta"
+        ]
+      },
+      "CalendarEntry": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "entryType": {
+            "type": "string",
+            "enum": [
+              "RESERVATION",
+              "MAINTENANCE",
+              "OWNER_BLOCK"
+            ]
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "HELD",
+              "CONFIRMED",
+              "RELEASED"
+            ]
+          },
+          "period": {
+            "type": "object",
+            "properties": {
+              "from": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "to": {
+                "type": "string",
+                "format": "date-time"
+              }
+            },
+            "required": [
+              "from",
+              "to"
+            ]
+          },
+          "bookingId": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid"
+          },
+          "bookingNumber": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "maintenanceRecordId": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid"
+          },
+          "notes": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "entryType",
+          "status",
+          "period",
+          "bookingId",
+          "bookingNumber",
+          "maintenanceRecordId",
+          "notes",
+          "createdAt"
+        ]
+      },
+      "CalendarEntryListEnvelope": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "enum": [
+              true
+            ]
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CalendarEntry"
+            }
+          },
+          "message": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "meta": {
+            "type": "object",
+            "additionalProperties": {}
+          }
+        },
+        "required": [
+          "success",
+          "data",
+          "message",
+          "meta"
+        ]
+      },
+      "CalendarEntryEnvelope": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "enum": [
+              true
+            ]
+          },
+          "data": {
+            "$ref": "#/components/schemas/CalendarEntry"
+          },
+          "message": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "meta": {
+            "type": "object",
+            "additionalProperties": {}
+          }
+        },
+        "required": [
+          "success",
+          "data",
+          "message",
+          "meta"
+        ]
+      },
+      "VehicleAvailability": {
+        "type": "object",
+        "properties": {
+          "vehicleId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "window": {
+            "type": "object",
+            "properties": {
+              "from": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "to": {
+                "type": "string",
+                "format": "date-time"
+              }
+            },
+            "required": [
+              "from",
+              "to"
+            ]
+          },
+          "available": {
+            "type": "boolean"
+          },
+          "dispatchable": {
+            "$ref": "#/components/schemas/Dispatchability"
+          },
+          "conflicts": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "entryId": {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                "entryType": {
+                  "type": "string"
+                },
+                "period": {
+                  "type": "object",
+                  "properties": {
+                    "from": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "to": {
+                      "type": "string",
+                      "format": "date-time"
+                    }
+                  },
+                  "required": [
+                    "from",
+                    "to"
+                  ]
+                }
+              },
+              "required": [
+                "entryId",
+                "entryType",
+                "period"
+              ]
+            }
+          },
+          "expiringDocuments": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "documentTypeCode": {
+                  "type": "string"
+                },
+                "expiryDate": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "documentTypeCode",
+                "expiryDate"
+              ]
+            }
+          }
+        },
+        "required": [
+          "vehicleId",
+          "window",
+          "available",
+          "dispatchable",
+          "conflicts",
+          "expiringDocuments"
+        ]
+      },
+      "VehicleAvailabilityEnvelope": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "enum": [
+              true
+            ]
+          },
+          "data": {
+            "$ref": "#/components/schemas/VehicleAvailability"
+          },
+          "message": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "meta": {
+            "type": "object",
+            "additionalProperties": {}
+          }
+        },
+        "required": [
+          "success",
+          "data",
+          "message",
+          "meta"
+        ]
+      },
+      "VehicleAssignment": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "vehicleId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "driverProfileId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "driverName": {
+            "type": "string"
+          },
+          "isPrimary": {
+            "type": "boolean"
+          },
+          "assignedFrom": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "assignedTo": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "unassignedReason": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "assignedByUserId": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid"
+          }
+        },
+        "required": [
+          "id",
+          "vehicleId",
+          "driverProfileId",
+          "driverName",
+          "isPrimary",
+          "assignedFrom",
+          "assignedTo",
+          "unassignedReason",
+          "assignedByUserId"
+        ]
+      },
+      "VehicleAssignmentListEnvelope": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "enum": [
+              true
+            ]
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/VehicleAssignment"
+            }
+          },
+          "message": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "meta": {
+            "type": "object",
+            "additionalProperties": {}
+          }
+        },
+        "required": [
+          "success",
+          "data",
+          "message",
+          "meta"
+        ]
+      },
+      "VehicleAssignmentEnvelope": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "enum": [
+              true
+            ]
+          },
+          "data": {
+            "$ref": "#/components/schemas/VehicleAssignment"
+          },
+          "message": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "meta": {
+            "type": "object",
+            "additionalProperties": {}
+          }
+        },
+        "required": [
+          "success",
+          "data",
+          "message",
+          "meta"
+        ]
+      },
+      "VehicleCategory": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "code": {
+            "type": "string"
+          },
+          "nameEn": {
+            "type": "string"
+          },
+          "nameAr": {
+            "type": "string"
+          },
+          "transportType": {
+            "type": "string",
+            "enum": [
+              "PASSENGER",
+              "GOODS"
+            ]
+          },
+          "descriptionEn": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "descriptionAr": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "iconKey": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "minPassengerCapacity": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "maxPassengerCapacity": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "minPayloadKg": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "pattern": "^-?\\d+\\.\\d{2}$"
+          },
+          "maxPayloadKg": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "pattern": "^-?\\d+\\.\\d{2}$"
+          },
+          "requiresSpecialLicense": {
+            "type": "boolean"
+          },
+          "sortOrder": {
+            "type": "integer"
+          },
+          "isActive": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "id",
+          "code",
+          "nameEn",
+          "nameAr",
+          "transportType",
+          "descriptionEn",
+          "descriptionAr",
+          "iconKey",
+          "minPassengerCapacity",
+          "maxPassengerCapacity",
+          "minPayloadKg",
+          "maxPayloadKg",
+          "requiresSpecialLicense",
+          "sortOrder",
+          "isActive"
+        ]
+      },
+      "VehicleCategoryListEnvelope": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "enum": [
+              true
+            ]
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/VehicleCategory"
+            }
+          },
+          "message": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "meta": {
+            "type": "object",
+            "additionalProperties": {}
+          }
+        },
+        "required": [
+          "success",
+          "data",
+          "message",
+          "meta"
+        ]
+      },
+      "VehicleCategoryEnvelope": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "enum": [
+              true
+            ]
+          },
+          "data": {
+            "$ref": "#/components/schemas/VehicleCategory"
+          },
+          "message": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "meta": {
+            "type": "object",
+            "additionalProperties": {}
+          }
+        },
+        "required": [
+          "success",
+          "data",
+          "message",
+          "meta"
+        ]
+      },
+      "Region": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "code": {
+            "type": "string"
+          },
+          "nameEn": {
+            "type": "string"
+          },
+          "nameAr": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "code",
+          "nameEn",
+          "nameAr"
+        ]
+      },
+      "RegionListEnvelope": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "enum": [
+              true
+            ]
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Region"
+            }
+          },
+          "message": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "meta": {
+            "type": "object",
+            "additionalProperties": {}
+          }
+        },
+        "required": [
+          "success",
+          "data",
+          "message",
+          "meta"
+        ]
+      },
+      "City": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/Region"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "regionId": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "latitude": {
+                "type": "number"
+              },
+              "longitude": {
+                "type": "number"
+              },
+              "isActive": {
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "regionId",
+              "latitude",
+              "longitude",
+              "isActive"
+            ]
+          }
+        ]
+      },
+      "CityListEnvelope": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "enum": [
+              true
+            ]
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/City"
+            }
+          },
+          "message": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "meta": {
+            "type": "object",
+            "additionalProperties": {}
+          }
+        },
+        "required": [
+          "success",
+          "data",
+          "message",
+          "meta"
+        ]
+      },
+      "VehicleMake": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "isActive": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "isActive"
+        ]
+      },
+      "VehicleMakeListEnvelope": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "enum": [
+              true
+            ]
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/VehicleMake"
+            }
+          },
+          "message": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "meta": {
+            "type": "object",
+            "additionalProperties": {}
+          }
+        },
+        "required": [
+          "success",
+          "data",
+          "message",
+          "meta"
+        ]
+      },
+      "VehicleMakeEnvelope": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "enum": [
+              true
+            ]
+          },
+          "data": {
+            "$ref": "#/components/schemas/VehicleMake"
+          },
+          "message": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "meta": {
+            "type": "object",
+            "additionalProperties": {}
+          }
+        },
+        "required": [
+          "success",
+          "data",
+          "message",
+          "meta"
+        ]
+      },
+      "VehicleModel": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "makeId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "bodyType": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "isActive": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "id",
+          "makeId",
+          "name",
+          "bodyType",
+          "isActive"
+        ]
+      },
+      "VehicleModelListEnvelope": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "enum": [
+              true
+            ]
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/VehicleModel"
+            }
+          },
+          "message": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "meta": {
+            "type": "object",
+            "additionalProperties": {}
+          }
+        },
+        "required": [
+          "success",
+          "data",
+          "message",
+          "meta"
+        ]
+      },
+      "VehicleModelEnvelope": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "enum": [
+              true
+            ]
+          },
+          "data": {
+            "$ref": "#/components/schemas/VehicleModel"
+          },
+          "message": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "meta": {
+            "type": "object",
+            "additionalProperties": {}
+          }
+        },
+        "required": [
+          "success",
+          "data",
+          "message",
+          "meta"
+        ]
+      },
+      "DocumentType": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "nameEn": {
+            "type": "string"
+          },
+          "nameAr": {
+            "type": "string"
+          },
+          "appliesTo": {
+            "type": "string"
+          },
+          "transportType": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "requiresExpiry": {
+            "type": "boolean"
+          },
+          "isMandatory": {
+            "type": "boolean"
+          },
+          "maxSizeBytes": {
+            "type": "integer"
+          },
+          "allowedMimeTypes": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "expiryWarningDays": {
+            "type": "integer"
+          },
+          "sortOrder": {
+            "type": "integer"
+          },
+          "isActive": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "code",
+          "nameEn",
+          "nameAr",
+          "appliesTo",
+          "transportType",
+          "requiresExpiry",
+          "isMandatory",
+          "maxSizeBytes",
+          "allowedMimeTypes",
+          "expiryWarningDays",
+          "sortOrder",
+          "isActive"
+        ]
+      },
+      "DocumentTypeListEnvelope": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "enum": [
+              true
+            ]
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DocumentType"
+            }
+          },
+          "message": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "meta": {
+            "type": "object",
+            "additionalProperties": {}
+          }
+        },
+        "required": [
+          "success",
+          "data",
+          "message",
+          "meta"
+        ]
+      },
+      "CodedLabel": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "code": {
+            "type": "string"
+          },
+          "nameEn": {
+            "type": "string"
+          },
+          "nameAr": {
+            "type": "string"
+          },
+          "isActive": {
+            "type": "boolean"
+          },
+          "sortOrder": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "code",
+          "nameEn",
+          "nameAr",
+          "isActive",
+          "sortOrder"
+        ]
+      },
+      "CodedLabelListEnvelope": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "enum": [
+              true
+            ]
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CodedLabel"
+            }
+          },
+          "message": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "meta": {
+            "type": "object",
+            "additionalProperties": {}
+          }
+        },
+        "required": [
+          "success",
+          "data",
+          "message",
+          "meta"
+        ]
+      },
+      "EnumCatalogueEnvelope": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "enum": [
+              true
+            ]
+          },
+          "data": {
+            "type": "object",
+            "additionalProperties": {}
+          },
+          "message": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "meta": {
+            "type": "object",
+            "additionalProperties": {}
+          }
+        },
+        "required": [
+          "success",
+          "data",
+          "message",
+          "meta"
+        ]
       }
     },
     "parameters": {}
@@ -10054,6 +11495,2033 @@
                   "type": "object",
                   "properties": {},
                   "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/vehicles": {
+      "get": {
+        "tags": [
+          "vehicles"
+        ],
+        "summary": "Own fleet (owner) or all with vehicles.read_any",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "default": 1
+            },
+            "required": false,
+            "name": "page",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 20
+            },
+            "required": false,
+            "name": "pageSize",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "DRAFT",
+                "PENDING_APPROVAL",
+                "APPROVED",
+                "REJECTED"
+              ]
+            },
+            "required": false,
+            "name": "approvalStatus",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "ACTIVE",
+                "INACTIVE",
+                "SUSPENDED",
+                "ARCHIVED"
+              ]
+            },
+            "required": false,
+            "name": "lifecycleStatus",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "IDLE",
+                "RESERVED",
+                "ON_TRIP",
+                "UNDER_MAINTENANCE",
+                "OUT_OF_SERVICE"
+              ]
+            },
+            "required": false,
+            "name": "operationalStatus",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": false,
+            "name": "vehicleCategoryId",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": false,
+            "name": "baseCityId",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": false,
+            "name": "ownerProfileId",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 365
+            },
+            "required": false,
+            "name": "documentsExpiringWithinDays",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "maxLength": 40
+            },
+            "required": false,
+            "name": "q",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK — paginated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VehicleListEnvelope"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "vehicles"
+        ],
+        "summary": "Register in DRAFT; capacity validated by the category’s vertical (vehicles.create)",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "vehicleCategoryId": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "vehicleMakeId": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "vehicleModelId": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "modelYear": {
+                    "type": "integer",
+                    "minimum": 1980,
+                    "maximum": 2028
+                  },
+                  "plateNumberEn": {
+                    "type": "string",
+                    "pattern": "^\\d{1,4}\\s?[A-Z]{3}$"
+                  },
+                  "plateNumberAr": {
+                    "type": "string",
+                    "minLength": 3,
+                    "maxLength": 24
+                  },
+                  "sequenceNumber": {
+                    "type": "string",
+                    "maxLength": 32
+                  },
+                  "registrationNumber": {
+                    "type": "string",
+                    "maxLength": 64
+                  },
+                  "vin": {
+                    "type": "string",
+                    "pattern": "^[A-HJ-NPR-Z0-9]{17}$"
+                  },
+                  "colorCode": {
+                    "type": "string",
+                    "maxLength": 32
+                  },
+                  "passengerCapacity": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 100
+                  },
+                  "payloadCapacityKg": {
+                    "type": "number",
+                    "exclusiveMinimum": 0,
+                    "maximum": 100000
+                  },
+                  "cargoVolumeM3": {
+                    "type": "number",
+                    "exclusiveMinimum": 0,
+                    "maximum": 1000
+                  },
+                  "cargoLengthCm": {
+                    "type": "integer",
+                    "exclusiveMinimum": 0,
+                    "maximum": 3000
+                  },
+                  "cargoWidthCm": {
+                    "type": "integer",
+                    "exclusiveMinimum": 0,
+                    "maximum": 500
+                  },
+                  "cargoHeightCm": {
+                    "type": "integer",
+                    "exclusiveMinimum": 0,
+                    "maximum": 500
+                  },
+                  "bodyType": {
+                    "type": "string",
+                    "maxLength": 48
+                  },
+                  "hasRefrigeration": {
+                    "type": "boolean"
+                  },
+                  "hasTailLift": {
+                    "type": "boolean"
+                  },
+                  "insurancePolicyNumber": {
+                    "type": "string",
+                    "maxLength": 64
+                  },
+                  "insuranceExpiryDate": {
+                    "type": "string",
+                    "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                  },
+                  "registrationExpiryDate": {
+                    "type": "string",
+                    "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                  },
+                  "inspectionExpiryDate": {
+                    "type": "string",
+                    "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                  },
+                  "odometerKm": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 5000000
+                  },
+                  "baseCityId": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "notes": {
+                    "type": "string",
+                    "maxLength": 2000
+                  },
+                  "ownerProfileId": {
+                    "type": "string",
+                    "format": "uuid"
+                  }
+                },
+                "required": [
+                  "vehicleCategoryId",
+                  "modelYear",
+                  "plateNumberEn",
+                  "registrationNumber",
+                  "colorCode"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VehicleEnvelope"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "VEHICLE_PLATE_TAKEN / VEHICLE_VIN_TAKEN",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {},
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "VALIDATION_FAILED (capacity) / OWNER_NOT_APPROVED",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {},
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/vehicles/{id}": {
+      "get": {
+        "tags": [
+          "vehicles"
+        ],
+        "summary": "Full record (own → global)",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VehicleEnvelope"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "NOT_FOUND",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {},
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "vehicles"
+        ],
+        "summary": "Edit; plate/VIN/category changes after approval → PENDING_APPROVAL (vehicles.update)",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "vehicleCategoryId": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "vehicleMakeId": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "format": "uuid"
+                  },
+                  "vehicleModelId": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "format": "uuid"
+                  },
+                  "modelYear": {
+                    "type": "integer",
+                    "minimum": 1980,
+                    "maximum": 2028
+                  },
+                  "plateNumberEn": {
+                    "type": "string",
+                    "pattern": "^\\d{1,4}\\s?[A-Z]{3}$"
+                  },
+                  "plateNumberAr": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "minLength": 3,
+                    "maxLength": 24
+                  },
+                  "sequenceNumber": {
+                    "type": "string",
+                    "maxLength": 32
+                  },
+                  "registrationNumber": {
+                    "type": "string",
+                    "maxLength": 64
+                  },
+                  "vin": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "pattern": "^[A-HJ-NPR-Z0-9]{17}$"
+                  },
+                  "colorCode": {
+                    "type": "string",
+                    "maxLength": 32
+                  },
+                  "passengerCapacity": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 100
+                  },
+                  "payloadCapacityKg": {
+                    "type": "number",
+                    "exclusiveMinimum": 0,
+                    "maximum": 100000
+                  },
+                  "cargoVolumeM3": {
+                    "type": "number",
+                    "exclusiveMinimum": 0,
+                    "maximum": 1000
+                  },
+                  "cargoLengthCm": {
+                    "type": "integer",
+                    "exclusiveMinimum": 0,
+                    "maximum": 3000
+                  },
+                  "cargoWidthCm": {
+                    "type": "integer",
+                    "exclusiveMinimum": 0,
+                    "maximum": 500
+                  },
+                  "cargoHeightCm": {
+                    "type": "integer",
+                    "exclusiveMinimum": 0,
+                    "maximum": 500
+                  },
+                  "bodyType": {
+                    "type": "string",
+                    "maxLength": 48
+                  },
+                  "hasRefrigeration": {
+                    "type": "boolean"
+                  },
+                  "hasTailLift": {
+                    "type": "boolean"
+                  },
+                  "insurancePolicyNumber": {
+                    "type": "string",
+                    "maxLength": 64
+                  },
+                  "insuranceExpiryDate": {
+                    "type": "string",
+                    "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                  },
+                  "registrationExpiryDate": {
+                    "type": "string",
+                    "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                  },
+                  "inspectionExpiryDate": {
+                    "type": "string",
+                    "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                  },
+                  "odometerKm": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 5000000
+                  },
+                  "baseCityId": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "format": "uuid"
+                  },
+                  "notes": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 2000
+                  },
+                  "lifecycleStatus": {
+                    "type": "string",
+                    "enum": [
+                      "ACTIVE",
+                      "INACTIVE"
+                    ]
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VehicleEnvelope"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "VEHICLE_PLATE_TAKEN / VEHICLE_VIN_TAKEN",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {},
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "VALIDATION_FAILED / VEHICLE_INVALID_TRANSITION",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {},
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "vehicles"
+        ],
+        "summary": "Soft delete → ARCHIVED; refused with future reservations (vehicles.delete)",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Archived"
+          },
+          "409": {
+            "description": "VEHICLE_HAS_ACTIVE_BOOKINGS",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {},
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/vehicles/{id}/submit-for-approval": {
+      "post": {
+        "tags": [
+          "vehicles"
+        ],
+        "summary": "DRAFT/REJECTED → PENDING_APPROVAL once mandatory documents are VERIFIED and unexpired",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VehicleEnvelope"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "OWNER_DOCUMENTS_INCOMPLETE (details.missing) / OWNER_NOT_APPROVED / VEHICLE_INVALID_TRANSITION",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {},
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/vehicles/{id}/approve": {
+      "post": {
+        "tags": [
+          "vehicles"
+        ],
+        "summary": "→ APPROVED, lifecycle ACTIVE (vehicles.approve)",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "notes": {
+                    "type": "string",
+                    "maxLength": 1000
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VehicleEnvelope"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "VEHICLE_INVALID_TRANSITION",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {},
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/vehicles/{id}/reject": {
+      "post": {
+        "tags": [
+          "vehicles"
+        ],
+        "summary": "→ REJECTED with a reason (vehicles.approve)",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "rejectionReason": {
+                    "type": "string",
+                    "maxLength": 1000
+                  }
+                },
+                "required": [
+                  "rejectionReason"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VehicleEnvelope"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "VEHICLE_INVALID_TRANSITION",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {},
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/vehicles/{id}/suspend": {
+      "post": {
+        "tags": [
+          "vehicles"
+        ],
+        "summary": "lifecycle → SUSPENDED; operational_status untouched (vehicles.suspend)",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "reason": {
+                    "type": "string",
+                    "maxLength": 1000
+                  }
+                },
+                "required": [
+                  "reason"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VehicleEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/vehicles/{id}/reactivate": {
+      "post": {
+        "tags": [
+          "vehicles"
+        ],
+        "summary": "SUSPENDED → ACTIVE (vehicles.suspend)",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "notes": {
+                    "type": "string",
+                    "maxLength": 1000
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VehicleEnvelope"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "VEHICLE_INVALID_TRANSITION",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {},
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/vehicles/{id}/calendar": {
+      "get": {
+        "tags": [
+          "vehicles"
+        ],
+        "summary": "Non-released calendar entries overlapping the window",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "date-time",
+              "description": "ISO-8601 UTC timestamp, e.g. 2026-09-14T11:02:44.817Z"
+            },
+            "required": true,
+            "description": "ISO-8601 UTC timestamp, e.g. 2026-09-14T11:02:44.817Z",
+            "name": "from",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "date-time",
+              "description": "ISO-8601 UTC timestamp, e.g. 2026-09-14T11:02:44.817Z"
+            },
+            "required": true,
+            "description": "ISO-8601 UTC timestamp, e.g. 2026-09-14T11:02:44.817Z",
+            "name": "to",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CalendarEntryListEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/vehicles/{id}/calendar/blocks": {
+      "post": {
+        "tags": [
+          "vehicles"
+        ],
+        "summary": "Owner blackout [from, to); the EXCLUDE constraint refuses overlaps (vehicles.availability.manage)",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "from": {
+                    "type": "string",
+                    "format": "date-time",
+                    "description": "ISO-8601 UTC timestamp, e.g. 2026-09-14T11:02:44.817Z"
+                  },
+                  "to": {
+                    "type": "string",
+                    "format": "date-time",
+                    "description": "ISO-8601 UTC timestamp, e.g. 2026-09-14T11:02:44.817Z"
+                  },
+                  "notes": {
+                    "type": "string",
+                    "maxLength": 500
+                  }
+                },
+                "required": [
+                  "from",
+                  "to"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CalendarEntryEnvelope"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "VEHICLE_CALENDAR_CONFLICT (details.conflicts)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {},
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/vehicles/{id}/calendar/blocks/{entryId}": {
+      "delete": {
+        "tags": [
+          "vehicles"
+        ],
+        "summary": "Release an owner block",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "name": "entryId",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Released"
+          },
+          "404": {
+            "description": "NOT_FOUND",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {},
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "VEHICLE_INVALID_TRANSITION — not an owner block",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {},
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/vehicles/{id}/availability": {
+      "get": {
+        "tags": [
+          "vehicles"
+        ],
+        "summary": "Usable for [from, to)? dispatchability + calendar + document expiry — what the bid form calls",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "date-time",
+              "description": "ISO-8601 UTC timestamp, e.g. 2026-09-14T11:02:44.817Z"
+            },
+            "required": true,
+            "description": "ISO-8601 UTC timestamp, e.g. 2026-09-14T11:02:44.817Z",
+            "name": "from",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "date-time",
+              "description": "ISO-8601 UTC timestamp, e.g. 2026-09-14T11:02:44.817Z"
+            },
+            "required": true,
+            "description": "ISO-8601 UTC timestamp, e.g. 2026-09-14T11:02:44.817Z",
+            "name": "to",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VehicleAvailabilityEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/vehicles/{id}/drivers": {
+      "get": {
+        "tags": [
+          "vehicles"
+        ],
+        "summary": "Assignment history, newest first (never overwritten)",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VehicleAssignmentListEnvelope"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "vehicles"
+        ],
+        "summary": "Open an assignment; a new primary closes the previous primary (drivers.assign)",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "driverProfileId": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "isPrimary": {
+                    "type": "boolean",
+                    "default": false
+                  }
+                },
+                "required": [
+                  "driverProfileId"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VehicleAssignmentEnvelope"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "CONFLICT — already assigned",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {},
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "DRIVER_NOT_APPROVED / DRIVER_LICENSE_EXPIRED / VALIDATION_FAILED",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {},
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/vehicles/{id}/drivers/{assignmentId}": {
+      "delete": {
+        "tags": [
+          "vehicles"
+        ],
+        "summary": "Close an assignment (sets assigned_to)",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "name": "assignmentId",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "reason": {
+                    "type": "string",
+                    "maxLength": 500
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": "Closed"
+          },
+          "409": {
+            "description": "DRIVER_ALREADY_ON_TRIP",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {},
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/vehicle-categories": {
+      "get": {
+        "tags": [
+          "reference"
+        ],
+        "summary": "Vehicle categories. Public, cacheable: ETag + Cache-Control public/max-age=300; 304 on If-None-Match",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "PASSENGER",
+                "GOODS"
+              ]
+            },
+            "required": false,
+            "name": "transportType",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "true",
+                "false"
+              ]
+            },
+            "required": false,
+            "name": "isActive",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VehicleCategoryListEnvelope"
+                }
+              }
+            }
+          },
+          "304": {
+            "description": "Not modified"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "reference"
+        ],
+        "summary": "Create a category (reference.manage)",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "code": {
+                    "type": "string",
+                    "pattern": "^[A-Z][A-Z0-9_]{1,47}$"
+                  },
+                  "nameEn": {
+                    "type": "string",
+                    "maxLength": 120
+                  },
+                  "nameAr": {
+                    "type": "string",
+                    "maxLength": 120
+                  },
+                  "transportType": {
+                    "type": "string",
+                    "enum": [
+                      "PASSENGER",
+                      "GOODS"
+                    ]
+                  },
+                  "descriptionEn": {
+                    "type": "string",
+                    "maxLength": 500
+                  },
+                  "descriptionAr": {
+                    "type": "string",
+                    "maxLength": 500
+                  },
+                  "iconKey": {
+                    "type": "string",
+                    "maxLength": 48
+                  },
+                  "minPassengerCapacity": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 100
+                  },
+                  "maxPassengerCapacity": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 100
+                  },
+                  "minPayloadKg": {
+                    "type": "number",
+                    "exclusiveMinimum": 0,
+                    "maximum": 100000
+                  },
+                  "maxPayloadKg": {
+                    "type": "number",
+                    "exclusiveMinimum": 0,
+                    "maximum": 100000
+                  },
+                  "requiresSpecialLicense": {
+                    "type": "boolean",
+                    "default": false
+                  },
+                  "sortOrder": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "default": 0
+                  }
+                },
+                "required": [
+                  "code",
+                  "nameEn",
+                  "nameAr",
+                  "transportType"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VehicleCategoryEnvelope"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "CONFLICT",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {},
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/vehicle-categories/{id}": {
+      "patch": {
+        "tags": [
+          "reference"
+        ],
+        "summary": "Update a category (reference.manage)",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "nameEn": {
+                    "type": "string",
+                    "maxLength": 120
+                  },
+                  "nameAr": {
+                    "type": "string",
+                    "maxLength": 120
+                  },
+                  "transportType": {
+                    "type": "string",
+                    "enum": [
+                      "PASSENGER",
+                      "GOODS"
+                    ]
+                  },
+                  "descriptionEn": {
+                    "type": "string",
+                    "maxLength": 500
+                  },
+                  "descriptionAr": {
+                    "type": "string",
+                    "maxLength": 500
+                  },
+                  "iconKey": {
+                    "type": "string",
+                    "maxLength": 48
+                  },
+                  "minPassengerCapacity": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 100
+                  },
+                  "maxPassengerCapacity": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 100
+                  },
+                  "minPayloadKg": {
+                    "type": "number",
+                    "exclusiveMinimum": 0,
+                    "maximum": 100000
+                  },
+                  "maxPayloadKg": {
+                    "type": "number",
+                    "exclusiveMinimum": 0,
+                    "maximum": 100000
+                  },
+                  "requiresSpecialLicense": {
+                    "type": "boolean",
+                    "default": false
+                  },
+                  "sortOrder": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "default": 0
+                  },
+                  "isActive": {
+                    "type": "boolean"
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VehicleCategoryEnvelope"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "NOT_FOUND",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {},
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "reference"
+        ],
+        "summary": "Deactivate a category (reference.manage) — never hard-deleted",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VehicleCategoryEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/reference/regions": {
+      "get": {
+        "tags": [
+          "reference"
+        ],
+        "summary": "KSA regions. Public, cacheable: ETag + Cache-Control public/max-age=300; 304 on If-None-Match",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RegionListEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/reference/cities": {
+      "get": {
+        "tags": [
+          "reference"
+        ],
+        "summary": "Cities with coordinates. Public, cacheable: ETag + Cache-Control public/max-age=300; 304 on If-None-Match",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": false,
+            "name": "regionId",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "maxLength": 80
+            },
+            "required": false,
+            "name": "q",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "true",
+                "false"
+              ]
+            },
+            "required": false,
+            "name": "isActive",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CityListEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/reference/vehicle-makes": {
+      "get": {
+        "tags": [
+          "reference"
+        ],
+        "summary": "Vehicle makes. Public, cacheable: ETag + Cache-Control public/max-age=300; 304 on If-None-Match",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VehicleMakeListEnvelope"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "reference"
+        ],
+        "summary": "Add a make (reference.manage)",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "maxLength": 80
+                  }
+                },
+                "required": [
+                  "name"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VehicleMakeEnvelope"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "CONFLICT",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {},
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/reference/vehicle-models": {
+      "get": {
+        "tags": [
+          "reference"
+        ],
+        "summary": "Vehicle models. Public, cacheable: ETag + Cache-Control public/max-age=300; 304 on If-None-Match",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": false,
+            "name": "makeId",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "true",
+                "false"
+              ]
+            },
+            "required": false,
+            "name": "isActive",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VehicleModelListEnvelope"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "reference"
+        ],
+        "summary": "Add a model (reference.manage)",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "makeId": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "name": {
+                    "type": "string",
+                    "maxLength": 80
+                  },
+                  "bodyType": {
+                    "type": "string",
+                    "maxLength": 48
+                  }
+                },
+                "required": [
+                  "makeId",
+                  "name"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VehicleModelEnvelope"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "CONFLICT",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {},
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/reference/document-types": {
+      "get": {
+        "tags": [
+          "reference"
+        ],
+        "summary": "Document types with uploader constraints. Public, cacheable: ETag + Cache-Control public/max-age=300; 304 on If-None-Match",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "USER",
+                "OWNER",
+                "DRIVER",
+                "VEHICLE",
+                "CORPORATE_CUSTOMER",
+                "EXPENSE",
+                "MAINTENANCE_RECORD",
+                "TRIP_PROOF"
+              ]
+            },
+            "required": false,
+            "name": "appliesTo",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "true",
+                "false"
+              ]
+            },
+            "required": false,
+            "name": "isActive",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DocumentTypeListEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/reference/expense-categories": {
+      "get": {
+        "tags": [
+          "reference"
+        ],
+        "summary": "Expense categories. Public, cacheable: ETag + Cache-Control public/max-age=300; 304 on If-None-Match",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CodedLabelListEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/reference/maintenance-service-types": {
+      "get": {
+        "tags": [
+          "reference"
+        ],
+        "summary": "Maintenance service types. Public, cacheable: ETag + Cache-Control public/max-age=300; 304 on If-None-Match",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CodedLabelListEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/reference/enums": {
+      "get": {
+        "tags": [
+          "reference"
+        ],
+        "summary": "Every domain enum and transition map. Public, cacheable: ETag + Cache-Control public/max-age=300; 304 on If-None-Match",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EnumCatalogueEnvelope"
                 }
               }
             }

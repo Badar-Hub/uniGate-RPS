@@ -2,7 +2,7 @@
 
 import { useEffect, type ReactNode } from 'react';
 import { useTranslations } from 'next-intl';
-import { FileCheck2, FileText, LayoutDashboard, Loader2, LogOut, Truck, UserCircle2, Users } from 'lucide-react';
+import { CarFront, FileCheck2, FileText, LayoutDashboard, Loader2, LogOut, Truck, UserCircle2, Users } from 'lucide-react';
 import { useSession } from '@/lib/auth/session-provider';
 import { Link, usePathname, useRouter } from '@/lib/i18n/routing';
 import { cn } from '@/lib/utils';
@@ -39,8 +39,9 @@ export function PortalShell({ children }: { children: ReactNode }) {
   const items: { href: string; label: string; icon: typeof LayoutDashboard; show: boolean }[] = [
     { href: '/dashboard', label: t('dashboard'), icon: LayoutDashboard, show: true },
     { href: '/documents', label: t('documents'), icon: FileText, show: can('documents.read') },
+    { href: '/fleet', label: t('fleet'), icon: CarFront, show: Boolean(me.profiles.owner) || can('vehicles.read_any') },
     { href: '/admin/owners', label: t('adminReview'), icon: FileCheck2, show: can('owners.approve') },
-    { href: '/admin/owners?tab=all', label: t('owners'), icon: Truck, show: can('owners.read') && !can('owners.approve') },
+    { href: '/admin/vehicles', label: t('vehicleApprovals'), icon: Truck, show: can('vehicles.approve') },
     { href: '/admin/customers', label: t('customers'), icon: Users, show: false },
   ];
 
@@ -52,7 +53,8 @@ export function PortalShell({ children }: { children: ReactNode }) {
           {items
             .filter((i) => i.show)
             .map((i) => {
-              const active = pathname === i.href.split('?')[0];
+              const base = i.href.split('?')[0] ?? i.href;
+              const active = pathname === base || pathname.startsWith(`${base}/`);
               return (
                 <Link key={i.href} href={i.href} className={cn('flex items-center gap-2 rounded-md px-3 py-2 text-sm transition-colors hover:bg-accent hover:text-accent-foreground', active && 'bg-accent text-accent-foreground font-medium')}>
                   <i.icon className="size-4" aria-hidden />

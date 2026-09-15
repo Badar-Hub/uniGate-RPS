@@ -1,4 +1,4 @@
-import { PrismaClient } from '@prisma/client';
+import { Prisma, PrismaClient } from '@prisma/client';
 import { logger } from '@/logging/logger.js';
 
 /**
@@ -41,3 +41,13 @@ export const PG_ERROR = {
   /** raw: exclusion_violation — the vehicle calendar constraint (database.md §7.3) */
   EXCLUSION_VIOLATION: '23P01',
 } as const;
+
+/** Is `e` a Postgres exclusion-constraint violation (SQLSTATE 23P01) surfaced through Prisma? */
+export function isExclusionViolation(e: unknown): boolean {
+  if (e instanceof Prisma.PrismaClientKnownRequestError) {
+    const meta = e.meta as { code?: string } | undefined;
+    return meta?.code === '23P01' || e.message.includes('23P01') || e.message.includes('ex_vehicle_calendar_no_overlap');
+  }
+  return e instanceof Error && e.message.includes('ex_vehicle_calendar_no_overlap');
+}
+

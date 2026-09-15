@@ -4,3 +4,5 @@ export * from './settings.js';
 export * from './auth.js';
 export * from './profiles.js';
 export * from './documents.js';
+export * from './fleet.js';
+export * from './reference.js';

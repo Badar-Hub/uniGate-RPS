@@ -17,7 +17,7 @@ import { PrismaClient, Prisma } from '@prisma/client';
 import argon2 from 'argon2';
 import { v7 as uuidv7 } from 'uuid';
 import { PERMISSIONS, ROLES } from './permissions.js';
-import { CITIES, DOCUMENT_TYPES, EXPENSE_CATEGORIES, LEDGER_ACCOUNTS, MAINTENANCE_SERVICE_TYPES, REGIONS, VEHICLE_CATEGORIES } from './reference.js';
+import { CITIES, DOCUMENT_TYPES, EXPENSE_CATEGORIES, LEDGER_ACCOUNTS, MAINTENANCE_SERVICE_TYPES, REGIONS, VEHICLE_CATEGORIES, VEHICLE_MAKES } from './reference.js';
 import { SETTINGS } from '../../src/modules/reference/settings.registry.js';
 
 const prisma = new PrismaClient();
@@ -93,10 +93,18 @@ async function seedReference(): Promise<Map<string, string>> {
   for (const m of MAINTENANCE_SERVICE_TYPES) {
     await prisma.maintenanceServiceType.upsert({ where: { code: m.code }, create: { id: uuidv7(), code: m.code, nameEn: m.nameEn, nameAr: m.nameAr, sortOrder: m.sort }, update: { nameEn: m.nameEn, nameAr: m.nameAr, sortOrder: m.sort } });
   }
+  let models = 0;
+  for (const mk of VEHICLE_MAKES) {
+    const make = await prisma.vehicleMake.upsert({ where: { name: mk.name }, create: { id: uuidv7(), name: mk.name }, update: {} });
+    for (const md of mk.models) {
+      await prisma.vehicleModel.upsert({ where: { makeId_name: { makeId: make.id, name: md.name } }, create: { id: uuidv7(), makeId: make.id, name: md.name, bodyType: md.body ?? null }, update: { bodyType: md.body ?? null } });
+      models++;
+    }
+  }
   for (const l of LEDGER_ACCOUNTS) {
     await prisma.ledgerAccount.upsert({ where: { code: l.code }, create: { id: uuidv7(), code: l.code, nameEn: l.nameEn, nameAr: l.nameAr, type: l.type }, update: { nameEn: l.nameEn, nameAr: l.nameAr, type: l.type } });
   }
-  console.log(`✓ ${REGIONS.length} regions, ${CITIES.length} cities, ${VEHICLE_CATEGORIES.length} vehicle categories, ${DOCUMENT_TYPES.length} document types, ${EXPENSE_CATEGORIES.length} expense categories, ${MAINTENANCE_SERVICE_TYPES.length} maintenance types, ${LEDGER_ACCOUNTS.length} ledger accounts`);
+  console.log(`✓ ${REGIONS.length} regions, ${CITIES.length} cities, ${VEHICLE_CATEGORIES.length} vehicle categories, ${DOCUMENT_TYPES.length} document types, ${EXPENSE_CATEGORIES.length} expense categories, ${MAINTENANCE_SERVICE_TYPES.length} maintenance types, ${VEHICLE_MAKES.length} makes / ${models} models, ${LEDGER_ACCOUNTS.length} ledger accounts`);
   return cityIds;
 }
 

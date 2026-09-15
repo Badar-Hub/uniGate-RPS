@@ -45,6 +45,7 @@ export async function createDriver(scope: ActorScope, body: z.infer<typeof creat
   const phone = normaliseIdentifier(body.phoneE164);
   if (await prisma().user.findFirst({ where: { phoneE164: phone, deletedAt: null }, select: { id: true } })) throw new ConflictError('AUTH_IDENTIFIER_TAKEN', 'Phone already in use');
   if (new Date(body.licenseExpiryDate) < new Date()) throw new BusinessRuleError('DRIVER_LICENSE_EXPIRED', 'Licence expiry date is in the past');
+  if (await prisma().driverProfile.findFirst({ where: { nationalIdBlindIndex: blindIndex(body.nationalId) }, select: { id: true } })) throw new ConflictError('CONFLICT', 'A driver with this National ID / Iqama is already registered');
   const role = await prisma().role.findUniqueOrThrow({ where: { code: 'DRIVER' }, select: { id: true } });
   const userId = newId();
   const id = newId();

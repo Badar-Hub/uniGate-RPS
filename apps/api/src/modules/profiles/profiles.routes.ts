@@ -50,7 +50,9 @@ import * as c from './profiles.controller.js';
  */
 export function profilesRouter(): Router {
   const r = Router({ strict: true });
-  r.use(authenticate(), csrfGuard());
+  // Path-scoped on purpose: a bare router.use() would run for EVERY request passing through the
+  // router, including public routes mounted later (settings/public, reference catalogue).
+  r.use(['/customers', '/owners', '/drivers', '/spo', '/me', '/admin'], authenticate(), csrfGuard());
 
   // ── customers ─────────────────────────────────────────────────────────────
   r.get('/customers', requirePermission('customers.read'), validate({ query: listCustomersQuery }), h(c.listCustomers));

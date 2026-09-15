@@ -446,3 +446,165 @@ export interface DocumentRequirementDto {
   documentId: string | null;
   expiryDate: string | null;
 }
+
+// ── Reference catalogue (api.md §8.9) ────────────────────────────────────────
+
+export interface RegionDto extends BilingualLabel {
+  id: string;
+  code: string;
+}
+
+export interface CityDto extends BilingualLabel {
+  id: string;
+  regionId: string;
+  code: string;
+  latitude: number;
+  longitude: number;
+  isActive: boolean;
+}
+
+export interface VehicleCategoryDto extends BilingualLabel {
+  id: string;
+  code: string;
+  transportType: string;
+  descriptionEn: string | null;
+  descriptionAr: string | null;
+  iconKey: string | null;
+  minPassengerCapacity: number | null;
+  maxPassengerCapacity: number | null;
+  minPayloadKg: string | null;
+  maxPayloadKg: string | null;
+  requiresSpecialLicense: boolean;
+  sortOrder: number;
+  isActive: boolean;
+}
+
+export interface VehicleMakeDto {
+  id: string;
+  name: string;
+  isActive: boolean;
+}
+
+export interface VehicleModelDto {
+  id: string;
+  makeId: string;
+  name: string;
+  bodyType: string | null;
+  isActive: boolean;
+}
+
+export interface DocumentTypeDto extends BilingualLabel {
+  code: string;
+  appliesTo: string;
+  transportType: string | null;
+  requiresExpiry: boolean;
+  isMandatory: boolean;
+  maxSizeBytes: number;
+  allowedMimeTypes: string[];
+  expiryWarningDays: number;
+  sortOrder: number;
+  isActive: boolean;
+}
+
+export interface CodedLabelDto extends BilingualLabel {
+  id: string;
+  code: string;
+  isActive: boolean;
+  sortOrder: number;
+}
+
+// ── Fleet (api.md §8.8) ───────────────────────────────────────────────────────
+
+export interface VehicleDto extends TimestampedDto {
+  id: string;
+  ownerProfileId: string;
+  category: { id: string; code: string; nameEn: string; nameAr: string; transportType: string };
+  make: { id: string; name: string } | null;
+  model: { id: string; name: string } | null;
+  modelYear: number;
+  plateNumberEn: string;
+  plateNumberAr: string | null;
+  sequenceNumber: string | null;
+  registrationNumber: string;
+  /** Masked to the last 4 for anyone but the owner and staff. */
+  vin: string | null;
+  colorCode: string;
+  passengerCapacity: number | null;
+  payloadCapacityKg: string | null;
+  cargoVolumeM3: string | null;
+  cargoLengthCm: number | null;
+  cargoWidthCm: number | null;
+  cargoHeightCm: number | null;
+  bodyType: string | null;
+  hasRefrigeration: boolean;
+  hasTailLift: boolean;
+  approvalStatus: string;
+  lifecycleStatus: string;
+  operationalStatus: string;
+  approvedAt: string | null;
+  rejectionReason: string | null;
+  insurancePolicyNumber: string | null;
+  insuranceExpiryDate: string | null;
+  registrationExpiryDate: string | null;
+  inspectionExpiryDate: string | null;
+  odometerKm: number | null;
+  baseCityId: string | null;
+  notes: string | null;
+  ratingAvg: string;
+  ratingCount: number;
+  /** Open (assigned_to IS NULL) driver assignments. */
+  currentDrivers: { assignmentId: string; driverProfileId: string; driverName: string; isPrimary: boolean; assignedFrom: string }[];
+  /** The dispatchability predicate, evaluated now (fleet/vehicle.policy). */
+  dispatchable: { ok: boolean; reasons: string[] };
+}
+
+/** Reduced projection a counterparty sees (api.md §8.8 GET /vehicles/{id}). */
+export interface VehiclePublicDto {
+  id: string;
+  category: { id: string; code: string; nameEn: string; nameAr: string; transportType: string };
+  make: string | null;
+  model: string | null;
+  modelYear: number;
+  plateNumberEn: string;
+  colorCode: string;
+  passengerCapacity: number | null;
+  payloadCapacityKg: string | null;
+  hasRefrigeration: boolean;
+  hasTailLift: boolean;
+  ratingAvg: string;
+  ratingCount: number;
+}
+
+export interface CalendarEntryDto {
+  id: string;
+  entryType: string;
+  status: string;
+  period: { from: string; to: string };
+  bookingId: string | null;
+  bookingNumber: string | null;
+  maintenanceRecordId: string | null;
+  notes: string | null;
+  createdAt: string;
+}
+
+export interface VehicleAvailabilityDto {
+  vehicleId: string;
+  window: { from: string; to: string };
+  available: boolean;
+  dispatchable: { ok: boolean; reasons: string[] };
+  conflicts: { entryId: string; entryType: string; period: { from: string; to: string } }[];
+  /** Mandatory documents that expire inside the window. */
+  expiringDocuments: { documentTypeCode: string; expiryDate: string }[];
+}
+
+export interface VehicleAssignmentDto {
+  id: string;
+  vehicleId: string;
+  driverProfileId: string;
+  driverName: string;
+  isPrimary: boolean;
+  assignedFrom: string;
+  assignedTo: string | null;
+  unassignedReason: string | null;
+  assignedByUserId: string | null;
+}

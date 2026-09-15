@@ -10,10 +10,12 @@ import { errorHandler, notFoundHandler } from '@/middleware/error-handler.js';
 import { healthRouter } from '@/health/health.routes.js';
 import { docsRouter } from '@/docs/docs.routes.js';
 import { settingsRouter } from '@/modules/reference/settings.routes.js';
+import { catalogueRouter } from '@/modules/reference/catalogue.routes.js';
 import { authRouter } from '@/modules/iam/auth.routes.js';
 import { adminIamRouter, meRouter } from '@/modules/iam/iam.routes.js';
 import { documentsRouter } from '@/modules/documents/documents.routes.js';
 import { profilesRouter } from '@/modules/profiles/profiles.routes.js';
+import { fleetRouter } from '@/modules/fleet/fleet.routes.js';
 import '@/docs/all.js';
 
 /**
@@ -72,8 +74,10 @@ export function createApp(cfg: AppConfig): Express {
   v1.use(meRouter());
   v1.use(adminIamRouter());
   v1.use(settingsRouter());
+  v1.use(catalogueRouter());
   v1.use(documentsRouter());
   v1.use(profilesRouter());
+  v1.use(fleetRouter());
   if (cfg.apiDocsEnabled) v1.use(docsRouter(cfg.apiUrl, cfg.version));
   app.use('/api/v1', v1);
 

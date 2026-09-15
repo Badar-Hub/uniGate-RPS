@@ -24,7 +24,9 @@ import * as me from './me.controller.js';
 /** api.md §8.2 `/me` — self scope, no permission codes. */
 export function meRouter(): Router {
   const r = Router({ strict: true });
-  r.use(authenticate(), csrfGuard());
+  // Path-scoped on purpose: a bare router.use() would run for EVERY request passing through the
+  // router, including public routes mounted later (settings/public, reference catalogue).
+  r.use('/me', authenticate(), csrfGuard());
   r.get('/me', h(me.getMe));
   r.patch('/me', validate({ body: patchMeBody }), h(me.patchMe));
   r.get('/me/sessions', h(me.listSessions));
@@ -39,7 +41,9 @@ export function meRouter(): Router {
  */
 export function adminIamRouter(): Router {
   const r = Router({ strict: true });
-  r.use(authenticate(), csrfGuard());
+  // Path-scoped on purpose: a bare router.use() would run for EVERY request passing through the
+  // router, including public routes mounted later (settings/public, reference catalogue).
+  r.use(['/users', '/roles', '/permissions'], authenticate(), csrfGuard());
 
   r.get('/users', requirePermission('users.read'), validate({ query: listUsersQuery }), h(admin.listUsers));
   r.post('/users', requirePermission('users.create'), idempotent({ required: false }), validate({ body: createUserBody }), h(admin.createUser));

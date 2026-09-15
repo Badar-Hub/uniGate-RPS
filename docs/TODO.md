@@ -49,14 +49,23 @@ All items delivered; residuals moved to Phase 3 below.
 - [x] Authorization matrix extended (profiles, documents, SPO, credit)
 - [ ] `GET /customers/{id}/statement` — **Phase 11** (invoice ageing)
 
-## Immediate — Phase 5 (Vehicle management)
+## Phase 5 — Vehicle management — COMPLETE 2026-09-15
 
-- [ ] `fleet` module: vehicles CRUD with plate/VIN uniqueness, categories, documents (VEHICLE kind already supported by `documents`), approval workflow, lifecycle status
-- [ ] Vehicle calendar (`vehicle_calendar_entries` EXCLUDE) — owner blackouts and maintenance windows; overlap tests against real PostgreSQL
-- [ ] Driver ↔ vehicle assignments (`vehicle_driver_assignments`, never overwritten)
-- [ ] Dispatchability predicate (`vehicle.policy`): approved + active + documents verified & unexpired + owner not suspended
-- [ ] Web: owner fleet pages (list, register, documents, calendar); admin vehicle approvals
-- [ ] Extend the authorization matrix with the fleet surface
+- [x] `fleet` module: vehicles CRUD with plate/VIN uniqueness, approval workflow, lifecycle status; VerticalPlugin seam for capacity rules and checklist extras
+- [x] Vehicle calendar — owner blocks over the EXCLUDE constraint; concurrency test on real PostgreSQL (exit criterion)
+- [x] Driver ↔ vehicle assignments, history never overwritten
+- [x] Dispatchability predicate (`fleet/vehicle.policy.ts`) + `GET /vehicles/{id}/availability`
+- [x] Reference catalogue endpoints (public, cacheable) + makes/models seed
+- [x] Web: fleet list, register, vehicle page (documents / calendar / drivers), admin vehicle approvals
+- [x] Authorization matrix extended; router guards path-scoped (public routes were 401)
+
+## Immediate — Phase 6 (Trip requests — core `demand` + passenger vertical)
+
+- [ ] `demand` module: `trip_requests` + `passenger_trip_details` through `VerticalPlugin.requestDetailSchema` / `validateRequest`; goods requests answer `501 VERTICAL_NOT_ENABLED`
+- [ ] Request lifecycle (DRAFT → OPEN → …) with bidding window computed from settings (`bidding.*`)
+- [ ] Matching predicate: category ∧ capacity ∧ dispatchable ∧ owner service area ∧ calendar free → `trip_request_invitations`; `/opportunities` for owners
+- [ ] Customer web: create/track requests (saved locations, cities); owner web: opportunities list
+- [ ] Extend the authorization matrix with the demand surface
 
 ## Deferred design work
 

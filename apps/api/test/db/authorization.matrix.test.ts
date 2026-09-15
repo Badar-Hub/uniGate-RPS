@@ -104,6 +104,27 @@ describeDb('authorization matrix', () => {
       call: (t) => bearer(request(h.app).patch('/api/v1/admin/customers/0192f3c1-0000-7000-8000-000000000000/credit'), t).send({ creditStatus: 'PENDING_APPROVAL' }),
       expect: { SUPER_ADMIN: 404, ADMIN: 404, OPS_MANAGER: 403, FINANCE_OFFICER: 404, SUPPORT_AGENT: 403, CUSTOMER: 403, VEHICLE_OWNER: 403, DRIVER: 403, SPO: 403 },
     },
+    // ── Phase 5: fleet & reference ─────────────────────────────────────────────
+    {
+      name: 'GET /vehicles (vehicles.read own → vehicles.read_any)',
+      call: (t) => bearer(request(h.app).get('/api/v1/vehicles'), t),
+      expect: { SUPER_ADMIN: 200, ADMIN: 200, OPS_MANAGER: 200, FINANCE_OFFICER: 200, SUPPORT_AGENT: 200, CUSTOMER: 403, VEHICLE_OWNER: 200, DRIVER: 403, SPO: 403 },
+    },
+    {
+      name: 'POST /vehicles (vehicles.create)',
+      call: (t) => bearer(request(h.app).post('/api/v1/vehicles'), t).send({}),
+      expect: { SUPER_ADMIN: 422, ADMIN: 422, OPS_MANAGER: 422, FINANCE_OFFICER: 403, SUPPORT_AGENT: 403, CUSTOMER: 403, VEHICLE_OWNER: 422, DRIVER: 403, SPO: 403 },
+    },
+    {
+      name: 'POST /vehicles/{id}/approve (vehicles.approve)',
+      call: (t) => bearer(request(h.app).post('/api/v1/vehicles/0192f3c1-0000-7000-8000-000000000000/approve'), t).send({}),
+      expect: { SUPER_ADMIN: 404, ADMIN: 404, OPS_MANAGER: 404, FINANCE_OFFICER: 403, SUPPORT_AGENT: 403, CUSTOMER: 403, VEHICLE_OWNER: 403, DRIVER: 403, SPO: 403 },
+    },
+    {
+      name: 'POST /reference/vehicle-makes (reference.manage)',
+      call: (t) => bearer(request(h.app).post('/api/v1/reference/vehicle-makes'), t).send({ name: 'Matrix Motors' }),
+      expect: { SUPER_ADMIN: 201, ADMIN: 409, OPS_MANAGER: 403, FINANCE_OFFICER: 403, SUPPORT_AGENT: 403, CUSTOMER: 403, VEHICLE_OWNER: 403, DRIVER: 403, SPO: 403 },
+    },
   ];
 
   for (const row of MATRIX) {
@@ -112,6 +133,7 @@ describeDb('authorization matrix', () => {
         const res = await row.call(tokens[role] ?? '');
         expect(res.status, `${role} → ${row.name}`).toBe(row.expect[role]);
         if (res.status === 403) expect(res.body.error.code).toBe('PERM_DENIED');
+        if (res.status === 409) expect(res.body.error.code).toBe('CONFLICT');
       }
     });
   }

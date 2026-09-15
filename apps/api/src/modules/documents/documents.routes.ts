@@ -19,7 +19,9 @@ import * as c from './documents.controller.js';
 /** api.md §8.10 `/documents`. Static paths are declared before `/:id` so `requirements` never matches as an id. */
 export function documentsRouter(): Router {
   const r = Router({ strict: true });
-  r.use(authenticate(), csrfGuard());
+  // Path-scoped on purpose: a bare router.use() would run for EVERY request passing through the
+  // router, including public routes mounted later (settings/public, reference catalogue).
+  r.use('/documents', authenticate(), csrfGuard());
 
   r.post('/documents/upload-url', requirePermission('documents.upload'), validate({ body: uploadUrlBody }), h(c.uploadUrl));
   r.get('/documents/requirements', requirePermission('documents.read'), validate({ query: documentRequirementsQuery }), h(c.requirements));

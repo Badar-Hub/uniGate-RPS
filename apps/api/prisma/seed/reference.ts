@@ -159,3 +159,31 @@ export const LEDGER_ACCOUNTS = [
   { code: 'REFUNDS_ISSUED', nameEn: 'Refunds issued', nameAr: 'المبالغ المستردة', type: 'EXPENSE' },
   { code: 'BAD_DEBT_EXPENSE', nameEn: 'Bad debt expense', nameAr: 'مصروف الديون المعدومة', type: 'EXPENSE' },
 ] as const;
+
+/**
+ * Makes and models common in the KSA commercial fleet (buses, vans, pickups, trucks). Owners pick
+ * from this list; admins extend it through POST /reference/vehicle-makes|models (reference.manage).
+ * A make that is missing never blocks registration — make/model are optional on the vehicle.
+ */
+export const VEHICLE_MAKES: { name: string; models: { name: string; body?: string }[] }[] = [
+  { name: 'Toyota', models: [{ name: 'Hiace', body: 'VAN' }, { name: 'Coaster', body: 'MINIBUS' }, { name: 'Hilux', body: 'PICKUP' }, { name: 'Land Cruiser', body: 'SUV' }, { name: 'Dyna', body: 'LIGHT_TRUCK' }, { name: 'Camry', body: 'SEDAN' }, { name: 'Innova', body: 'MPV' }] },
+  { name: 'Hyundai', models: [{ name: 'H-1', body: 'VAN' }, { name: 'Staria', body: 'VAN' }, { name: 'County', body: 'MINIBUS' }, { name: 'Universe', body: 'BUS' }, { name: 'Mighty', body: 'LIGHT_TRUCK' }, { name: 'Sonata', body: 'SEDAN' }] },
+  { name: 'Kia', models: [{ name: 'Carnival', body: 'MPV' }, { name: 'K2700', body: 'LIGHT_TRUCK' }, { name: 'Bongo', body: 'LIGHT_TRUCK' }] },
+  { name: 'Nissan', models: [{ name: 'Urvan', body: 'VAN' }, { name: 'Patrol', body: 'SUV' }, { name: 'Navara', body: 'PICKUP' }, { name: 'Sunny', body: 'SEDAN' }] },
+  { name: 'Mitsubishi', models: [{ name: 'L200', body: 'PICKUP' }, { name: 'Canter', body: 'LIGHT_TRUCK' }, { name: 'Rosa', body: 'MINIBUS' }] },
+  { name: 'Isuzu', models: [{ name: 'NPR', body: 'LIGHT_TRUCK' }, { name: 'NQR', body: 'TRUCK' }, { name: 'FVR', body: 'TRUCK' }, { name: 'D-Max', body: 'PICKUP' }] },
+  { name: 'Mercedes-Benz', models: [{ name: 'Sprinter', body: 'VAN' }, { name: 'Vito', body: 'VAN' }, { name: 'Actros', body: 'TRACTOR' }, { name: 'Atego', body: 'TRUCK' }, { name: 'Travego', body: 'BUS' }, { name: 'S-Class', body: 'SEDAN' }, { name: 'V-Class', body: 'VAN' }] },
+  { name: 'Ford', models: [{ name: 'Transit', body: 'VAN' }, { name: 'F-150', body: 'PICKUP' }] },
+  { name: 'Chevrolet', models: [{ name: 'Tahoe', body: 'SUV' }, { name: 'Suburban', body: 'SUV' }, { name: 'Silverado', body: 'PICKUP' }] },
+  { name: 'GMC', models: [{ name: 'Yukon', body: 'SUV' }, { name: 'Sierra', body: 'PICKUP' }] },
+  { name: 'Lexus', models: [{ name: 'LX', body: 'SUV' }, { name: 'ES', body: 'SEDAN' }] },
+  { name: 'Volvo', models: [{ name: 'FH', body: 'TRACTOR' }, { name: 'FM', body: 'TRUCK' }, { name: '9700', body: 'BUS' }] },
+  { name: 'MAN', models: [{ name: 'TGS', body: 'TRACTOR' }, { name: 'TGX', body: 'TRACTOR' }, { name: 'TGL', body: 'TRUCK' }, { name: 'Lion’s Coach', body: 'BUS' }] },
+  { name: 'Scania', models: [{ name: 'R-series', body: 'TRACTOR' }, { name: 'P-series', body: 'TRUCK' }, { name: 'Touring', body: 'BUS' }] },
+  { name: 'Hino', models: [{ name: '300', body: 'LIGHT_TRUCK' }, { name: '500', body: 'TRUCK' }, { name: '700', body: 'TRACTOR' }] },
+  { name: 'Yutong', models: [{ name: 'ZK6122', body: 'BUS' }, { name: 'ZK6938', body: 'MINIBUS' }] },
+  { name: 'King Long', models: [{ name: 'XMQ6127', body: 'BUS' }, { name: 'XMQ6900', body: 'MINIBUS' }] },
+  { name: 'JAC', models: [{ name: 'Sunray', body: 'VAN' }, { name: 'N-Series', body: 'LIGHT_TRUCK' }] },
+  { name: 'Foton', models: [{ name: 'View', body: 'VAN' }, { name: 'Aumark', body: 'LIGHT_TRUCK' }] },
+  { name: 'Changan', models: [{ name: 'Star', body: 'VAN' }, { name: 'Hunter', body: 'PICKUP' }] },
+];
