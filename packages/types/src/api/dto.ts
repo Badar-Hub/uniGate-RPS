@@ -2,7 +2,7 @@
  * Base DTO shapes. Every DTO is hand-written; none is derived from a Prisma model.
  */
 
-import type { MoneyString } from '../domain/money.js';
+import type { MoneyString, RateString } from '../domain/money.js';
 
 export interface TimestampedDto {
   createdAt: string;
@@ -721,4 +721,106 @@ export interface OpportunityDto {
   /** The owner's live bid on this request, if any (Phase 7). */
   ownBidId: string | null;
   createdAt: string;
+}
+
+// ── bidding (Phase 7) ─────────────────────────────────────────────────────────
+
+export interface BidExtraDto {
+  labelEn: string;
+  labelAr: string;
+  amount: MoneyString;
+}
+
+/** A quotation. Owners see their own; customers see bids on their own requests (api.md §8.13). */
+export interface BidDto extends TimestampedDto {
+  id: string;
+  bidNumber: string;
+  tripRequestId: string;
+  requestNumber: string;
+  ownerProfileId: string;
+  /** Business or display name of the bidding owner; the customer's comparison key. */
+  ownerName: string;
+  ownerRatingAvg: string;
+  vehicle: { id: string; plateNumberEn: string; description: string; categoryCode: string; passengerCapacity: number | null; payloadCapacityKg: MoneyString | null; ratingAvg: string };
+  driverProfileId: string | null;
+  driverName: string | null;
+  baseAmount: MoneyString;
+  extrasAmount: MoneyString;
+  extrasBreakdown: BidExtraDto[];
+  vatRate: RateString;
+  vatAmount: MoneyString;
+  totalAmount: MoneyString;
+  currency: string;
+  estimatedArrivalAt: string | null;
+  estimatedDurationMinutes: number | null;
+  validUntil: string;
+  /** Withheld from other parties: only the owner and the customer see notes. */
+  ownerNotes: string | null;
+  status: string;
+  version: number;
+  lastRevisedAt: string | null;
+  rejectedReason: string | null;
+  submittedAt: string;
+  decidedAt: string | null;
+  /** The booking created when this bid was accepted (null otherwise). */
+  bookingId: string | null;
+  /** Effective commission the owner priced against, when settings allow showing it (FR-FINANCE-22). */
+  effectiveCommission: { type: string; value: MoneyString | null; basis: string | null; source: string } | null;
+}
+
+/** Booking projection returned by the award paths; the full booking resource lands in Phase 8. */
+export interface BookingDto extends TimestampedDto {
+  id: string;
+  bookingNumber: string;
+  tripRequestId: string;
+  requestNumber: string;
+  bidId: string;
+  customerProfileId: string;
+  ownerProfileId: string;
+  vehicleId: string;
+  driverProfileId: string | null;
+  vehiclePlateSnapshot: string;
+  vehicleDescriptionSnapshot: string;
+  vehicleCategoryCodeSnapshot: string;
+  ownerNameSnapshot: string;
+  transportType: string;
+  pickup: TripLocationDto;
+  dropoff: TripLocationDto;
+  scheduledStartAt: string;
+  scheduledEndAt: string;
+  agreedBaseAmount: MoneyString;
+  agreedExtrasAmount: MoneyString;
+  vatRate: RateString;
+  vatAmount: MoneyString;
+  totalAmount: MoneyString;
+  currency: string;
+  billingMode: string;
+  creditTermsDaysSnapshot: number | null;
+  fulfilmentSequence: number;
+  status: string;
+  paymentStatus: string;
+  paymentDueBy: string | null;
+  nonCircumventionUntil: string | null;
+  confirmedAt: string | null;
+  /** Present for the owner and staff; the customer never sees the split (api.md §8.14). */
+  financial: {
+    grossAmount: MoneyString;
+    netOfVatAmount: MoneyString;
+    commissionAmount: MoneyString;
+    commissionVatAmount: MoneyString;
+    commissionSource: string;
+    paymentFeeAmount: MoneyString;
+    ownerNetAmount: MoneyString;
+    vatTreatment: string;
+  } | null;
+}
+
+export interface AcceptBidResultDto {
+  booking: BookingDto;
+  tripRequest: TripRequestDto;
+}
+
+export interface AwardResultDto {
+  bookings: BookingDto[];
+  tripRequest: TripRequestDto;
 }

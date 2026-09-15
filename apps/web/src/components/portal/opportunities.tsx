@@ -3,23 +3,28 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useLocale, useTranslations } from 'next-intl';
 import { AlertCircle, Loader2 } from 'lucide-react';
-import type { OpportunityDto } from '@unigate/types';
+import type { BidDto, OpportunityDto } from '@unigate/types';
 import { api, type ApiError } from '@/lib/api-client';
 import { errorMessage } from '@/lib/errors';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Link } from '@/lib/i18n/routing';
+import { BidForm } from './bid-form';
 
 /** The owner's opportunity feed: redacted requests matched to their fleet, best vehicle first. */
 export function Opportunities() {
   const t = useTranslations('portal.opportunities');
   const tr = useTranslations('portal.requests');
+  const tb = useTranslations('portal.bids.form');
   const tc = useTranslations('common');
   const locale = useLocale();
   const [rows, setRows] = useState<OpportunityDto[] | null>(null);
   const [showDismissed, setShowDismissed] = useState(false);
   const [error, setError] = useState<ApiError | null>(null);
+  const [bidding, setBidding] = useState<OpportunityDto | null>(null);
+  const [notice, setNotice] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     const res = await api<OpportunityDto[]>('/opportunities', { query: { pageSize: 50, includeDismissed: showDismissed ? 'true' : undefined } });
@@ -29,6 +34,11 @@ export function Opportunities() {
   useEffect(() => {
     void load();
   }, [load]);
+
+  function submitted(b: BidDto) {
+    setNotice(tb('submitted', { number: b.bidNumber, total: b.totalAmount }));
+    void load();
+  }
 
   async function dismiss(o: OpportunityDto) {
     const res = await api(`/opportunities/${o.id}/dismiss`, { method: 'POST', query: { undo: o.dismissedAt ? 'true' : undefined } });
@@ -52,6 +62,11 @@ export function Opportunities() {
         <Alert variant="destructive">
           <AlertCircle className="size-4" />
           <AlertDescription>{errorMessage(tc, error)}</AlertDescription>
+        </Alert>
+      )}
+      {notice && (
+        <Alert>
+          <AlertDescription>{notice}</AlertDescription>
         </Alert>
       )}
       {rows === null && <Loader2 className="size-5 animate-spin text-muted-foreground" />}
@@ -98,8 +113,16 @@ export function Opportunities() {
                     ))}
                   </div>
                 </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-xs text-muted-foreground">{t('bidSoon')}</span>
+                <div className="flex items-center justify-between gap-2">
+                  {o.ownBidId ? (
+                    <Button asChild size="sm" variant="secondary">
+                      <Link href="/bids">{t('yourBid')}</Link>
+                    </Button>
+                  ) : (
+                    <Button size="sm" disabled={!r.biddingOpen || o.eligibleVehicles.length === 0 || Boolean(o.dismissedAt)} onClick={() => { setBidding(o); }}>
+                      {t('placeBid')}
+                    </Button>
+                  )}
                   <Button size="sm" variant="ghost" onClick={() => void dismiss(o)}>
                     {o.dismissedAt ? t('undo') : t('dismiss')}
                   </Button>
@@ -109,6 +132,7 @@ export function Opportunities() {
           );
         })}
       </div>
+      {bidding && <BidForm opportunity={bidding} open onOpenChange={(open) => { if (!open) setBidding(null); }} onSubmitted={submitted} />}
     </div>
   );
 }

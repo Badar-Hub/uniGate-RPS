@@ -17,10 +17,11 @@ export const tripRequestSelect = {
   estimatedDistanceKm: true, estimatedDurationMinutes: true, pickupAt: true, returnAt: true, biddingClosesAt: true, remainderClosesAt: true,
   status: true, vehiclesAwarded: true, vehiclesDispatched: true, vehiclesCompleted: true, vehiclesCancelled: true,
   budgetAmount: true, currency: true, specialInstructions: true, cancellationReason: true, createdAt: true, updatedAt: true,
+  commissionOverrideType: true, commissionOverrideValue: true, commissionOverrideBasis: true, commissionOverrideReason: true, commissionOverrideSetByUserId: true, commissionOverrideSetAt: true,
   vehicleCategory: { select: { id: true, code: true, nameEn: true, nameAr: true, transportType: true } },
   passengerDetails: true,
   goodsDetails: true,
-  _count: { select: { invitations: true } },
+  invitations: { select: { ownerProfileId: true }, distinct: ['ownerProfileId'] },
 } satisfies Prisma.TripRequestSelect;
 
 export type TripRequestRow = Prisma.TripRequestGetPayload<{ select: typeof tripRequestSelect }>;
@@ -34,8 +35,9 @@ export function scopeWhere(scope: AnyScope): Prisma.TripRequestWhereInput {
   return or.length ? { OR: or } : { id: '00000000-0000-0000-0000-000000000000' };
 }
 
-export async function findTripRequest(scope: AnyScope, id: string): Promise<TripRequestRow | null> {
-  return prisma().tripRequest.findFirst({ where: { AND: [{ id }, scopeWhere(scope)] }, select: tripRequestSelect });
+export async function findTripRequest(scope: AnyScope, id: string, tx: Prisma.TransactionClient | null = null): Promise<TripRequestRow | null> {
+  const db = tx ?? prisma();
+  return db.tripRequest.findFirst({ where: { AND: [{ id }, scopeWhere(scope)] }, select: tripRequestSelect });
 }
 
 export interface TripRequestFilters {

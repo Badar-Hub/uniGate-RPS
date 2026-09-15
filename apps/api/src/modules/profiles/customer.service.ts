@@ -1,3 +1,4 @@
+import type { Prisma } from '@prisma/client';
 import type { ActorScope, AnyScope, CustomerCreditDto, CustomerDto } from '@unigate/types';
 import type { adminCreditBody, adminVatNumberBody, createCustomerBody, patchCustomerBody, upsertCorporateBody } from '@unigate/validation';
 import type { z } from 'zod';
@@ -252,4 +253,22 @@ export async function ensureCustomerRole(userId: string, grantedBy: string | nul
     await prisma().userRole.create({ data: { userId, roleId: role.id, grantedBy } });
     await bumpPermissionVersion(userId);
   }
+}
+
+// ── cross-module facts (Phase 7) ──────────────────────────────────────────────
+
+export interface BillingProfile {
+  /** PER_BOOKING or no corporate profile ⇒ PREPAID; WEEKLY/MONTHLY ⇒ INVOICED (A-46). */
+  mode: 'PREPAID' | 'INVOICED';
+  creditStatus: 'NONE' | 'PENDING_APPROVAL' | 'APPROVED' | 'SUSPENDED';
+  creditLimitAmount: string;
+  creditTermsDays: number | null;
+}
+
+/** Resolved at award and snapshotted onto the booking; never re-derived. Pass `tx` when the corporate row is locked. */
+export async function billingProfileOf(_scope: AnyScope, customerProfileId: string, tx: Prisma.TransactionClient | null = null): Promise<BillingProfile> {
+  const db = tx ?? prisma();
+  const c = await db.corporateCustomerProfile.findUnique({ where: { customerProfileId }, select: { billingCycle: true, creditStatus: true, creditLimitAmount: true, creditTermsDays: true } });
+  if (!c || c.billingCycle === 'PER_BOOKING') return { mode: 'PREPAID', creditStatus: c?.creditStatus ?? 'NONE', creditLimitAmount: c ? c.creditLimitAmount.toFixed(2) : '0.00', creditTermsDays: null };
+  return { mode: 'INVOICED', creditStatus: c.creditStatus, creditLimitAmount: c.creditLimitAmount.toFixed(2), creditTermsDays: c.creditTermsDays };
 }

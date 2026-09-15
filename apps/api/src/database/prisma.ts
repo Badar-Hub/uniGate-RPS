@@ -51,3 +51,12 @@ export function isExclusionViolation(e: unknown): boolean {
   return e instanceof Error && e.message.includes('ex_vehicle_calendar_no_overlap');
 }
 
+
+/** Is `e` a unique-constraint violation (P2002, or a partial unique index surfaced through raw SQL as 23505)? */
+export function isUniqueViolation(e: unknown): boolean {
+  if (e instanceof Prisma.PrismaClientKnownRequestError) {
+    const meta = e.meta as { code?: string } | undefined;
+    return e.code === PG_ERROR.UNIQUE_VIOLATION || meta?.code === '23505';
+  }
+  return e instanceof Error && e.message.includes('23505');
+}

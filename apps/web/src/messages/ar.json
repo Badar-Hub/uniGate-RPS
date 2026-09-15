@@ -42,14 +42,32 @@
       "VEHICLE_VIN_TAKEN": "توجد مركبة مسجلة برقم الهيكل هذا.",
       "VEHICLE_INVALID_TRANSITION": "هذا الإجراء غير ممكن في حالة المركبة الحالية.",
       "VEHICLE_HAS_ACTIVE_BOOKINGS": "للمركبة حجوزات ولا يمكن إزالتها.",
-      "OWNER_NOT_APPROVED": "يجب اعتماد ملف المالك أولاً.",
-      "DRIVER_NOT_APPROVED": "السائق غير معتمد بعد.",
-      "DRIVER_LICENSE_EXPIRED": "انتهت صلاحية رخصة السائق.",
+      "OWNER_NOT_APPROVED": "ملف المالك غير معتمد.",
+      "DRIVER_NOT_APPROVED": "السائق المرشح غير معتمد.",
+      "DRIVER_LICENSE_EXPIRED": "انتهت رخصة السائق المرشح.",
       "DRIVER_ALREADY_ON_TRIP": "السائق في رحلة حاليًا.",
       "CONFLICT": "هذا موجود بالفعل أو لا يزال مستخدمًا.",
       "TRIP_REQUEST_DETAIL_MISMATCH": "تفاصيل الطلب لا تطابق نوع النقل.",
       "TRIP_REQUEST_INVALID_TRANSITION": "هذا الإجراء غير ممكن في حالة الطلب الحالية.",
-      "VERTICAL_NOT_ENABLED": "نقل البضائع غير متاح بعد."
+      "VERTICAL_NOT_ENABLED": "نقل البضائع غير متاح بعد.",
+      "BID_AMOUNT_INVALID": "مبلغ العرض غير صالح.",
+      "BID_VALIDITY_INVALID": "مدة صلاحية العرض غير صالحة.",
+      "BID_NOT_ELIGIBLE": "لست مؤهلاً لتقديم عرض على هذا الطلب.",
+      "BID_DUPLICATE_VEHICLE": "لهذه المركبة عرض قائم على هذا الطلب.",
+      "BID_LIMIT_REACHED": "لديك عرض قائم على هذا الطلب — عدّله أو اسحبه أولاً.",
+      "BID_INVALID_TRANSITION": "لم يعد بالإمكان تغيير هذا العرض.",
+      "BID_EXPIRED": "انتهت صلاحية هذا العرض.",
+      "BID_VEHICLE_UNAVAILABLE": "تم حجز تلك المركبة للتو لوقت متداخل. اختر عرضاً آخر.",
+      "TRIP_REQUEST_NOT_OPEN": "هذا الطلب غير مفتوح للعروض.",
+      "TRIP_REQUEST_BIDDING_WINDOW_CLOSED": "أُغلق باب تقديم العروض.",
+      "TRIP_REQUEST_REMAINDER_CLOSED": "تم إغلاق المتبقي من هذا الطلب.",
+      "TRIP_REQUEST_FULLY_AWARDED": "تمت ترسية جميع المركبات على هذا الطلب.",
+      "RULE_PARTIAL_AWARD_NOT_ALLOWED": "يُرسى هذا الطلب دفعة واحدة — حدد عروضاً تغطي جميع المركبات.",
+      "RULE_AWARD_SET_INCOMPLETE": "حدد عدداً من العروض يساوي عدد المركبات المتبقية بالضبط.",
+      "RULE_CREDIT_LIMIT_EXCEEDED": "سيتجاوز هذا الحجز حدك الائتماني.",
+      "RULE_CREDIT_NOT_APPROVED": "حسابك الائتماني غير معتمد للحجوزات الآجلة.",
+      "VEHICLE_NOT_DISPATCHABLE": "لا يمكن تشغيل المركبة حالياً.",
+      "COMMISSION_OVERRIDE_FORBIDDEN": "لا يمكنك تجاوز العمولة."
     }
   },
   "home": {
@@ -113,7 +131,8 @@
       "fleet": "الأسطول",
       "vehicleApprovals": "اعتماد المركبات",
       "requests": "طلباتي",
-      "opportunities": "الفرص"
+      "opportunities": "الفرص",
+      "bids": "عروضي"
     },
     "welcome": "مرحبًا، {name}",
     "roles": "الأدوار",
@@ -334,7 +353,8 @@
         "duration": "{min} دقيقة",
         "deadline": "تُغلق العروض",
         "invitations": "المالكون المدعوون",
-        "noInvitations": "لا يوجد مالك لديه مركبة مطابقة متاحة حاليًا."
+        "noInvitations": "لا يوجد مالك لديه مركبة مطابقة متاحة حاليًا.",
+        "bids": "العروض"
       },
       "purpose": {
         "AIRPORT_TRANSFER": "نقل من/إلى المطار",
@@ -356,8 +376,65 @@
       "undo": "استعادة",
       "showDismissed": "عرض المتجاهلة",
       "passengers": "{count} راكب",
-      "bidSoon": "تقديم العروض يبدأ في المرحلة 7",
-      "closes": "تُغلق العروض {date}"
+      "closes": "تُغلق العروض {date}",
+      "placeBid": "تقديم عرض",
+      "yourBid": "عرضك",
+      "viewBid": "عرض العرض",
+      "commission": "عمولة المنصة: {value}",
+      "commissionNone": "لا عمولة للمنصة على هذا الطلب"
+    },
+    "bids": {
+      "title": "عروضي",
+      "subtitle": "العروض التي قدمتها. الإجمالي يشمل ضريبة القيمة المضافة بالنسبة السارية وقت التقديم.",
+      "empty": "لم تقدم أي عرض بعد.",
+      "number": "العرض",
+      "request": "الطلب",
+      "vehicle": "المركبة",
+      "total": "الإجمالي",
+      "validUntil": "صالح حتى",
+      "status": {
+        "SUBMITTED": "مقدَّم",
+        "WITHDRAWN": "مسحوب",
+        "ACCEPTED": "مقبول",
+        "REJECTED": "مرفوض",
+        "EXPIRED": "منتهي"
+      },
+      "version": "إصدار {n}",
+      "form": {
+        "title": "عرض على {number}",
+        "description": "حدد الأجرة الأساسية؛ تحتسب المنصة الضريبة والإجمالي.",
+        "vehicle": "المركبة",
+        "baseAmount": "الأجرة الأساسية (ر.س، قبل الضريبة)",
+        "extraLabel": "إضافة (اختياري)",
+        "extraAmount": "مبلغ الإضافة",
+        "notes": "ملاحظات للعميل",
+        "submit": "تقديم العرض",
+        "submitted": "تم تقديم العرض {number} — الإجمالي {total} ر.س.",
+        "total": "الإجمالي شامل الضريبة",
+        "withdraw": "سحب",
+        "withdrawn": "تم سحب العرض."
+      },
+      "compare": {
+        "title": "العروض",
+        "subtitle": "الأرخص أولاً. اقبل عرضاً لحجز تلك المركبة.",
+        "empty": "لا عروض بعد — يتم إشعار المالكين المدعوين ما دام باب العروض مفتوحاً.",
+        "owner": "المالك",
+        "rating": "التقييم",
+        "arrival": "الوصول",
+        "accept": "قبول",
+        "reject": "رفض",
+        "select": "تحديد",
+        "awardSelected": "ترسية {count} عروض محددة",
+        "awardHint": "يُرسى هذا الطلب دفعة واحدة: حدد {count} عروض بالضبط.",
+        "accepted": "تم إنشاء الحجز {number}.",
+        "awarded": "تم إنشاء {count} حجوزات.",
+        "booked": "محجوز",
+        "bookingStatus": {
+          "PENDING_PAYMENT": "بانتظار الدفع",
+          "CONFIRMED": "مؤكد"
+        }
+      },
+      "statusLabel": "الحالة"
     }
   }
 }

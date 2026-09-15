@@ -1,7 +1,7 @@
 # UniGate — Implementation Status
 
 **Last updated:** 2026-09-15
-**Current phase:** **Phase 6 complete** (2026-09-15) → Phase 7 (Bidding) ready to start
+**Current phase:** **Phase 7 complete** (2026-09-15) → Phase 8 (Bookings) ready to start
 **Overall:** Foundation built and verified end to end: monorepo, typed packages, API core, full Prisma schema (82 tables) with hand-written constraints, seeds, migration-integrity test, web scaffold (shadcn/ui, ar/en RTL), CI. `pnpm ci` is green (20/20 tasks). See [development.md](development.md).
 
 > **Schema-blocking questions resolved 2026-09-14.**
@@ -29,7 +29,7 @@ Status values: `NOT_STARTED` · `IN_PROGRESS` · `BLOCKED` · `COMPLETE`
 | 4 | User profiles & documents | **COMPLETE** 2026-09-15 | See *Phase 4 exit* below. Malware scanning runs with `SCAN_PROVIDER=none` until a scanner is procured (A-25) |
 | 5 | Vehicle management | **COMPLETE** 2026-09-15 | See *Phase 5 exit* below. VerticalPlugin seam introduced (ADR-010); calendar EXCLUDE guarantee proven under concurrency |
 | 6 | Trip requests | **COMPLETE** 2026-09-15 | See *Phase 6 exit* below. Core `demand` + passenger plugin; goods requests answer `501 VERTICAL_NOT_ENABLED` ([ADR-010](decisions/ADR-010-vertical-modules-over-a-shared-core.md)) |
-| 7 | Bidding | `NOT_STARTED` | ~~Bid window pending OQ-02~~ settings (ADR-009); ~~OQ-16~~ answered |
+| 7 | Bidding | **COMPLETE** 2026-09-15 | See *Phase 7 exit* below. Acceptance transaction under the global lock order; **N-way concurrent acceptance test green** |
 | 8 | Bookings | `NOT_STARTED` | ~~Cancellation fee tiers pending OQ-05~~ answered 2026-09-15 (admin-configured policies + per-case override/waiver); no open blocker |
 | 9 | Payments | `NOT_STARTED` | Production gateway **BLOCKED** on OQ-03 — decision due at start of Phase 8 (**M-PAY**); MockGateway path is unblocked |
 | 10 | Trip execution & tracking | `NOT_STARTED` | ~~Hardware GPS pending OQ-11~~ none fitted — driver-app GPS at launch |
@@ -149,6 +149,26 @@ Verified on 2026-09-15 with `pnpm turbo run typecheck lint test build --force` (
 
 ---
 
+## Phase 7 exit — what was verified
+
+Verified on 2026-09-15 with `pnpm turbo run typecheck lint test build --force` (20/20 tasks), 94 tests (80 API: 12 migration-integrity, 10 auth lifecycle, 33 authorization matrix, 6 profiles & documents, 6 fleet, 3 demand, 3 bidding, 7 unit; 14 package), plus a live browser session: an owner bid placed from the opportunity card (1250 + 50 → VAT 195 → **1495.00**, the worked example in api.md §6.4), accepted from the customer's request page → `BK-2026-000001`, `PENDING_PAYMENT` with a 30-minute payment window, a `HELD` reservation on the vehicle calendar buffered 60 min at both ends, and the Arabic bids page.
+
+| Area | Delivered | Proof |
+|---|---|---|
+| Bids | `POST /bids` (Idempotency-Key required): eligibility through the invitation (`BID_NOT_ELIGIBLE`), category match, dispatchability re-run, driver nomination checks, **totals computed here and only here** with `finance.vat_rate_pct` snapshotted onto the row — a client-supplied total is `.strict()`-rejected, not compared; `bidding.max_active_bids_per_owner_per_request`, `BID_DUPLICATE_VEHICLE` (409), validity defaulted from `bidding.bid_validity_hours` and capped at the request deadline; revise (version++, totals recomputed, refused after the deadline), withdraw, courtesy reject; `effectiveCommission` shown to the owner when `bidding.show_effective_commission_to_owners` | bidding test "submission…" |
+| Comparison list | `GET /trip-requests/{id}/bids` cheapest first; the customer sees owner notes; an owner's scope filters to their own rows; a rival bid is 404 by id; the customer never sees the owner's commission | same test |
+| Acceptance transaction | `POST /bids/{id}/accept`: one interactive transaction, lock order **trip_requests → bids → vehicles → corporate_customer_profiles** (raw `FOR UPDATE`, bids and vehicles in ascending id order); `billingMode` resolved from the corporate billing cycle and snapshotted; credit check inside the lock for INVOICED (`RULE_CREDIT_NOT_APPROVED`, `RULE_CREDIT_LIMIT_EXCEEDED` over receivables + uninvoiced live bookings); commission resolved award-time override → request override → rule (priority, then specificity); booking + status history + `HELD` reservation (`booking.turnaround_buffer_minutes`, new setting) + financial snapshot with the identity `ownerNet + commission + commissionVat + paymentFee = gross` asserted before the write and the per-owner `vat_treatment` (§12.8: no commission VAT under `DEEMED_SUPPLIER`); `fulfilment_sequence` assigned under the lock; PREPAID → `PENDING_PAYMENT` + `payment_due_by`, INVOICED → `CONFIRMED` + `payment_status = INVOICED`, no window; siblings rejected only on full award; `non_circumvention_until` from settings | bidding test "acceptance…" and "group award…" |
+| **Concurrency (exit criterion)** | Five owners' bids on a single-vehicle request accepted **concurrently** → exactly one `201`, four `409 TRIP_REQUEST_FULLY_AWARDED`, one booking row, one reservation; the same vehicle bid on an overlapping request → `409 BID_VEHICLE_UNAVAILABLE` from the EXCLUDE constraint, nothing written; idempotent replay of an accept returns the same booking with `Idempotency-Replayed` and no second row | same test, stable across 6 consecutive runs |
+| Group award | `POST /trip-requests/{id}/award`: the set must cover the remainder exactly (`RULE_AWARD_SET_INCOMPLETE` with `remainder`/`suppliedBidCount`), single accept refused on a no-partial request (`RULE_PARTIAL_AWARD_NOT_ALLOWED` naming the award endpoint), duplicate vehicles caught up front, **one blocked vehicle rolls the whole set back** (zero bookings, request still PUBLISHED, bids still SUBMITTED), then the full set books with sequences 1..n and the request `FULLY_AWARDED` | bidding test "group award…" |
+| Demand integration | Cancelling a request or closing its remainder rejects live bids; an owner with an accepted bid sees the request unredacted; `ownBidId` on opportunities; `invitedOwnerCount` now counts distinct owners (it counted vehicles) | bidding + demand tests |
+| Jobs | `expireStaleBids` (SUBMITTED past `valid_until` → EXPIRED) runs with the request expiry every 5 min | bidding test |
+| Web | Owner: bid dialog on the opportunity (native select for the vehicle, base fare + one extra + notes; the API returns the total), `/bids` list with withdraw; Customer: comparison table on the request page with accept / reject, checkbox selection and the group-award button for all-or-nothing orders, booking number surfaced on success | browser session |
+| OpenAPI | 111 paths / 132 schemas, diff-checked | `openapi:check` |
+
+**Carried forward:** bookings have no read surface yet — `GET /bookings`, cancellation (which must release the reservation and reopen the request), driver assignment and the payment-window expiry sweeper are Phase 8; `paymentFeeAmount` is 0 in the snapshot until a payment lands (Phase 9); SPO commission is snapshotted as `NONE` until Phase 11; the request-level commission override endpoint (`PATCH /trip-requests/{id}/commission-override`, `COMMISSION_OVERRIDE_AFTER_BIDS`) is admin tooling for Phase 13 — the award path already honours the columns; `commission_rules.percentage_rate` is stored as a fraction (the DB CHECK is `[0, 1]`), the API takes and shows a percent — database.md corrected; one intermittent API-test failure was seen under a parallel turbo run before the exclusion scenario was restructured and has not recurred in six runs since.
+
+---
+
 ## Module status
 
 | Module | Status | Backend | Frontend | Tests | Notes |
@@ -159,12 +179,12 @@ Verified on 2026-09-15 with `pnpm turbo run typecheck lint test build --force` (
 | `documents` | **DONE (Phase 4)** | repository (ownership from typed FKs), service (presigned two-step, hash + sniff, scan hook, requirements, expiry/sweep jobs), controller, routes, openapi; `StorageProvider` (S3/MinIO), `ScanProvider` (none/clamav) | ✅ | db (real MinIO) | Uploads are unscanned until A-25 is resolved. |
 | `fleet` | **DONE (Phase 5)** | vehicle.repository (scope, raw tstzrange calendar), vehicle.policy (dispatchability), vehicle.service, routes, mapper, openapi | ✅ | db (fleet 6, matrix) | operational_status transitions arrive with bookings/trips/maintenance. |
 | `demand` | **DONE (Phase 6)** | trip-request.repository (OWN/PARTY/GLOBAL), service (lifecycle, matcher, opportunities, expiry job), mapper (redaction), routes, openapi; MapsProvider (`estimate`) | ✅ | db (demand 3, matrix) | Bids/award are Phase 7. |
-| `bidding` | NOT_STARTED | — | — | — | Acceptance transaction. Phase 7. **Critical path.** |
-| `bookings` | NOT_STARTED | — | — | — | Phase 8. |
+| `bidding` | **DONE (Phase 7)** | bid.repository (OWN/PARTY/GLOBAL, row locks), bid.service (submit/revise/withdraw/reject, totals, expiry), award.service (accept + group award), mapper, routes, openapi | ✅ | db (bidding 3, matrix) | Request-level override endpoint is Phase 13 admin tooling. |
+| `bookings` | IN_PROGRESS | booking.repository (scope, reservation insert, credit exposure), booking.service (`createAwardedBooking`, `getBooking`), mapper (customer never sees the split) | — | via bidding tests | Read surface, cancellation, driver assignment, payment-window sweeper: Phase 8. |
 | `trips` | NOT_STARTED | — | — | — | Phase 10. |
 | `tracking` | NOT_STARTED | — | — | — | Socket.IO + tiered storage. Phase 10. |
 | `payments` | NOT_STARTED | — | — | — | Gateway abstraction. Phase 9. |
-| `finance` | NOT_STARTED | — | — | — | Ledger + snapshots + settlements. Phase 11. |
+| `finance` | IN_PROGRESS | commission.repository + commission.service: rule resolution (priority → specificity), override precedence, `computeFinancials` (balanced split, per-owner VAT treatment) | — | via bidding tests | Ledger + settlements: Phase 11. |
 | `maintenance` | NOT_STARTED | — | — | — | Phase 12. |
 | `engagement` | NOT_STARTED | — | — | — | Ratings + complaints. Phase 13. |
 | `notifications` | NOT_STARTED | — | — | — | OTP path lands in Phase 3; full system Phase 13. |

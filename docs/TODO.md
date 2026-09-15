@@ -68,14 +68,25 @@ All items delivered; residuals moved to Phase 3 below.
 - [x] Authorization matrix extended
 - [ ] Maps autocomplete / geocoding — **waits for a provider server key** (form uses saved locations or city centres)
 
-## Immediate — Phase 7 (Bidding)
+## Phase 7 — Bidding — COMPLETE 2026-09-15
 
-- [ ] `bidding` module: `POST /bids` (server-computed totals with snapshotted VAT rate, `bidding.max_active_bids_per_owner_per_request`, `bidding.bid_validity_hours`), revise (version++), withdraw, reject
-- [ ] Customer comparison list `GET /trip-requests/{id}/bids`; owner scope filters to own rows
-- [ ] `POST /bids/{id}/accept` and `POST /trip-requests/{id}/award` (all-or-nothing group award): booking creation, calendar reservation under the EXCLUDE constraint, financial snapshot with commission rule / override, credit check for INVOICED customers — **N-way concurrent acceptance test (exit criterion)**
-- [ ] Cancelling a request rejects SUBMITTED bids; `ownBidId` on opportunities; bid expiry job
-- [ ] Web: owner bid form on the opportunity, customer bid comparison and accept
-- [ ] Extend the authorization matrix with the bidding surface
+- [x] `bidding` module: submit (server-computed totals, snapshotted VAT rate, per-owner limit, validity from settings), revise, withdraw, reject
+- [x] Comparison list; owner scope filters to own rows
+- [x] `POST /bids/{id}/accept` and `POST /trip-requests/{id}/award` under the global lock order — booking, HELD reservation (EXCLUDE), balanced financial snapshot, credit check for INVOICED — **N-way concurrent acceptance test green**
+- [x] Cancel/close-remainder reject live bids; `ownBidId`; bid expiry job
+- [x] Web: owner bid dialog and `/bids`; customer comparison, accept, group award
+- [x] Authorization matrix extended
+- [ ] `PATCH /trip-requests/{id}/commission-override` (admin; `COMMISSION_OVERRIDE_AFTER_BIDS`) — Phase 13 admin tooling; the award already honours the columns
+
+## Immediate — Phase 8 (Bookings)
+
+- [ ] `GET /bookings`, `GET /bookings/{id}` with the customer / owner / driver projections; filters incl. `tripRequestId` (dispatch waves)
+- [ ] Cancellation: `POST /bookings/{id}/cancel` with cancellation policies (NONE seeded), fee computation, reservation `RELEASED`, `vehicles_awarded--` and `FULLY_AWARDED → PARTIALLY_AWARDED` reopening the request (A-45), `vehicles_cancelled++`
+- [ ] Driver assignment on the booking (`bookings.assign_driver`), `READY` check, ops `POST /bookings/{id}/confirm`
+- [ ] Payment-window sweeper: `PENDING_PAYMENT` past `payment_due_by` → `CANCELLED` + reservation released (never INVOICED)
+- [ ] `operational_status` transitions (RESERVED) and the customer's PARTY scope on a booked vehicle
+- [ ] Web: customer and owner bookings list/detail; driver assignment
+- [ ] Extend the authorization matrix with the bookings surface
 
 ## Deferred design work
 

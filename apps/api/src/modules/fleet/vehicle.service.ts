@@ -388,3 +388,23 @@ export async function dispatchableCandidates(input: { vehicleCategoryId: string;
   }
   return out;
 }
+
+// ── cross-module facts (Phase 7) ──────────────────────────────────────────────
+
+export interface VehicleForAward {
+  id: string;
+  ownerProfileId: string;
+  vehicleCategoryId: string;
+  categoryCode: string;
+  plateNumberEn: string;
+  description: string;
+  dispatch: Dispatchability;
+}
+
+/** The vehicle as the bidding/award path sees it: identity + the dispatchability verdict re-run now. Unscoped read (the bid already names the vehicle). */
+export async function vehicleForAward(id: string, at?: Date): Promise<VehicleForAward | null> {
+  const v = await repo.findVehicle(systemScope('bidding.vehicle'), id);
+  if (!v) return null;
+  const description = [v.make?.name, v.model?.name, String(v.modelYear), '—', v.category.nameEn].filter(Boolean).join(' ');
+  return { id: v.id, ownerProfileId: v.ownerProfileId, vehicleCategoryId: v.vehicleCategoryId, categoryCode: v.category.code, plateNumberEn: v.plateNumberEn, description, dispatch: await dispatchableNow(v, at) };
+}

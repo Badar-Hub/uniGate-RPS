@@ -13,6 +13,7 @@ import { dispatchableCandidates, type DispatchableCandidate } from '@/modules/fl
 import { writeAudit } from '@/modules/platform/audit.service.js';
 import { getSettingValue } from '@/modules/reference/settings.service.js';
 import { verticalFor } from '@/verticals/registry.js';
+import { ownerBidOnRequest, ownerHasAcceptedBid, rejectLiveBidsOnRequest } from '@/modules/bidding/bid.service.js';
 import { biddingOpen, toInvitationDto, toTripRequestDto } from './demand.mapper.js';
 import * as repo from './trip-request.repository.js';
 
@@ -26,19 +27,23 @@ function audit(scope: ActorScope) {
 }
 const systemScope: AnyScope = { kind: 'SYSTEM', jobName: 'demand', requestId: 'internal' };
 
-/** Owners see the redacted projection until an accepted bid of theirs exists (Phase 7 sets that). */
+/** Owners see the redacted projection until an accepted bid of theirs exists (api.md §8.11). */
 function isRedactedFor(scope: AnyScope, r: repo.TripRequestRow): boolean {
   if (scope.kind === 'SYSTEM' || scope.kind === 'GLOBAL') return false;
   return scope.actor.customerProfileId !== r.customerProfileId;
 }
 
-function dto(scope: AnyScope, r: repo.TripRequestRow): TripRequestDto {
-  return toTripRequestDto(r, isRedactedFor(scope, r));
+async function dto(scope: AnyScope, r: repo.TripRequestRow): Promise<TripRequestDto> {
+  let redacted = isRedactedFor(scope, r);
+  if (redacted && scope.kind !== 'SYSTEM' && scope.actor.ownerProfileId && (await ownerHasAcceptedBid(scope, r.id, scope.actor.ownerProfileId))) redacted = false;
+  return toTripRequestDto(r, redacted);
 }
 
 export async function listTripRequests(scope: AnyScope, filters: repo.TripRequestFilters, page: { page: number; pageSize: number }) {
   const { items, total } = await repo.listTripRequests(scope, filters, page);
-  return { items: items.map((r) => dto(scope, r)), total };
+  const dtos: TripRequestDto[] = [];
+  for (const r of items) dtos.push(await dto(scope, r));
+  return { items: dtos, total };
 }
 
 export async function getTripRequest(scope: AnyScope, id: string): Promise<TripRequestDto> {
@@ -248,7 +253,7 @@ export async function cancelTripRequest(scope: ActorScope, id: string, reason: s
   if (r.vehiclesAwarded > 0) throw new BusinessRuleError('TRIP_REQUEST_INVALID_TRANSITION', 'Bookings have been awarded: cancel them individually or close the remainder', { vehiclesAwarded: r.vehiclesAwarded });
   await prisma().$transaction(async (tx) => {
     await tx.tripRequest.update({ where: { id }, data: { status: 'CANCELLED', cancellationReason: reason } });
-    // Live bids are rejected here in Phase 7 (bids.status SUBMITTED → REJECTED).
+    await rejectLiveBidsOnRequest(scope, id, 'request cancelled', tx);
     await writeAudit({ ...audit(scope), action: 'trip_request.cancelled', entityType: 'trip_request', entityId: id, beforeValue: { status: r.status }, afterValue: { status: 'CANCELLED', reason } }, tx);
     await publishEvent('trip_request', id, 'trip_request.cancelled', { requestNumber: r.requestNumber, reason }, tx);
   });
@@ -273,6 +278,7 @@ export async function closeRemainder(scope: ActorScope, id: string, reason?: str
   if (r.status !== 'PARTIALLY_AWARDED') throw new BusinessRuleError('TRIP_REQUEST_INVALID_TRANSITION', `Only a partially awarded request has a remainder to close (current: ${r.status})`, { status: r.status });
   await prisma().$transaction(async (tx) => {
     await tx.tripRequest.update({ where: { id }, data: { status: 'CLOSED_PARTIAL', remainderClosesAt: new Date() } });
+    await rejectLiveBidsOnRequest(scope, id, 'remainder closed by the customer', tx);
     await writeAudit({ ...audit(scope), action: 'trip_request.remainder_closed', entityType: 'trip_request', entityId: id, severity: 'NOTICE', beforeValue: { vehiclesRequired: r.vehiclesRequired, vehiclesAwarded: r.vehiclesAwarded }, afterValue: { status: 'CLOSED_PARTIAL', reason: reason ?? null, actedFor: scope.kind === 'GLOBAL' ? 'customer' : 'self' } }, tx);
     await publishEvent('trip_request', id, 'trip_request.remainder_closed', { requestNumber: r.requestNumber, unfilled: r.vehiclesRequired - r.vehiclesAwarded }, tx);
   });
@@ -314,7 +320,7 @@ async function toOpportunity(scope: AnyScope, i: repo.OwnerInvitationRow): Promi
     viewedAt: i.viewedAt ? i.viewedAt.toISOString() : null,
     dismissedAt: i.dismissedAt ? i.dismissedAt.toISOString() : null,
     eligibleVehicles: matches.map((m) => ({ id: m.candidate.id, plateNumberEn: m.candidate.plateNumberEn, categoryCode: m.candidate.categoryCode, passengerCapacity: m.candidate.passengerCapacity, payloadCapacityKg: m.candidate.payloadCapacityKg ? money(m.candidate.payloadCapacityKg).toFixed(2) as OpportunityDto['eligibleVehicles'][number]['payloadCapacityKg'] : null })),
-    ownBidId: null,
+    ownBidId: scope.kind === 'SYSTEM' || scope.kind === 'GLOBAL' ? null : await ownerBidOnRequest(scope, i.tripRequest.id, i.ownerProfileId),
     createdAt: i.createdAt.toISOString(),
   };
 }
@@ -356,6 +362,27 @@ export async function expireStaleRequests(): Promise<number> {
     });
   }
   return stale.length;
+}
+
+// ── cross-module facts (Phase 7) ──────────────────────────────────────────────
+
+/** The row as bidding sees it — scoped; pass `tx` after locking the row so the re-read is current. */
+export async function requestRowForBidding(scope: AnyScope, id: string, tx: Prisma.TransactionClient | null = null): Promise<repo.TripRequestRow | null> {
+  return repo.findTripRequest(scope, id, tx);
+}
+
+/** The occupancy window the matcher and the reservation share. */
+export function requestOccupancyWindow(r: Pick<repo.TripRequestRow, 'pickupAt' | 'returnAt' | 'estimatedDurationMinutes'>, bidDurationMinutes: number | null = null): { from: Date; to: Date } {
+  return occupancyWindow(r.pickupAt, r.returnAt, bidDurationMinutes ?? r.estimatedDurationMinutes);
+}
+
+/** Counter + status flip after n bookings were created under the request's row lock (api.md §6.4 step 11). */
+export async function recordAward(scope: AnyScope, r: repo.TripRequestRow, awardedNow: number, tx: Prisma.TransactionClient): Promise<{ status: 'PARTIALLY_AWARDED' | 'FULLY_AWARDED'; vehiclesAwarded: number }> {
+  const vehiclesAwarded = r.vehiclesAwarded + awardedNow;
+  const status = vehiclesAwarded >= r.vehiclesRequired ? 'FULLY_AWARDED' : 'PARTIALLY_AWARDED';
+  await tx.tripRequest.update({ where: { id: r.id }, data: { vehiclesAwarded, status } });
+  await writeAudit({ ...(scope.kind === 'SYSTEM' ? { actorUserId: null, actorType: 'SYSTEM' as const } : audit(scope)), action: 'trip_request.awarded', entityType: 'trip_request', entityId: r.id, beforeValue: { vehiclesAwarded: r.vehiclesAwarded, status: r.status }, afterValue: { vehiclesAwarded, status } }, tx);
+  return { status, vehiclesAwarded };
 }
 
 export { biddingOpen, systemScope };

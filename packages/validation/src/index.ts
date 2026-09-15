@@ -7,3 +7,4 @@ export * from './documents.js';
 export * from './fleet.js';
 export * from './reference.js';
 export * from './demand.js';
+export * from './bidding.js';

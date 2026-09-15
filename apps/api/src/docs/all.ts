@@ -9,3 +9,4 @@ import '@/modules/documents/documents.openapi.js';
 import '@/modules/profiles/profiles.openapi.js';
 import '@/modules/fleet/fleet.openapi.js';
 import '@/modules/demand/demand.openapi.js';
+import '@/modules/bidding/bidding.openapi.js';

@@ -42,14 +42,32 @@
       "VEHICLE_VIN_TAKEN": "A vehicle with this VIN is already registered.",
       "VEHICLE_INVALID_TRANSITION": "This action is not possible in the vehicle’s current state.",
       "VEHICLE_HAS_ACTIVE_BOOKINGS": "The vehicle has reservations and cannot be removed.",
-      "OWNER_NOT_APPROVED": "Your owner profile must be approved first.",
-      "DRIVER_NOT_APPROVED": "The driver is not approved yet.",
-      "DRIVER_LICENSE_EXPIRED": "The driver’s licence has expired.",
+      "OWNER_NOT_APPROVED": "The owner profile is not approved.",
+      "DRIVER_NOT_APPROVED": "The nominated driver is not approved.",
+      "DRIVER_LICENSE_EXPIRED": "The nominated driver’s licence has expired.",
       "DRIVER_ALREADY_ON_TRIP": "The driver is on a trip.",
       "CONFLICT": "This already exists or is still in use.",
       "TRIP_REQUEST_DETAIL_MISMATCH": "The request details do not match the transport type.",
       "TRIP_REQUEST_INVALID_TRANSITION": "This action is not possible in the request’s current state.",
-      "VERTICAL_NOT_ENABLED": "Goods transport is not available yet."
+      "VERTICAL_NOT_ENABLED": "Goods transport is not available yet.",
+      "BID_AMOUNT_INVALID": "The bid amount is invalid.",
+      "BID_VALIDITY_INVALID": "The bid validity is invalid.",
+      "BID_NOT_ELIGIBLE": "You are not eligible to bid on this request.",
+      "BID_DUPLICATE_VEHICLE": "This vehicle already has a live bid on this request.",
+      "BID_LIMIT_REACHED": "You already have a live bid on this request — revise or withdraw it first.",
+      "BID_INVALID_TRANSITION": "This bid can no longer be changed.",
+      "BID_EXPIRED": "This bid has expired.",
+      "BID_VEHICLE_UNAVAILABLE": "That vehicle was just booked for an overlapping time. Choose another bid.",
+      "TRIP_REQUEST_NOT_OPEN": "This request is not open for bids.",
+      "TRIP_REQUEST_BIDDING_WINDOW_CLOSED": "The bidding window has closed.",
+      "TRIP_REQUEST_REMAINDER_CLOSED": "The remaining balance of this request has been closed.",
+      "TRIP_REQUEST_FULLY_AWARDED": "Every vehicle on this request has already been awarded.",
+      "RULE_PARTIAL_AWARD_NOT_ALLOWED": "This request must be awarded as a whole — select bids covering all vehicles.",
+      "RULE_AWARD_SET_INCOMPLETE": "Select exactly as many bids as vehicles remaining.",
+      "RULE_CREDIT_LIMIT_EXCEEDED": "This booking would exceed your credit limit.",
+      "RULE_CREDIT_NOT_APPROVED": "Your credit account is not approved for invoiced bookings.",
+      "VEHICLE_NOT_DISPATCHABLE": "The vehicle cannot be dispatched right now.",
+      "COMMISSION_OVERRIDE_FORBIDDEN": "You may not override the commission."
     }
   },
   "home": {
@@ -113,7 +131,8 @@
       "fleet": "Fleet",
       "vehicleApprovals": "Vehicle approvals",
       "requests": "My requests",
-      "opportunities": "Opportunities"
+      "opportunities": "Opportunities",
+      "bids": "My bids"
     },
     "welcome": "Welcome, {name}",
     "roles": "Roles",
@@ -334,7 +353,8 @@
         "duration": "{min} min",
         "deadline": "Bids close",
         "invitations": "Invited owners",
-        "noInvitations": "No owner has a matching vehicle available yet."
+        "noInvitations": "No owner has a matching vehicle available yet.",
+        "bids": "Bids"
       },
       "purpose": {
         "AIRPORT_TRANSFER": "Airport transfer",
@@ -356,8 +376,65 @@
       "undo": "Restore",
       "showDismissed": "Show dismissed",
       "passengers": "{count} passengers",
-      "bidSoon": "Bidding opens in Phase 7",
-      "closes": "Bids close {date}"
+      "closes": "Bids close {date}",
+      "placeBid": "Place a bid",
+      "yourBid": "Your bid",
+      "viewBid": "View bid",
+      "commission": "Platform commission: {value}",
+      "commissionNone": "No platform commission on this request"
+    },
+    "bids": {
+      "title": "My bids",
+      "subtitle": "Quotations you have submitted. Totals include VAT at the rate in force when you bid.",
+      "empty": "You have not placed any bids yet.",
+      "number": "Bid",
+      "request": "Request",
+      "vehicle": "Vehicle",
+      "total": "Total",
+      "validUntil": "Valid until",
+      "status": {
+        "SUBMITTED": "Submitted",
+        "WITHDRAWN": "Withdrawn",
+        "ACCEPTED": "Accepted",
+        "REJECTED": "Rejected",
+        "EXPIRED": "Expired"
+      },
+      "version": "v{n}",
+      "form": {
+        "title": "Bid on {number}",
+        "description": "Quote a base fare; VAT and the total are calculated by the platform.",
+        "vehicle": "Vehicle",
+        "baseAmount": "Base fare (SAR, before VAT)",
+        "extraLabel": "Extra (optional)",
+        "extraAmount": "Extra amount",
+        "notes": "Notes for the customer",
+        "submit": "Submit bid",
+        "submitted": "Bid {number} submitted — total {total} SAR.",
+        "total": "Total incl. VAT",
+        "withdraw": "Withdraw",
+        "withdrawn": "Bid withdrawn."
+      },
+      "compare": {
+        "title": "Bids",
+        "subtitle": "Cheapest first. Accept one bid to book that vehicle.",
+        "empty": "No bids yet — invited owners are notified while bidding is open.",
+        "owner": "Owner",
+        "rating": "Rating",
+        "arrival": "Arrival",
+        "accept": "Accept",
+        "reject": "Reject",
+        "select": "Select",
+        "awardSelected": "Award {count} selected",
+        "awardHint": "This request is awarded as a whole: select exactly {count} bids.",
+        "accepted": "Booking {number} created.",
+        "awarded": "{count} bookings created.",
+        "booked": "Booked",
+        "bookingStatus": {
+          "PENDING_PAYMENT": "Awaiting payment",
+          "CONFIRMED": "Confirmed"
+        }
+      },
+      "statusLabel": "Status"
     }
   }
 }

@@ -63,7 +63,7 @@ export function toTripRequestDto(r: TripRequestRow, redacted: boolean): TripRequ
     cancellationReason: r.cancellationReason,
     passengerDetails: r.passengerDetails ? toPassenger(r.passengerDetails) : null,
     goodsDetails: r.goodsDetails ? toGoods(r.goodsDetails, redacted) : null,
-    invitedOwnerCount: r._count.invitations,
+    invitedOwnerCount: r.invitations.length,
     redacted,
     createdAt: r.createdAt.toISOString(),
     updatedAt: r.updatedAt.toISOString(),

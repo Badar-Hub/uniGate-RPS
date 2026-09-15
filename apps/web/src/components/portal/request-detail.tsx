@@ -15,6 +15,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { REQUEST_TONE } from './requests-list';
+import { RequestBids } from './request-bids';
 
 /** One request: status, counters, estimate, the detail block, lifecycle actions, and (staff) the invitation list. */
 export function RequestDetail({ id, created }: { id: string; created?: string | undefined }) {
@@ -22,7 +23,7 @@ export function RequestDetail({ id, created }: { id: string; created?: string | 
   const tc = useTranslations('common');
   const locale = useLocale();
   const router = useRouter();
-  const { can } = useSession();
+  const { can, me } = useSession();
   const [r, setR] = useState<TripRequestDto | null>(null);
   const [invitations, setInvitations] = useState<InvitationDto[] | null>(null);
   const [error, setError] = useState<ApiError | null>(null);
@@ -185,6 +186,10 @@ export function RequestDetail({ id, created }: { id: string; created?: string | 
             )}
           </CardContent>
         </Card>
+      )}
+
+      {!r.redacted && ['PUBLISHED', 'PARTIALLY_AWARDED', 'FULLY_AWARDED', 'CLOSED_PARTIAL'].includes(r.status) && (
+        <RequestBids request={r} canAccept={can('bids.accept') && (r.customerProfileId === me?.profiles.customer?.id || can('trip_requests.read_any'))} onChanged={setR} />
       )}
 
       {invitations && (

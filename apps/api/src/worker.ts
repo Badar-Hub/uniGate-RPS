@@ -9,6 +9,7 @@ import { closeQueues } from '@/jobs/queues.js';
 import { ensureNextMonthPartitions, purgeExpired } from '@/jobs/maintenance.js';
 import { markExpiredDocuments, sweepPendingUploads } from '@/modules/documents/documents.service.js';
 import { expireStaleRequests } from '@/modules/demand/trip-request.service.js';
+import { expireStaleBids } from '@/modules/bidding/bid.service.js';
 
 /**
  * Worker entrypoint — same image as the API, different process. Runs the outbox relay, the
@@ -61,9 +62,13 @@ async function main(): Promise<void> {
     expireStaleRequests()
       .then((n) => {
         if (n) log.info({ expired: n }, 'trip requests expired');
+        return expireStaleBids();
+      })
+      .then((n) => {
+        if (n) log.info({ expired: n }, 'bids expired');
       })
       .catch((err: unknown) => {
-        log.error({ err }, 'trip request expiry failed');
+        log.error({ err }, 'demand/bidding expiry failed');
       });
   };
   runMaintenance();

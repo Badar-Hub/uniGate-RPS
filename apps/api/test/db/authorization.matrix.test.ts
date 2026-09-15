@@ -146,6 +146,32 @@ describeDb('authorization matrix', () => {
       call: (t) => bearer(request(h.app).get('/api/v1/opportunities'), t),
       expect: { SUPER_ADMIN: 200, ADMIN: 200, OPS_MANAGER: 200, FINANCE_OFFICER: 200, SUPPORT_AGENT: 200, CUSTOMER: 200, VEHICLE_OWNER: 200, DRIVER: 403, SPO: 200 },
     },
+    // ── Phase 7: bidding ───────────────────────────────────────────────────────
+    {
+      name: 'GET /bids (bids.read own → bids.read_any; SUPPORT_AGENT holds read_any only)',
+      call: (t) => bearer(request(h.app).get('/api/v1/bids'), t),
+      expect: { SUPER_ADMIN: 200, ADMIN: 200, OPS_MANAGER: 200, FINANCE_OFFICER: 403, SUPPORT_AGENT: 200, CUSTOMER: 200, VEHICLE_OWNER: 200, DRIVER: 403, SPO: 403 },
+    },
+    {
+      name: 'POST /bids (bids.create; Idempotency-Key required → 400 before validation)',
+      call: (t) => bearer(request(h.app).post('/api/v1/bids'), t).send({}),
+      expect: { SUPER_ADMIN: 400, ADMIN: 400, OPS_MANAGER: 400, FINANCE_OFFICER: 403, SUPPORT_AGENT: 403, CUSTOMER: 403, VEHICLE_OWNER: 400, DRIVER: 403, SPO: 403 },
+    },
+    {
+      name: 'POST /bids/{id}/accept (bids.accept — customers and ops, never owners; key required)',
+      call: (t) => bearer(request(h.app).post('/api/v1/bids/0192f3c1-0000-7000-8000-000000000000/accept'), t).send({}),
+      expect: { SUPER_ADMIN: 400, ADMIN: 400, OPS_MANAGER: 400, FINANCE_OFFICER: 403, SUPPORT_AGENT: 403, CUSTOMER: 400, VEHICLE_OWNER: 403, DRIVER: 403, SPO: 403 },
+    },
+    {
+      name: 'POST /trip-requests/{id}/award (bids.accept; key required)',
+      call: (t) => bearer(request(h.app).post('/api/v1/trip-requests/0192f3c1-0000-7000-8000-000000000000/award'), t).send({}),
+      expect: { SUPER_ADMIN: 400, ADMIN: 400, OPS_MANAGER: 400, FINANCE_OFFICER: 403, SUPPORT_AGENT: 403, CUSTOMER: 400, VEHICLE_OWNER: 403, DRIVER: 403, SPO: 403 },
+    },
+    {
+      name: 'GET /trip-requests/{id}/bids (bids.read; unknown request → 404 for every holder)',
+      call: (t) => bearer(request(h.app).get('/api/v1/trip-requests/0192f3c1-0000-7000-8000-000000000000/bids'), t),
+      expect: { SUPER_ADMIN: 404, ADMIN: 404, OPS_MANAGER: 404, FINANCE_OFFICER: 403, SUPPORT_AGENT: 404, CUSTOMER: 404, VEHICLE_OWNER: 404, DRIVER: 403, SPO: 403 },
+    },
   ];
 
   for (const row of MATRIX) {

@@ -5861,6 +5861,719 @@
           "message",
           "meta"
         ]
+      },
+      "Bid": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "bidNumber": {
+            "type": "string"
+          },
+          "tripRequestId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "requestNumber": {
+            "type": "string"
+          },
+          "ownerProfileId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "ownerName": {
+            "type": "string"
+          },
+          "ownerRatingAvg": {
+            "type": "string"
+          },
+          "vehicle": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "plateNumberEn": {
+                "type": "string"
+              },
+              "description": {
+                "type": "string"
+              },
+              "categoryCode": {
+                "type": "string"
+              },
+              "passengerCapacity": {
+                "type": [
+                  "integer",
+                  "null"
+                ]
+              },
+              "payloadCapacityKg": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "pattern": "^-?\\d+\\.\\d{2}$"
+              },
+              "ratingAvg": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "id",
+              "plateNumberEn",
+              "description",
+              "categoryCode",
+              "passengerCapacity",
+              "payloadCapacityKg",
+              "ratingAvg"
+            ]
+          },
+          "driverProfileId": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid"
+          },
+          "driverName": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "baseAmount": {
+            "type": "string",
+            "pattern": "^-?\\d+\\.\\d{2}$"
+          },
+          "extrasAmount": {
+            "type": "string",
+            "pattern": "^-?\\d+\\.\\d{2}$"
+          },
+          "extrasBreakdown": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "labelEn": {
+                  "type": "string"
+                },
+                "labelAr": {
+                  "type": "string"
+                },
+                "amount": {
+                  "type": "string",
+                  "pattern": "^-?\\d+\\.\\d{2}$"
+                }
+              },
+              "required": [
+                "labelEn",
+                "labelAr",
+                "amount"
+              ]
+            }
+          },
+          "vatRate": {
+            "type": "string",
+            "pattern": "^\\d+\\.\\d{4}$"
+          },
+          "vatAmount": {
+            "type": "string",
+            "pattern": "^-?\\d+\\.\\d{2}$"
+          },
+          "totalAmount": {
+            "type": "string",
+            "pattern": "^-?\\d+\\.\\d{2}$"
+          },
+          "currency": {
+            "type": "string"
+          },
+          "estimatedArrivalAt": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "estimatedDurationMinutes": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "validUntil": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "ownerNotes": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "status": {
+            "type": "string"
+          },
+          "version": {
+            "type": "integer"
+          },
+          "lastRevisedAt": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "rejectedReason": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "submittedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "decidedAt": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "bookingId": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid"
+          },
+          "effectiveCommission": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "properties": {
+              "type": {
+                "type": "string"
+              },
+              "value": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "pattern": "^-?\\d+\\.\\d{2}$"
+              },
+              "basis": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "source": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "type",
+              "value",
+              "basis",
+              "source"
+            ],
+            "description": "Shown to the bidding owner (when bidding.show_effective_commission_to_owners) and to staff; null for the customer"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "bidNumber",
+          "tripRequestId",
+          "requestNumber",
+          "ownerProfileId",
+          "ownerName",
+          "ownerRatingAvg",
+          "vehicle",
+          "driverProfileId",
+          "driverName",
+          "baseAmount",
+          "extrasAmount",
+          "extrasBreakdown",
+          "vatRate",
+          "vatAmount",
+          "totalAmount",
+          "currency",
+          "estimatedArrivalAt",
+          "estimatedDurationMinutes",
+          "validUntil",
+          "ownerNotes",
+          "status",
+          "version",
+          "lastRevisedAt",
+          "rejectedReason",
+          "submittedAt",
+          "decidedAt",
+          "bookingId",
+          "effectiveCommission",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
+      "BidListEnvelope": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "enum": [
+              true
+            ]
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Bid"
+            }
+          },
+          "message": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "meta": {
+            "type": "object",
+            "additionalProperties": {}
+          }
+        },
+        "required": [
+          "success",
+          "data",
+          "message",
+          "meta"
+        ]
+      },
+      "BidEnvelope": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "enum": [
+              true
+            ]
+          },
+          "data": {
+            "$ref": "#/components/schemas/Bid"
+          },
+          "message": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "meta": {
+            "type": "object",
+            "additionalProperties": {}
+          }
+        },
+        "required": [
+          "success",
+          "data",
+          "message",
+          "meta"
+        ]
+      },
+      "Booking": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "bookingNumber": {
+            "type": "string"
+          },
+          "tripRequestId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "requestNumber": {
+            "type": "string"
+          },
+          "bidId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "customerProfileId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "ownerProfileId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "vehicleId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "driverProfileId": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid"
+          },
+          "vehiclePlateSnapshot": {
+            "type": "string"
+          },
+          "vehicleDescriptionSnapshot": {
+            "type": "string"
+          },
+          "vehicleCategoryCodeSnapshot": {
+            "type": "string"
+          },
+          "ownerNameSnapshot": {
+            "type": "string"
+          },
+          "transportType": {
+            "type": "string"
+          },
+          "pickup": {
+            "type": "object",
+            "properties": {
+              "addressLine": {
+                "type": "string"
+              },
+              "cityId": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "latitude": {
+                "type": "number"
+              },
+              "longitude": {
+                "type": "number"
+              },
+              "placeId": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            },
+            "required": [
+              "addressLine",
+              "cityId",
+              "latitude",
+              "longitude",
+              "placeId"
+            ]
+          },
+          "dropoff": {
+            "type": "object",
+            "properties": {
+              "addressLine": {
+                "type": "string"
+              },
+              "cityId": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "latitude": {
+                "type": "number"
+              },
+              "longitude": {
+                "type": "number"
+              },
+              "placeId": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            },
+            "required": [
+              "addressLine",
+              "cityId",
+              "latitude",
+              "longitude",
+              "placeId"
+            ]
+          },
+          "scheduledStartAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "scheduledEndAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "agreedBaseAmount": {
+            "type": "string",
+            "pattern": "^-?\\d+\\.\\d{2}$"
+          },
+          "agreedExtrasAmount": {
+            "type": "string",
+            "pattern": "^-?\\d+\\.\\d{2}$"
+          },
+          "vatRate": {
+            "type": "string",
+            "pattern": "^\\d+\\.\\d{4}$"
+          },
+          "vatAmount": {
+            "type": "string",
+            "pattern": "^-?\\d+\\.\\d{2}$"
+          },
+          "totalAmount": {
+            "type": "string",
+            "pattern": "^-?\\d+\\.\\d{2}$"
+          },
+          "currency": {
+            "type": "string"
+          },
+          "billingMode": {
+            "type": "string",
+            "enum": [
+              "PREPAID",
+              "INVOICED"
+            ]
+          },
+          "creditTermsDaysSnapshot": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "fulfilmentSequence": {
+            "type": "integer"
+          },
+          "status": {
+            "type": "string"
+          },
+          "paymentStatus": {
+            "type": "string"
+          },
+          "paymentDueBy": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "nonCircumventionUntil": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "confirmedAt": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "financial": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "properties": {
+              "grossAmount": {
+                "type": "string",
+                "pattern": "^-?\\d+\\.\\d{2}$"
+              },
+              "netOfVatAmount": {
+                "type": "string",
+                "pattern": "^-?\\d+\\.\\d{2}$"
+              },
+              "commissionAmount": {
+                "type": "string",
+                "pattern": "^-?\\d+\\.\\d{2}$"
+              },
+              "commissionVatAmount": {
+                "type": "string",
+                "pattern": "^-?\\d+\\.\\d{2}$"
+              },
+              "commissionSource": {
+                "type": "string"
+              },
+              "paymentFeeAmount": {
+                "type": "string",
+                "pattern": "^-?\\d+\\.\\d{2}$"
+              },
+              "ownerNetAmount": {
+                "type": "string",
+                "pattern": "^-?\\d+\\.\\d{2}$"
+              },
+              "vatTreatment": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "grossAmount",
+              "netOfVatAmount",
+              "commissionAmount",
+              "commissionVatAmount",
+              "commissionSource",
+              "paymentFeeAmount",
+              "ownerNetAmount",
+              "vatTreatment"
+            ],
+            "description": "Owner and staff projection; null for the customer"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "bookingNumber",
+          "tripRequestId",
+          "requestNumber",
+          "bidId",
+          "customerProfileId",
+          "ownerProfileId",
+          "vehicleId",
+          "driverProfileId",
+          "vehiclePlateSnapshot",
+          "vehicleDescriptionSnapshot",
+          "vehicleCategoryCodeSnapshot",
+          "ownerNameSnapshot",
+          "transportType",
+          "pickup",
+          "dropoff",
+          "scheduledStartAt",
+          "scheduledEndAt",
+          "agreedBaseAmount",
+          "agreedExtrasAmount",
+          "vatRate",
+          "vatAmount",
+          "totalAmount",
+          "currency",
+          "billingMode",
+          "creditTermsDaysSnapshot",
+          "fulfilmentSequence",
+          "status",
+          "paymentStatus",
+          "paymentDueBy",
+          "nonCircumventionUntil",
+          "confirmedAt",
+          "financial",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
+      "AcceptBidResult": {
+        "type": "object",
+        "properties": {
+          "booking": {
+            "$ref": "#/components/schemas/Booking"
+          },
+          "tripRequest": {
+            "type": "object",
+            "properties": {},
+            "$ref": "#/components/schemas/TripRequest"
+          }
+        },
+        "required": [
+          "booking",
+          "tripRequest"
+        ]
+      },
+      "AcceptBidResultEnvelope": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "enum": [
+              true
+            ]
+          },
+          "data": {
+            "$ref": "#/components/schemas/AcceptBidResult"
+          },
+          "message": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "meta": {
+            "type": "object",
+            "additionalProperties": {}
+          }
+        },
+        "required": [
+          "success",
+          "data",
+          "message",
+          "meta"
+        ]
+      },
+      "AwardResult": {
+        "type": "object",
+        "properties": {
+          "bookings": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Booking"
+            }
+          },
+          "tripRequest": {
+            "type": "object",
+            "properties": {},
+            "$ref": "#/components/schemas/TripRequest"
+          }
+        },
+        "required": [
+          "bookings",
+          "tripRequest"
+        ]
+      },
+      "AwardResultEnvelope": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "enum": [
+              true
+            ]
+          },
+          "data": {
+            "$ref": "#/components/schemas/AwardResult"
+          },
+          "message": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "meta": {
+            "type": "object",
+            "additionalProperties": {}
+          }
+        },
+        "required": [
+          "success",
+          "data",
+          "message",
+          "meta"
+        ]
       }
     },
     "parameters": {}
@@ -15887,6 +16600,948 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/OpportunityEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/bids": {
+      "get": {
+        "tags": [
+          "bids"
+        ],
+        "summary": "Own bids (owner) / bids on own requests (customer) / all with bids.read_any",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "default": 1
+            },
+            "required": false,
+            "name": "page",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 20
+            },
+            "required": false,
+            "name": "pageSize",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "SUBMITTED",
+                "WITHDRAWN",
+                "ACCEPTED",
+                "REJECTED",
+                "EXPIRED"
+              ]
+            },
+            "required": false,
+            "name": "status",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": false,
+            "name": "tripRequestId",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": false,
+            "name": "vehicleId",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "date-time",
+              "description": "ISO-8601 UTC timestamp, e.g. 2026-09-14T11:02:44.817Z"
+            },
+            "required": false,
+            "description": "ISO-8601 UTC timestamp, e.g. 2026-09-14T11:02:44.817Z",
+            "name": "dateFrom",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "date-time",
+              "description": "ISO-8601 UTC timestamp, e.g. 2026-09-14T11:02:44.817Z"
+            },
+            "required": false,
+            "description": "ISO-8601 UTC timestamp, e.g. 2026-09-14T11:02:44.817Z",
+            "name": "dateTo",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "pattern": "^\\d{1,12}\\.\\d{2}$"
+            },
+            "required": false,
+            "name": "minAmount",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "pattern": "^\\d{1,12}\\.\\d{2}$"
+            },
+            "required": false,
+            "name": "maxAmount",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK — paginated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BidListEnvelope"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "bids"
+        ],
+        "summary": "Submit a bid — totals are server-computed with the snapshotted VAT rate; Idempotency-Key required",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "name": "idempotency-key",
+            "in": "header"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "tripRequestId": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "vehicleId": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "driverProfileId": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "baseAmount": {
+                    "type": "string",
+                    "pattern": "^\\d{1,12}\\.\\d{2}$"
+                  },
+                  "extrasBreakdown": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "labelEn": {
+                          "type": "string",
+                          "maxLength": 80
+                        },
+                        "labelAr": {
+                          "type": "string",
+                          "maxLength": 80
+                        },
+                        "amount": {
+                          "type": "string",
+                          "pattern": "^\\d{1,12}\\.\\d{2}$"
+                        }
+                      },
+                      "required": [
+                        "labelEn",
+                        "labelAr",
+                        "amount"
+                      ],
+                      "additionalProperties": false
+                    },
+                    "maxItems": 20,
+                    "default": []
+                  },
+                  "estimatedArrivalAt": {
+                    "type": "string",
+                    "format": "date-time",
+                    "description": "ISO-8601 UTC timestamp, e.g. 2026-09-14T11:02:44.817Z"
+                  },
+                  "estimatedDurationMinutes": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 10080
+                  },
+                  "validUntil": {
+                    "type": "string",
+                    "format": "date-time",
+                    "description": "ISO-8601 UTC timestamp, e.g. 2026-09-14T11:02:44.817Z"
+                  },
+                  "ownerNotes": {
+                    "type": "string",
+                    "maxLength": 1000
+                  }
+                },
+                "required": [
+                  "tripRequestId",
+                  "vehicleId",
+                  "baseAmount"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BidEnvelope"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "BID_DUPLICATE_VEHICLE",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {},
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "BID_AMOUNT_INVALID / BID_VALIDITY_INVALID / BID_NOT_ELIGIBLE / BID_LIMIT_REACHED / TRIP_REQUEST_NOT_OPEN / TRIP_REQUEST_BIDDING_WINDOW_CLOSED / TRIP_REQUEST_REMAINDER_CLOSED / VEHICLE_NOT_DISPATCHABLE / OWNER_NOT_APPROVED / DRIVER_NOT_APPROVED / DRIVER_LICENSE_EXPIRED",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {},
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/bids/{id}": {
+      "get": {
+        "tags": [
+          "bids"
+        ],
+        "summary": "One bid (party → global)",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BidEnvelope"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "NOT_FOUND",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {},
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "bids"
+        ],
+        "summary": "Revise a SUBMITTED bid: version++, totals recomputed; refused after the deadline",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "driverProfileId": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "format": "uuid"
+                  },
+                  "baseAmount": {
+                    "type": "string",
+                    "pattern": "^\\d{1,12}\\.\\d{2}$"
+                  },
+                  "extrasBreakdown": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "labelEn": {
+                          "type": "string",
+                          "maxLength": 80
+                        },
+                        "labelAr": {
+                          "type": "string",
+                          "maxLength": 80
+                        },
+                        "amount": {
+                          "type": "string",
+                          "pattern": "^\\d{1,12}\\.\\d{2}$"
+                        }
+                      },
+                      "required": [
+                        "labelEn",
+                        "labelAr",
+                        "amount"
+                      ],
+                      "additionalProperties": false
+                    },
+                    "maxItems": 20
+                  },
+                  "estimatedArrivalAt": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "format": "date-time",
+                    "description": "ISO-8601 UTC timestamp, e.g. 2026-09-14T11:02:44.817Z"
+                  },
+                  "estimatedDurationMinutes": {
+                    "type": [
+                      "integer",
+                      "null"
+                    ],
+                    "minimum": 1,
+                    "maximum": 10080
+                  },
+                  "validUntil": {
+                    "type": "string",
+                    "format": "date-time",
+                    "description": "ISO-8601 UTC timestamp, e.g. 2026-09-14T11:02:44.817Z"
+                  },
+                  "ownerNotes": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 1000
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BidEnvelope"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "BID_INVALID_TRANSITION / TRIP_REQUEST_BIDDING_WINDOW_CLOSED / BID_VALIDITY_INVALID",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {},
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/bids/{id}/withdraw": {
+      "post": {
+        "tags": [
+          "bids"
+        ],
+        "summary": "→ WITHDRAWN (owner)",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "reason": {
+                    "type": "string",
+                    "maxLength": 500
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BidEnvelope"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "BID_INVALID_TRANSITION",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {},
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/bids/{id}/reject": {
+      "post": {
+        "tags": [
+          "bids"
+        ],
+        "summary": "→ REJECTED, a courtesy rejection by the customer (own → global)",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "reason": {
+                    "type": "string",
+                    "maxLength": 500
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BidEnvelope"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "BID_INVALID_TRANSITION",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {},
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/bids/{id}/accept": {
+      "post": {
+        "tags": [
+          "bids"
+        ],
+        "summary": "Accept one bid → one booking (the partial-fulfilment path); one transaction under the global lock order; Idempotency-Key required",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "name": "idempotency-key",
+            "in": "header"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "customerNotes": {
+                    "type": "string",
+                    "maxLength": 1000
+                  },
+                  "commissionOverride": {
+                    "type": "object",
+                    "properties": {
+                      "type": {
+                        "type": "string",
+                        "enum": [
+                          "NONE",
+                          "PERCENTAGE",
+                          "FIXED"
+                        ]
+                      },
+                      "value": {
+                        "type": "string",
+                        "pattern": "^\\d{1,12}\\.\\d{2}$"
+                      },
+                      "basis": {
+                        "type": "string",
+                        "enum": [
+                          "GROSS",
+                          "NET_OF_VAT"
+                        ]
+                      },
+                      "reason": {
+                        "type": "string",
+                        "maxLength": 500
+                      }
+                    },
+                    "required": [
+                      "type",
+                      "reason"
+                    ],
+                    "additionalProperties": false
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Booking created (PENDING_PAYMENT for PREPAID, CONFIRMED for INVOICED)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AcceptBidResultEnvelope"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "COMMISSION_OVERRIDE_FORBIDDEN",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {},
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "BID_VEHICLE_UNAVAILABLE / TRIP_REQUEST_FULLY_AWARDED",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {},
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "RULE_PARTIAL_AWARD_NOT_ALLOWED / RULE_CREDIT_NOT_APPROVED / RULE_CREDIT_LIMIT_EXCEEDED / BID_EXPIRED / BID_INVALID_TRANSITION / VEHICLE_NOT_DISPATCHABLE / TRIP_REQUEST_*",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {},
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/trip-requests/{id}/bids": {
+      "get": {
+        "tags": [
+          "trip-requests"
+        ],
+        "summary": "The comparison list (customer) — an owner sees only their own rows",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "default": 1
+            },
+            "required": false,
+            "name": "page",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 20
+            },
+            "required": false,
+            "name": "pageSize",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "SUBMITTED",
+                "WITHDRAWN",
+                "ACCEPTED",
+                "REJECTED",
+                "EXPIRED"
+              ]
+            },
+            "required": false,
+            "name": "status",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "totalAmount",
+                "submittedAt",
+                "estimatedArrivalAt"
+              ],
+              "default": "totalAmount"
+            },
+            "required": false,
+            "name": "sort",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "asc",
+                "desc"
+              ],
+              "default": "asc"
+            },
+            "required": false,
+            "name": "order",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK — paginated, totalAmount asc by default",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BidListEnvelope"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "NOT_FOUND",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {},
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/trip-requests/{id}/award": {
+      "post": {
+        "tags": [
+          "trip-requests"
+        ],
+        "summary": "All-or-nothing group award: the bid set must cover the remainder exactly; every booking is created or none is; Idempotency-Key required",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "name": "idempotency-key",
+            "in": "header"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "bidIds": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "minItems": 1,
+                    "maxItems": 20
+                  },
+                  "customerNotes": {
+                    "type": "string",
+                    "maxLength": 1000
+                  },
+                  "commissionOverride": {
+                    "type": "object",
+                    "properties": {
+                      "type": {
+                        "type": "string",
+                        "enum": [
+                          "NONE",
+                          "PERCENTAGE",
+                          "FIXED"
+                        ]
+                      },
+                      "value": {
+                        "type": "string",
+                        "pattern": "^\\d{1,12}\\.\\d{2}$"
+                      },
+                      "basis": {
+                        "type": "string",
+                        "enum": [
+                          "GROSS",
+                          "NET_OF_VAT"
+                        ]
+                      },
+                      "reason": {
+                        "type": "string",
+                        "maxLength": 500
+                      }
+                    },
+                    "required": [
+                      "type",
+                      "reason"
+                    ],
+                    "additionalProperties": false
+                  }
+                },
+                "required": [
+                  "bidIds"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Bookings created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AwardResultEnvelope"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "COMMISSION_OVERRIDE_FORBIDDEN",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {},
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "BID_VEHICLE_UNAVAILABLE / TRIP_REQUEST_FULLY_AWARDED",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {},
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "RULE_AWARD_SET_INCOMPLETE / RULE_CREDIT_NOT_APPROVED / RULE_CREDIT_LIMIT_EXCEEDED / BID_EXPIRED / VALIDATION_FAILED (duplicate vehicle)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {},
+                  "$ref": "#/components/schemas/ErrorEnvelope"
                 }
               }
             }

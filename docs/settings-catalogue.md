@@ -31,6 +31,7 @@ Where a value varies by scope (global → category → customer/owner → per ca
 | `booking.min_lead_time_hours` | int | `2` | 0–168 | PUBLIC | no — validated at publish | — |
 | `booking.max_lead_time_days` | int | `90` | 1–365 | PUBLIC | no | — |
 | `booking.payment_window_minutes` | int | `30` | 5–1440 | INTERNAL | **yes** → `bookings.payment_due_by` | existing |
+| `booking.turnaround_buffer_minutes` | int | `60` | 0–240 | INTERNAL | **yes** → `vehicle_calendar_entries.period` (both ends) | A-07 |
 | `booking.allow_partial_fulfilment_default.passenger` | bool | `false` | — | INTERNAL | yes → `trip_requests.allow_partial_fulfilment` | A-45 |
 | `booking.allow_partial_fulfilment_default.goods` | bool | `true` | — | INTERNAL | yes → same | A-45 |
 | `booking.remainder_closes_after_days` | int \| null | `null` (open until the customer closes it) | null or 1–90 | INTERNAL | **yes** → `trip_requests.remainder_closes_at` at publish | **OQ-22** |

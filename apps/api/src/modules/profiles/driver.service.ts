@@ -174,3 +174,14 @@ export async function deactivateDriver(scope: ActorScope, id: string): Promise<v
   });
   await revokeSessionsOf(scope, d.userId, 'DRIVER_DEACTIVATED');
 }
+
+// ── cross-module facts (Phase 7) ──────────────────────────────────────────────
+
+/** Can this driver be nominated on a bid by this owner? (api.md §6.4: DRIVER_NOT_APPROVED / DRIVER_LICENSE_EXPIRED) */
+export async function driverNominationCheck(_scope: AnyScope, driverProfileId: string, ownerProfileId: string, at = new Date()): Promise<{ ok: true } | { ok: false; code: 'NOT_FOUND' | 'DRIVER_NOT_APPROVED' | 'DRIVER_LICENSE_EXPIRED' }> {
+  const d = await prisma().driverProfile.findFirst({ where: { id: driverProfileId, ownerProfileId }, select: { approvalStatus: true, licenseExpiryDate: true } });
+  if (!d) return { ok: false, code: 'NOT_FOUND' };
+  if (d.approvalStatus !== 'APPROVED') return { ok: false, code: 'DRIVER_NOT_APPROVED' };
+  if (d.licenseExpiryDate && d.licenseExpiryDate < at) return { ok: false, code: 'DRIVER_LICENSE_EXPIRED' };
+  return { ok: true };
+}
