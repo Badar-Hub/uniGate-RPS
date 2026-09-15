@@ -872,6 +872,8 @@ model User {
   otpRequests             OtpRequest[]
   passwordResetTokens     PasswordResetToken[]
   userRoles               UserRole[]               @relation("UserRolesForUser")
+  permissionOverrides     UserPermissionOverride[] @relation("UserPermissionOverridesForUser")
+  grantedOverrides        UserPermissionOverride[] @relation("UserPermissionOverridesGrantedBy")
   grantedRoles            UserRole[]               @relation("UserRolesGrantedBy")
   customerProfile         CustomerProfile?
   ownerProfile            OwnerProfile?
@@ -986,8 +988,34 @@ model Permission {
   isAssignable  Boolean @default(true) @map("is_assignable")
 
   rolePermissions RolePermission[]
+  userOverrides   UserPermissionOverride[]
 
   @@map("permissions")
+}
+
+enum PermissionOverrideEffect {
+  GRANT
+  DENY
+
+  @@map("permission_override_effect")
+}
+
+/// Per-user overrides on top of roles (vendor access control). Resolved in permission.service.
+model UserPermissionOverride {
+  userId       String                   @map("user_id") @db.Uuid
+  permissionId String                   @map("permission_id") @db.Uuid
+  effect       PermissionOverrideEffect
+  grantedBy    String?                  @map("granted_by") @db.Uuid
+  grantedAt    DateTime                 @default(now()) @map("granted_at") @db.Timestamptz
+  note         String?
+
+  user       User       @relation("UserPermissionOverridesForUser", fields: [userId], references: [id], onDelete: Cascade)
+  permission Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+  granter    User?      @relation("UserPermissionOverridesGrantedBy", fields: [grantedBy], references: [id], onDelete: SetNull)
+
+  @@id([userId, permissionId])
+  @@index([permissionId], map: "idx_user_permission_overrides_permission")
+  @@map("user_permission_overrides")
 }
 
 model Role {

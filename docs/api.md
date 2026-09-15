@@ -1037,6 +1037,8 @@ No `/me` route takes a permission code. The scope layer binds every one of them 
 
 ### 8.3 `/users` — administrative user management (8)
 
+> **Per-user access on top of roles (A-58).** `GET /users/{id}/permissions` returns the roles, what they grant, the per-user GRANT/DENY overrides, the effective set and the assignable catalogue (each code tagged `module` + `action` so a client can draw a module × read/create/update/delete matrix). `PUT /users/{id}/permissions` (`permissions.assign` + step-up `ROLE_CHANGE`) replaces the overrides: unknown/non-assignable codes are `422`, granting a permission the admin does not hold is `403 PERMISSION_NOT_HELD`, self-modification is `422 PERM_SELF_MODIFICATION`; audited at SECURITY severity and `permission_version` bumped so the change applies on the user's next request.
+
 `users.*` codes are staff-only; a customer never holds `users.read`. Self-service lives at `/me`.
 
 | Method | Path | Permission | Scope | Description |
@@ -1071,6 +1073,8 @@ No `/me` route takes a permission code. The scope layer binds every one of them 
 > **`/credit` and `/statement` take `invoices.read`, not `customers.read`.** `customers.read` is a staff code scoped `global` on every other row in this table; a corporate customer does not hold it and must still be able to see their own balance and ageing. `invoices.read` is the code they already hold for `GET /invoices`, and the scope layer binds it to their own profile — so the corporate self-service view and the finance team's view are one route with one predicate, not two. `PATCH /admin/customers/{id}/credit` is the decision, not the view, and correctly takes the staff code `customers.verify`.
 
 ### 8.5 `/owners` (9)
+
+> **Vendor onboarding (A-58, implemented 2026-09-15).** `POST /admin/vendors` (`users.create` + `owners.create`, i.e. ADMIN / SUPER_ADMIN) creates the account with the VEHICLE_OWNER role, the owner profile and the verticals applied for, and returns a **one-time activation link** (shown to the admin until notifications deliver it; the token is stored hashed, 72 h). Public registration with `intent: VEHICLE_OWNER` answers `403 OWNER_SELF_REGISTRATION_DISABLED` unless `onboarding.owner_self_registration_enabled` is on. The profile moves DRAFT → `DOCUMENTS_SUBMITTED` **by itself** when the last mandatory document is confirmed (the review queue), `POST /owners/{id}/submit-for-review` needs the documents *uploaded* (staff verify them during review), and `POST /owners/{id}/approve` refuses with `422 OWNER_DOCUMENTS_INCOMPLETE` until every mandatory document is **VERIFIED**. Vehicles may be registered only by an APPROVED owner (`422 OWNER_NOT_APPROVED`).
 
 | Method | Path | Permission | Scope | Description |
 |---|---|---|---|---|
@@ -1109,6 +1113,8 @@ No `/me` route takes a permission code. The scope layer binds every one of them 
 | GET | `/spo/commissions` | `spo.commissions.read` | own → global | SPO commission lines derived from `booking_financial_snapshots.spo_commission_amount`. Filters: `spoProfileId`, `dateFrom`/`dateTo`, `status`. |
 
 ### 8.8 `/vehicles` (13)
+
+> **Vehicle approval (A-58).** A vendor's vehicle enters `PENDING_APPROVAL` by itself once its mandatory documents are confirmed (an explicit `submit-for-approval` is then a no-op); `POST /vehicles/{id}/approve` answers `422 VEHICLE_DOCUMENTS_INCOMPLETE` until every mandatory document is VERIFIED. Only APPROVED vehicles are dispatchable and may bid.
 
 | Method | Path | Permission | Scope | Description |
 |---|---|---|---|---|

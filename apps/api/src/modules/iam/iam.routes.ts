@@ -7,6 +7,7 @@ import {
   patchUserBody,
   roleCodeParams,
   sessionIdParams,
+  setUserPermissionsBody,
   setUserRolesBody,
   suspendUserBody,
   updateRoleBody,
@@ -53,6 +54,9 @@ export function adminIamRouter(): Router {
   r.post('/users/:id/suspend', requirePermission('users.suspend'), validate({ params: userIdParams, body: suspendUserBody }), h(admin.suspendUser));
   r.post('/users/:id/reactivate', requirePermission('users.suspend'), validate({ params: userIdParams, body: suspendUserBody }), h(admin.reactivateUser));
   r.put('/users/:id/roles', requirePermission('permissions.assign'), requireStepUp('ROLE_CHANGE'), validate({ params: userIdParams, body: setUserRolesBody }), h(admin.setUserRoles));
+  // Per-user overrides on top of roles (vendor access control): read is permissions.assign; write is step-up protected like a role change.
+  r.get('/users/:id/permissions', requirePermission('permissions.assign'), validate({ params: userIdParams }), h(admin.getUserPermissions));
+  r.put('/users/:id/permissions', requirePermission('permissions.assign'), requireStepUp('ROLE_CHANGE'), validate({ params: userIdParams, body: setUserPermissionsBody }), h(admin.setUserPermissions));
 
   r.get('/roles', requirePermission('roles.read'), h(admin.listRoles));
   r.post('/roles', requirePermission('roles.manage'), requireStepUp('ROLE_CHANGE'), validate({ body: createRoleBody }), h(admin.createRole));

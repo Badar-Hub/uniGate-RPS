@@ -24,6 +24,7 @@ export function RegisterForm() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<ApiError | null>(null);
   const [termsVersion, setTermsVersion] = useState('1.0');
+  const [vendorSelfRegistration, setVendorSelfRegistration] = useState(false);
 
   const [form, setForm] = useState({ intent: 'CUSTOMER', phoneE164: '', email: '', password: '', fullNameEn: '', fullNameAr: '', accepted: false });
   const [registered, setRegistered] = useState<RegisterResultDto | null>(null);
@@ -33,6 +34,9 @@ export function RegisterForm() {
     void api<{ key: string; value: unknown }[]>('/settings/public').then((res) => {
       const v = res.ok ? res.data.find((s) => s.key === 'platform.terms_version')?.value : null;
       if (typeof v === 'string' && v) setTermsVersion(v);
+      // Vendors are onboarded by UniGate unless the platform switches public vendor registration on.
+      const s = res.ok ? res.data.find((x) => x.key === 'onboarding.owner_self_registration_enabled')?.value : false;
+      setVendorSelfRegistration(s === true);
     });
   }, []);
 
@@ -131,9 +135,10 @@ export function RegisterForm() {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="CUSTOMER">{t('intentCustomer')}</SelectItem>
-                <SelectItem value="VEHICLE_OWNER">{t('intentOwner')}</SelectItem>
+                {vendorSelfRegistration && <SelectItem value="VEHICLE_OWNER">{t('intentOwner')}</SelectItem>}
               </SelectContent>
             </Select>
+            {!vendorSelfRegistration && <p className="text-xs text-muted-foreground">{t('vendorByInvitation')}</p>}
           </div>
           <div className="space-y-2">
             <Label htmlFor="fullNameEn">{t('fullNameEn')}</Label>

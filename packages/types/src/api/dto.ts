@@ -1406,3 +1406,34 @@ export interface OwnerBalanceDto {
   inFlightSettlements: MoneyString;
   asOf: string;
 }
+
+// ── vendor onboarding & access (api.md §8.3, §8.5) ───────────────────────────
+
+/** Result of the admin "add vendor" flow: the account, the owner profile and the one-time activation link. */
+export interface VendorCreatedDto {
+  user: UserAdminDto;
+  owner: OwnerDto;
+  /** Shown once to the admin who created the vendor; delivery by email lands with notifications. */
+  activationUrl: string;
+  activationExpiresAt: string;
+}
+
+export interface PermissionCatalogueItemDto {
+  code: string;
+  module: string;
+  /** read | create | update | delete | manage | … — the verb after the module in the code. */
+  action: string;
+  descriptionEn: string;
+  descriptionAr: string;
+}
+
+/** A user's effective access: what the roles give, what overrides add or remove, and the resulting set. */
+export interface UserPermissionsDto {
+  userId: string;
+  roles: string[];
+  fromRoles: string[];
+  granted: string[];
+  denied: string[];
+  effective: string[];
+  catalogue: PermissionCatalogueItemDto[];
+}

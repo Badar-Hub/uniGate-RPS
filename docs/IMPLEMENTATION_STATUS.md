@@ -1,7 +1,7 @@
 # UniGate — Implementation Status
 
 **Last updated:** 2026-09-15
-**Current phase:** **Phase 11b complete** (2026-09-15 — the goods vertical is built and switched off by setting until OQ-13 / OQ-29 are settled) → Phase 12 (Maintenance) ready to start
+**Current phase:** **Phase 11b complete** + vendor onboarding & access (A-58) delivered 2026-09-15 → Phase 12 (Maintenance) ready to start
 **Overall:** Foundation built and verified end to end: monorepo, typed packages, API core, full Prisma schema (82 tables) with hand-written constraints, seeds, migration-integrity test, web scaffold (shadcn/ui, ar/en RTL), CI. `pnpm ci` is green (20/20 tasks). See [development.md](development.md).
 
 > **Schema-blocking questions resolved 2026-09-14.**
@@ -271,6 +271,20 @@ Verified on 2026-09-15 with `pnpm turbo run typecheck lint test build --force` (
 | Web | Request form: vertical toggle (shown only when the deployment lists GOODS) and the cargo section (type, weight, volume, packages, refrigeration range, tail lift/crane, loading/unloading responsibility, insurance & declared value, shipper/consignee); request detail cargo card; driver app: **proof-of-delivery capture** before DELIVERED (recipient, ID last 4, notes, position) and the Bayan reference prompt before departure on goods trips | typecheck/lint |
 
 **Carried forward:** photo/signature capture on the proof (documents upload from the driver screen); the TGA Bayan integration itself (OQ-29 — no public API found; the reference is captured manually); zero-rating (OQ-27); TGA licensing gates for owners/drivers (OQ-13); goods-specific admin sections (Phase 13).
+
+---
+
+## Vendor onboarding & access — what was verified (2026-09-15, UniGate's statement A-58)
+
+| Area | Delivered | Proof |
+|---|---|---|
+| Admins add vendors | `POST /admin/vendors` (users.create + owners.create): account + VEHICLE_OWNER role + owner profile + verticals applied for + one-time activation link (token hashed, 72 h); public owner self-registration off by `onboarding.owner_self_registration_enabled` (`403 OWNER_SELF_REGISTRATION_DISABLED`); the register form hides the vendor option accordingly | vendors test, matrix |
+| Activation + documents → review queue | The link's token sets the password (`/auth/password/reset`); the vendor signs in; a document confirm on the owner (or the individual behind it) moves DRAFT/REJECTED → `DOCUMENTS_SUBMITTED` once every mandatory document is uploaded (`owner.documents_submitted` event, admin queue); `submit-for-review` needs uploaded, `approve` needs **VERIFIED** (`OWNER_DOCUMENTS_INCOMPLETE`) | vendors + profiles tests |
+| Fleet only after approval | `POST /vehicles` → `422 OWNER_NOT_APPROVED` until approved; a vehicle's documents completing moves it to `PENDING_APPROVAL` by itself (explicit submit is a no-op); `approve` → `422 VEHICLE_DOCUMENTS_INCOMPLETE` until verified; approved vehicles are dispatchable and may bid | vendors + fleet tests |
+| Per-vendor access | `user_permission_overrides` (GRANT/DENY) resolved on top of roles in `permission.service`; `GET/PUT /users/{id}/permissions` (permissions.assign + step-up ROLE_CHANGE, no self-modification, only what the admin holds — `PERMISSION_NOT_HELD`), SECURITY audit, pv bump → effective on the next request | vendors test |
+| Web | `/admin/vendors` (add vendor with the activation link shown once and copy button; list with onboarding state, links to the review queue and to access); `/admin/vendors/{userId}/access` (module × read/create/update/delete matrix + other actions, diff preview, note, step-up dialog); register form hides the vendor option when self-registration is off | typecheck/lint |
+
+**Carried forward:** delivery of the activation link by email/SMS lands with notifications (Phase 12/13) — until then the admin hands it over; a per-vendor role template ("vendor tier") is a possible refinement of the overrides if UniGate wants presets.
 
 ---
 

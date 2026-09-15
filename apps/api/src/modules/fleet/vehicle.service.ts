@@ -95,7 +95,8 @@ export async function createVehicle(scope: ActorScope, body: z.infer<typeof crea
   if (!ownerProfileId) throw new BusinessRuleError('VALIDATION_FAILED', 'An owner profile is required to register a vehicle', { fieldErrors: { ownerProfileId: ['required'] }, formErrors: [] });
   const owner = await prisma().ownerProfile.findFirst({ where: { id: ownerProfileId }, select: { id: true, onboardingStatus: true } });
   if (!owner) throw new NotFoundError();
-  if (owner.onboardingStatus === 'SUSPENDED') throw new BusinessRuleError('OWNER_NOT_APPROVED', 'A suspended owner cannot register vehicles');
+  // UniGate: a vendor registers its fleet only once its profile has been approved (documents verified by staff).
+  if (owner.onboardingStatus !== 'APPROVED') throw new BusinessRuleError('OWNER_NOT_APPROVED', `Vehicles can be registered once the owner profile is approved (current: ${owner.onboardingStatus})`, { onboardingStatus: owner.onboardingStatus });
   const category = await loadCategory(body.vehicleCategoryId);
   const capacity = verticalFor(category.transportType).validateVehicleCapacity(categoryShape(category), body);
   if (!capacity.ok) throw new BusinessRuleError('VALIDATION_FAILED', 'Capacity does not fit the category', { fieldErrors: capacity.fieldErrors, formErrors: [] });
@@ -187,15 +188,18 @@ export async function patchVehicle(scope: ActorScope, id: string, body: z.infer<
 export async function submitForApproval(scope: ActorScope, id: string): Promise<VehicleDto> {
   const v = await repo.findVehicle(scope, id);
   if (!v) throw new NotFoundError();
+  // Documents completing already queued it (onVehicleDocumentsChanged): an explicit submit is then a harmless no-op.
+  if (v.approvalStatus === 'PENDING_APPROVAL') return getVehicle(scope, id);
   if (!['DRAFT', 'REJECTED'].includes(v.approvalStatus)) throw new BusinessRuleError('VEHICLE_INVALID_TRANSITION', `Cannot submit a vehicle in status ${v.approvalStatus}`, { approvalStatus: v.approvalStatus });
   if (v.ownerProfile.onboardingStatus !== 'APPROVED') throw new BusinessRuleError('OWNER_NOT_APPROVED', 'The owner profile must be approved before vehicles are submitted');
   const maxAge = await getSettingValue<number | null>('onboarding.vehicle_max_age_years', null);
   if (maxAge !== null && new Date().getUTCFullYear() - v.modelYear > maxAge) {
     throw new BusinessRuleError('VALIDATION_FAILED', `Vehicles older than ${maxAge} years are not accepted`, { fieldErrors: { modelYear: [`older than ${maxAge} years`] }, formErrors: [] });
   }
+  // Submission needs every mandatory document uploaded; verification happens during review and approval requires VERIFIED.
   const reqs = await checklist(v);
-  const missing = reqs.filter((r) => r.isMandatory && r.status !== 'VERIFIED').map((r) => `${r.documentTypeCode}:${r.status}`);
-  if (missing.length) throw new BusinessRuleError('OWNER_DOCUMENTS_INCOMPLETE', 'Mandatory vehicle documents are missing, unverified or expired', { missing });
+  const missing = reqs.filter((r) => r.isMandatory && !['UPLOADED', 'PENDING', 'VERIFIED'].includes(r.status)).map((r) => `${r.documentTypeCode}:${r.status}`);
+  if (missing.length) throw new BusinessRuleError('VEHICLE_DOCUMENTS_INCOMPLETE', 'Mandatory vehicle documents are missing or expired', { missing });
   await prisma().$transaction(async (tx) => {
     await tx.vehicle.update({ where: { id }, data: { approvalStatus: 'PENDING_APPROVAL', rejectionReason: null } });
     await writeAudit({ ...audit(scope), action: 'vehicle.submitted', entityType: 'vehicle', entityId: id, beforeValue: { approvalStatus: v.approvalStatus }, afterValue: { approvalStatus: 'PENDING_APPROVAL' } }, tx);
@@ -208,6 +212,9 @@ export async function approveVehicle(scope: ActorScope, id: string, notes?: stri
   const v = await repo.findVehicle(scope, id);
   if (!v) throw new NotFoundError();
   if (v.approvalStatus !== 'PENDING_APPROVAL') throw new BusinessRuleError('VEHICLE_INVALID_TRANSITION', `Only a pending vehicle can be approved (current: ${v.approvalStatus})`, { approvalStatus: v.approvalStatus });
+  // The reviewer verifies every mandatory document before the vehicle may bid.
+  const unverified = (await checklist(v)).filter((r) => r.isMandatory && r.status !== 'VERIFIED').map((r) => `${r.documentTypeCode}:${r.status}`);
+  if (unverified.length) throw new BusinessRuleError('VEHICLE_DOCUMENTS_INCOMPLETE', 'Every mandatory vehicle document must be verified before approval', { missing: unverified });
   await prisma().$transaction(async (tx) => {
     await tx.vehicle.update({ where: { id }, data: { approvalStatus: 'APPROVED', approvedByUserId: scope.actor.userId, approvedAt: new Date(), rejectionReason: null, lifecycleStatus: v.lifecycleStatus === 'SUSPENDED' ? 'SUSPENDED' : 'ACTIVE' } });
     await writeAudit({ ...audit(scope), action: 'vehicle.approved', entityType: 'vehicle', entityId: id, severity: 'NOTICE', beforeValue: { approvalStatus: v.approvalStatus }, afterValue: { approvalStatus: 'APPROVED', notes: notes ?? null } }, tx);
@@ -413,6 +420,19 @@ export async function vehicleForAward(id: string, at?: Date): Promise<VehicleFor
     id: v.id, ownerProfileId: v.ownerProfileId, vehicleCategoryId: v.vehicleCategoryId, categoryCode: v.category.code, plateNumberEn: v.plateNumberEn, description, dispatch: await dispatchableNow(v, at),
     candidate: { id: v.id, categoryId: v.vehicleCategoryId, passengerCapacity: v.passengerCapacity, payloadCapacityKg: v.payloadCapacityKg?.toString() ?? null, hasRefrigeration: v.hasRefrigeration, hasTailLift: v.hasTailLift },
   };
+}
+
+/** After a document lands on a vehicle: DRAFT / REJECTED → PENDING_APPROVAL by itself once every mandatory document is uploaded. */
+export async function onVehicleDocumentsChanged(vehicleId: string): Promise<void> {
+  const v = await repo.findVehicle(systemScope('fleet.documents'), vehicleId);
+  if (!v || !['DRAFT', 'REJECTED'].includes(v.approvalStatus) || v.ownerProfile.onboardingStatus !== 'APPROVED') return;
+  const reqs = await checklist(v);
+  if (reqs.some((r) => r.isMandatory && !['UPLOADED', 'PENDING', 'VERIFIED'].includes(r.status))) return;
+  await prisma().$transaction(async (tx) => {
+    await tx.vehicle.update({ where: { id: vehicleId }, data: { approvalStatus: 'PENDING_APPROVAL', rejectionReason: null } });
+    await writeAudit({ actorUserId: null, actorType: 'SYSTEM', action: 'vehicle.submitted', entityType: 'vehicle', entityId: vehicleId, beforeValue: { approvalStatus: v.approvalStatus }, afterValue: { approvalStatus: 'PENDING_APPROVAL', trigger: 'documents_complete' } }, tx);
+    await publishEvent('vehicle', vehicleId, 'vehicle.submitted', { ownerProfileId: v.ownerProfileId }, tx);
+  });
 }
 
 /** Is the driver currently assigned to this vehicle (an open vehicle_driver_assignments row)? */

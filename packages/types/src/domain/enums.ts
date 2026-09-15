@@ -376,6 +376,10 @@ export const LEDGER_ACCOUNT_TYPE = enumOf(['ASSET', 'LIABILITY', 'REVENUE', 'EXP
 export type LedgerAccountType = (typeof LEDGER_ACCOUNT_TYPE)[number];
 
 export const LEDGER_DIRECTION = enumOf(['DEBIT', 'CREDIT']);
+
+/** Per-user permission overrides on top of roles (vendor access control). */
+export const PERMISSION_OVERRIDE_EFFECT = enumOf(['GRANT', 'DENY']);
+export type PermissionOverrideEffect = (typeof PERMISSION_OVERRIDE_EFFECT)[number];
 export type LedgerDirection = (typeof LEDGER_DIRECTION)[number];
 
 export const SETTLEMENT_STATUS = enumOf([
@@ -574,6 +578,7 @@ export const PG_ENUMS = {
   vat_treatment: VAT_TREATMENT,
   ledger_account_type: LEDGER_ACCOUNT_TYPE,
   ledger_direction: LEDGER_DIRECTION,
+  permission_override_effect: PERMISSION_OVERRIDE_EFFECT,
   settlement_status: SETTLEMENT_STATUS,
   settlement_line_type: SETTLEMENT_LINE_TYPE,
   settlement_hold_reason: SETTLEMENT_HOLD_REASON,

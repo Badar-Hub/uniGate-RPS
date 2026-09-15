@@ -12,6 +12,8 @@ import { scanProvider } from '@/integrations/scan/scan.provider.js';
 import { storageProvider } from '@/integrations/storage/storage.provider.js';
 import { logger } from '@/logging/logger.js';
 import { writeAudit } from '@/modules/platform/audit.service.js';
+import { onVehicleDocumentsChanged } from '@/modules/fleet/vehicle.service.js';
+import { onOwnerDocumentsChanged } from '@/modules/profiles/owner.service.js';
 import { targetColumn, toDocumentDto, toRequirementDto, targetOf } from './documents.mapper.js';
 import * as repo from './documents.repository.js';
 import { SNIFF_LENGTH, detectMime, extensionFor, mimeMatches } from './mime.sniff.js';
@@ -125,6 +127,11 @@ export async function confirmUpload(scope: ActorScope, id: string, declaredCheck
     await publishEvent('document', id, 'document.uploaded', { target: targetOf(doc), documentTypeCode: doc.documentTypeCode }, tx);
     return u;
   });
+  // A vendor's profile enters the review queue by itself once every mandatory document is in (no separate "submit" click needed).
+  const target = targetOf(doc);
+  if (target.kind === 'OWNER') await onOwnerDocumentsChanged(target.id);
+  else if (target.kind === 'USER') await onOwnerDocumentsChanged(null, target.id);
+  else if (target.kind === 'VEHICLE') await onVehicleDocumentsChanged(target.id);
   return toDocumentDto(updated);
 }
 
@@ -264,10 +271,15 @@ export async function requirementsFor(scope: AnyScope, kind: DocumentAppliesTo, 
 }
 
 /** True when every mandatory type for the kind (and vertical) has a VERIFIED, unexpired document. */
-export async function mandatoryDocumentsSatisfied(kind: DocumentAppliesTo, targetId: string, transportTypes: ('PASSENGER' | 'GOODS')[]): Promise<{ ok: boolean; missing: string[] }> {
+/**
+ * Mandatory-document check at a threshold: `VERIFIED` (approval — every document reviewed by staff)
+ * or `UPLOADED` (the applicant has supplied everything and the profile may enter the review queue).
+ */
+export async function mandatoryDocumentsSatisfied(kind: DocumentAppliesTo, targetId: string, transportTypes: ('PASSENGER' | 'GOODS')[], threshold: 'VERIFIED' | 'UPLOADED' = 'VERIFIED'): Promise<{ ok: boolean; missing: string[] }> {
   const reqs = await requirementsFor({ kind: 'SYSTEM', jobName: 'documents.requirements', requestId: 'internal' }, kind, targetId);
   const relevant = reqs.filter((r) => r.isMandatory && (!r.transportType || transportTypes.includes(r.transportType as 'PASSENGER' | 'GOODS')));
-  const missing = relevant.filter((r) => r.status !== 'VERIFIED').map((r) => r.documentTypeCode);
+  const satisfied = (status: string) => (threshold === 'VERIFIED' ? status === 'VERIFIED' : status === 'VERIFIED' || status === 'PENDING' || status === 'UPLOADED');
+  const missing = relevant.filter((r) => !satisfied(r.status)).map((r) => r.documentTypeCode);
   return { ok: missing.length === 0, missing };
 }
 

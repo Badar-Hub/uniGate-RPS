@@ -110,6 +110,7 @@ Where a value varies by scope (global → category → customer/owner → per ca
 | `onboarding.vehicle_max_age_years` | int \| null | `null` | null or 1–40 | INTERNAL | no — validated at vehicle submission | — |
 | `onboarding.owner_vat_status_recheck_days` | int | `90` | 1–365 | INTERNAL | no — verification job | OQ-24/25 |
 | `onboarding.individual_owner_max_vehicles` | int \| null | `null` | null or ≥ 1 | INTERNAL | no | OQ-29 (TGA cap, if confirmed) |
+| `onboarding.owner_self_registration_enabled` | bool | `false` | — | PUBLIC | no — read at registration | UniGate 2026-09-15: only admins add vendors |
 
 ## 8. `documents`
 

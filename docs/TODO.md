@@ -129,6 +129,13 @@ All items delivered; residuals moved to Phase 3 below.
 - [ ] Switch on: set `platform.verticals_enabled = [PASSENGER, GOODS]` once OQ-13 (TGA licensing) and OQ-29 (Bayan process) are answered
 - [ ] Proof photo/signature capture from the driver screen; Bayan integration if TGA exposes an interface; zero-rating rule (OQ-27)
 
+## Vendor onboarding & access (A-58) — COMPLETE 2026-09-15
+
+- [x] Admin-only vendor creation with activation link; public owner registration behind a setting (off)
+- [x] Document-driven review queue (auto DOCUMENTS_SUBMITTED), approval needs verified documents, fleet registration only after approval, vehicle approval needs verified documents
+- [x] Per-vendor module × CRUD access on top of roles (overrides, step-up, audit) + admin screens
+- [ ] Email/SMS delivery of the activation link (notifications — Phase 12/13)
+
 ## Immediate — next phase (UniGate's call)
 
 - [ ] **Phase 12 — Maintenance**: `/maintenance` records and schedules, vehicle downtime on the calendar, reminders

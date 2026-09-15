@@ -6,6 +6,7 @@ import type {
   listUsersQuery,
   patchUserBody,
   roleCodeParams,
+  setUserPermissionsBody,
   setUserRolesBody,
   suspendUserBody,
   updateRoleBody,
@@ -54,6 +55,16 @@ export async function deleteUser(req: Request, res: Response): Promise<void> {
   const { params } = (req as R<unknown, unknown, z.infer<typeof userIdParams>>).validated;
   await admin.deleteUser(scopeFor(req, 'users.delete'), params.id);
   sendNoContent(res);
+}
+
+export async function getUserPermissions(req: Request, res: Response): Promise<void> {
+  const { params } = (req as R<unknown, unknown, z.infer<typeof userIdParams>>).validated;
+  sendOk(res, await admin.getUserPermissions(scopeFor(req, 'permissions.assign'), params.id));
+}
+
+export async function setUserPermissions(req: Request, res: Response): Promise<void> {
+  const { body, params } = (req as R<z.infer<typeof setUserPermissionsBody>, unknown, z.infer<typeof userIdParams>>).validated;
+  sendOk(res, await admin.setUserPermissions(scopeFor(req, 'permissions.assign'), params.id, body));
 }
 
 export async function setUserRoles(req: Request, res: Response): Promise<void> {

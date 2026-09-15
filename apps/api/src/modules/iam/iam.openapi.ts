@@ -20,7 +20,7 @@ import {
   registerBody,
   roleCodeParams,
   sessionIdParams,
-  setUserRolesBody,
+  setUserPermissionsBody, setUserRolesBody,
   stepUpRequestBody,
   stepUpVerifyBody,
   suspendUserBody,
@@ -237,6 +237,13 @@ registry.registerPath({
   method: 'post', path: '/users/{id}/reactivate', tags: ['users'], summary: 'Reactivate a suspended user (users.suspend)', security: bearer,
   request: { params: userIdParams, body: { content: { 'application/json': { schema: suspendUserBody } } } },
   responses: { 200: ok(userAdmin, 'UserAdminEnvelope') },
+});
+const userPermissions = z.object({ userId: z.string().uuid(), roles: z.array(z.string()), fromRoles: z.array(z.string()), granted: z.array(z.string()), denied: z.array(z.string()), effective: z.array(z.string()), catalogue: z.array(z.object({ code: z.string(), module: z.string(), action: z.string(), descriptionEn: z.string(), descriptionAr: z.string() })) }).openapi('UserPermissions');
+registry.registerPath({ method: 'get', path: '/users/{id}/permissions', tags: ['users'], summary: 'A user’s effective access: roles, per-user overrides (grant/deny) and the assignable catalogue (permissions.assign)', security: bearer, request: { params: userIdParams }, responses: { 200: ok(userPermissions, 'UserPermissionsEnvelope') } });
+registry.registerPath({
+  method: 'put', path: '/users/{id}/permissions', tags: ['users'], summary: 'Replace a user’s permission overrides on top of their roles (permissions.assign + step-up ROLE_CHANGE). An admin may only grant what they hold; audited SECURITY; bumps permission_version', security: bearer,
+  request: { params: userIdParams, headers: stepUpHeader, body: { content: { 'application/json': { schema: setUserPermissionsBody } } } },
+  responses: { 200: ok(userPermissions, 'UserPermissionsEnvelope'), 403: err('PERMISSION_NOT_HELD / PERM_DENIED (step-up)'), 422: err('PERM_SELF_MODIFICATION / VALIDATION_FAILED') },
 });
 registry.registerPath({
   method: 'put', path: '/users/{id}/roles', tags: ['users'], summary: 'Replace a user’s roles (permissions.assign + step-up ROLE_CHANGE); bumps permission_version', security: bearer,

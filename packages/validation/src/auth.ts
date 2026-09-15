@@ -137,6 +137,16 @@ export const createUserBody = z
   })
   .strict();
 
+/** PUT /users/{id}/permissions — per-user overrides on top of roles. Codes not in either list are cleared. */
+export const setUserPermissionsBody = z
+  .object({
+    grant: z.array(z.string().min(3).max(64)).max(200).default([]),
+    deny: z.array(z.string().min(3).max(64)).max(200).default([]),
+    note: safeText(500).optional(),
+  })
+  .strict()
+  .refine((b) => !b.grant.some((c) => b.deny.includes(c)), { path: ['deny'], message: 'a permission cannot be both granted and denied' });
+
 export const patchUserBody = z
   .object({
     fullNameEn: safeText(160).pipe(z.string().min(2)).optional(),

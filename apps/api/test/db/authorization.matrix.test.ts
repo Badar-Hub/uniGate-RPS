@@ -255,6 +255,17 @@ describeDb('authorization matrix', () => {
       call: (t) => bearer(request(h.app).post('/api/v1/trip-requests/0192f3c1-0000-7000-8000-000000000000/assign-platform-vehicle'), t).send({ vehicleId: '0192f3c1-0000-7000-8000-000000000000', baseAmount: '100.00' }),
       expect: { SUPER_ADMIN: 400, ADMIN: 400, OPS_MANAGER: 400, FINANCE_OFFICER: 403, SUPPORT_AGENT: 403, CUSTOMER: 403, VEHICLE_OWNER: 403, DRIVER: 403, SPO: 403 },
     },
+    // ── Vendor onboarding & access ─────────────────────────────────────────────
+    {
+      name: 'POST /admin/vendors (users.create + owners.create — admins only; empty body → 422)',
+      call: (t) => bearer(request(h.app).post('/api/v1/admin/vendors'), t).send({}),
+      expect: { SUPER_ADMIN: 422, ADMIN: 422, OPS_MANAGER: 403, FINANCE_OFFICER: 403, SUPPORT_AGENT: 403, CUSTOMER: 403, VEHICLE_OWNER: 403, DRIVER: 403, SPO: 403 },
+    },
+    {
+      name: 'GET /users/{id}/permissions (permissions.assign — super admin only; unknown id → 404)',
+      call: (t) => bearer(request(h.app).get('/api/v1/users/0192f3c1-0000-7000-8000-000000000000/permissions'), t),
+      expect: { SUPER_ADMIN: 404, ADMIN: 403, OPS_MANAGER: 403, FINANCE_OFFICER: 403, SUPPORT_AGENT: 403, CUSTOMER: 403, VEHICLE_OWNER: 403, DRIVER: 403, SPO: 403 },
+    },
     // ── Phase 11: finance ──────────────────────────────────────────────────────
     {
       name: 'GET /commissions/rules (commissions.read)',

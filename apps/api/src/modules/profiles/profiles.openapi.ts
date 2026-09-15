@@ -8,7 +8,7 @@ import {
   createBankAccountBody,
   createCustomerBody,
   createDriverBody,
-  createOwnerBody,
+  createOwnerBody, createVendorBody,
   createSpoLeadBody,
   createSpoProfileBody,
   driverAvailabilityBody,
@@ -122,6 +122,7 @@ registry.registerPath({ method: 'patch', path: '/admin/customers/{id}/vat-number
 // ── owners ───────────────────────────────────────────────────────────────────
 registry.registerPath({ method: 'get', path: '/me/owner-profile', tags: ['owners'], summary: 'The caller’s own owner profile', security: bearer, responses: { 200: ok(owner, 'OwnerEnvelope'), 404: err('no owner profile') } });
 registry.registerPath({ method: 'get', path: '/owners', tags: ['owners'], summary: 'List owners (owners.read)', security: bearer, request: { query: listOwnersQuery }, responses: { 200: ok(z.array(owner), 'OwnerListEnvelope', 'OK — paginated') } });
+registry.registerPath({ method: 'post', path: '/admin/vendors', tags: ['owners'], summary: 'UniGate adds a third-party vendor (users.create + owners.create): account with the VEHICLE_OWNER role, owner profile, verticals applied for, and a one-time activation link shown to the admin. The vendor activates, uploads documents, and the profile enters the review queue by itself when every mandatory document is in', security: bearer, request: { body: json(createVendorBody) }, responses: { 201: ok(z.object({ user: z.object({ id: z.string().uuid(), email: z.string().nullable() }).passthrough(), owner, activationUrl: z.string(), activationExpiresAt: z.string().datetime() }).openapi('VendorCreated'), 'VendorCreatedEnvelope', 'Created'), 409: err('AUTH_IDENTIFIER_TAKEN') } });
 registry.registerPath({ method: 'post', path: '/owners', tags: ['owners'], summary: 'Admin-created owner profile for an existing user (owners.create)', security: bearer, request: { body: json(createOwnerBody) }, responses: { 201: ok(owner, 'OwnerEnvelope', 'Created'), 409: err('CONFLICT — user already has one') } });
 registry.registerPath({ method: 'get', path: '/owners/{id}', tags: ['owners'], summary: 'Owner profile (own → global); nationalIdLast4 only for self or owners.pii.reveal', security: bearer, request: { params: idParams }, responses: { 200: ok(owner, 'OwnerEnvelope'), 404: err('NOT_FOUND') } });
 registry.registerPath({ method: 'patch', path: '/owners/{id}', tags: ['owners'], summary: 'Business details, national id (encrypted), verticals, privacy; identity edits after approval → UNDER_REVIEW', security: bearer, request: { params: idParams, body: json(patchOwnerBody) }, responses: { 200: ok(owner, 'OwnerEnvelope'), 422: err('OWNER_NOT_APPROVED (suspended)') } });

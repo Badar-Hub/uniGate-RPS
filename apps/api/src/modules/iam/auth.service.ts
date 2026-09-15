@@ -58,6 +58,10 @@ export async function register(body: z.infer<typeof registerBody>, meta: Request
   if (await users.identifierTaken(scope, { email, phoneE164: phone })) {
     throw new ConflictError('AUTH_IDENTIFIER_TAKEN', 'An account with this phone or email already exists');
   }
+  // UniGate: vendors (vehicle owners) are added by an admin and activate their account; public self-registration is a switch, off by default.
+  if (body.intent === 'VEHICLE_OWNER' && !(await getSettingValue<boolean>('onboarding.owner_self_registration_enabled', false))) {
+    throw new ForbiddenError('OWNER_SELF_REGISTRATION_DISABLED', 'Vehicle-owner accounts are created by UniGate; contact us to be onboarded as a vendor');
+  }
   await assertPasswordPolicy(body.password, false, [phone, email ?? '']);
   const passwordHash = await hashPassword(body.password);
   const roleCode = body.intent === 'CUSTOMER' ? 'CUSTOMER' : 'VEHICLE_OWNER';

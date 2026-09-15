@@ -9,6 +9,7 @@ import type {
   createCustomerBody,
   createDriverBody,
   createOwnerBody,
+  createVendorBody,
   createSpoLeadBody,
   createSpoProfileBody,
   driverAvailabilityBody,
@@ -98,6 +99,12 @@ export async function listOwners(req: Request, res: Response): Promise<void> {
   const { items, total } = await owners.listOwners(scopeFor(req, 'owners.read'), query, query);
   res.status(200).json(paginated(items, query.page, query.pageSize, total));
 }
+export async function createVendor(req: Request, res: Response): Promise<void> {
+  const { body } = (req as R<z.infer<typeof createVendorBody>>).validated;
+  const dto = await owners.createVendor(scopeFor(req, 'owners.create'), body);
+  sendCreated(res, dto);
+}
+
 export async function createOwner(req: Request, res: Response): Promise<void> {
   const { body } = (req as R<z.infer<typeof createOwnerBody>>).validated;
   const dto = await owners.createOwner(scopeFor(req, 'owners.create'), body);

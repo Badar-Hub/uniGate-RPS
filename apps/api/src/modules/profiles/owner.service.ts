@@ -1,5 +1,5 @@
-import type { ActorScope, AnyScope, OwnerBankAccountDto, OwnerDto, TransportType } from '@unigate/types';
-import type { createBankAccountBody, createOwnerBody, patchOwnerBody } from '@unigate/validation';
+import type { ActorScope, AnyScope, OwnerBankAccountDto, OwnerDto, TransportType, VendorCreatedDto } from '@unigate/types';
+import type { createBankAccountBody, createOwnerBody, createVendorBody, patchOwnerBody } from '@unigate/validation';
 import type { z } from 'zod';
 import { blindIndex, encryptPii, last4 } from '@/common/crypto.js';
 import { BusinessRuleError, ConflictError, NotFoundError } from '@/common/errors.js';
@@ -7,6 +7,7 @@ import { newId } from '@/common/ids.js';
 import { prisma } from '@/database/prisma.js';
 import { publishEvent } from '@/events/outbox.js';
 import { mandatoryDocumentsSatisfied } from '@/modules/documents/documents.service.js';
+import { activationUrl, createVendorAccount, getUser } from '@/modules/iam/admin.service.js';
 import { bumpPermissionVersion } from '@/modules/iam/permission.service.js';
 import { writeAudit } from '@/modules/platform/audit.service.js';
 import { getSettingValue } from '@/modules/reference/settings.service.js';
@@ -58,6 +59,49 @@ export async function createOwner(scope: ActorScope, body: z.infer<typeof create
   return getOwner(scope, id);
 }
 
+/**
+ * POST /admin/vendors — UniGate adds a third-party vendor: account + owner profile + the verticals
+ * applied for, in one transaction. The vendor activates through the link (shown once to the admin
+ * until notifications deliver it), signs in, uploads documents; the profile enters the review queue
+ * by itself when every mandatory document is in (`onOwnerDocumentsChanged`).
+ */
+export async function createVendor(scope: ActorScope, body: z.infer<typeof createVendorBody>): Promise<VendorCreatedDto> {
+  const ownerId = newId();
+  const { userId, activationToken, expiresAt } = await prisma().$transaction(async (tx) => {
+    const account = await createVendorAccount(scope, { email: body.email, phoneE164: body.phoneE164, fullNameEn: body.fullNameEn, fullNameAr: body.fullNameAr, preferredLocale: body.preferredLocale }, tx);
+    await tx.ownerProfile.create({ data: { id: ownerId, userId: account.userId, ownerType: body.ownerType, businessNameEn: body.businessNameEn ?? null, businessNameAr: body.businessNameAr ?? null, crNumber: body.crNumber ?? null, onboardingStatus: 'DRAFT' } });
+    for (const t of body.transportTypes) await tx.ownerVerticalApproval.create({ data: { id: newId(), ownerProfileId: ownerId, transportType: t, status: 'NOT_APPLIED' } });
+    await writeAudit({ ...audit(scope), action: 'owner.created', entityType: 'owner_profile', entityId: ownerId, severity: 'NOTICE', afterValue: { userId: account.userId, ownerType: body.ownerType, transportTypes: body.transportTypes, createdBy: 'staff', vendor: true } }, tx);
+    await publishEvent('owner', ownerId, 'owner.vendor_created', { userId: account.userId, transportTypes: body.transportTypes }, tx);
+    return account;
+  });
+  return { user: await getUser(scope, userId), owner: await getOwner(scope, ownerId), activationUrl: activationUrl(body.preferredLocale, activationToken), activationExpiresAt: expiresAt.toISOString() };
+}
+
+const systemScope: AnyScope = { kind: 'SYSTEM', jobName: 'owners.documents', requestId: 'internal' };
+
+/**
+ * Called after a document lands on an owner (or on the individual behind one): once every mandatory
+ * document is uploaded, DRAFT / REJECTED → DOCUMENTS_SUBMITTED and the admin queue is notified.
+ * Verification and approval stay with staff (`approveOwner` requires VERIFIED).
+ */
+export async function onOwnerDocumentsChanged(ownerProfileId: string | null, userId: string | null = null): Promise<void> {
+  const o = ownerProfileId ? await repo.findOwner(systemScope, ownerProfileId) : userId ? await prisma().ownerProfile.findFirst({ where: { userId }, select: { id: true } }).then((r) => (r ? repo.findOwner(systemScope, r.id) : null)) : null;
+  if (!o || !['DRAFT', 'REJECTED'].includes(o.onboardingStatus)) return;
+  const verticals = appliedVerticals(o);
+  const ownerDocs = await mandatoryDocumentsSatisfied('OWNER', o.id, verticals, 'UPLOADED');
+  const identityDocs = o.ownerType === 'INDIVIDUAL' ? await mandatoryDocumentsSatisfied('USER', o.userId, verticals, 'UPLOADED') : { ok: true, missing: [] as string[] };
+  if (!ownerDocs.ok || !identityDocs.ok) return;
+  await prisma().$transaction(async (tx) => {
+    await tx.ownerProfile.update({ where: { id: o.id }, data: { onboardingStatus: 'DOCUMENTS_SUBMITTED', rejectionReason: null } });
+    for (const t of verticals) {
+      await tx.ownerVerticalApproval.upsert({ where: { ownerProfileId_transportType: { ownerProfileId: o.id, transportType: t } }, create: { id: newId(), ownerProfileId: o.id, transportType: t, status: 'UNDER_REVIEW' }, update: { status: 'UNDER_REVIEW' } });
+    }
+    await writeAudit({ actorUserId: null, actorType: 'SYSTEM', action: 'owner.documents_submitted', entityType: 'owner_profile', entityId: o.id, beforeValue: { onboardingStatus: o.onboardingStatus }, afterValue: { onboardingStatus: 'DOCUMENTS_SUBMITTED', verticals } }, tx);
+    await publishEvent('owner', o.id, 'owner.documents_submitted', { verticals, userId: o.userId }, tx);
+  });
+}
+
 const REVIEW_TRIGGER_FIELDS = ['ownerType', 'businessNameEn', 'businessNameAr', 'crNumber', 'vatNumber', 'isVatRegistered', 'nationalId'] as const;
 
 export async function patchOwner(scope: ActorScope, id: string, body: z.infer<typeof patchOwnerBody>): Promise<OwnerDto> {
@@ -105,7 +149,7 @@ function appliedVerticals(o: repo.OwnerRow): TransportType[] {
   return applied.length ? applied : ['PASSENGER'];
 }
 
-/** DRAFT / DOCUMENTS_SUBMITTED / REJECTED → UNDER_REVIEW once every mandatory document is verified. */
+/** DRAFT / DOCUMENTS_SUBMITTED / REJECTED → UNDER_REVIEW once every mandatory document is uploaded (staff verify each during review; approval needs them VERIFIED). */
 export async function submitForReview(scope: ActorScope, id: string): Promise<OwnerDto> {
   const o = await repo.findOwner(scope, id);
   if (!o) throw new NotFoundError();
@@ -113,10 +157,10 @@ export async function submitForReview(scope: ActorScope, id: string): Promise<Ow
     throw new BusinessRuleError('OWNER_NOT_APPROVED', `Cannot submit a profile in status ${o.onboardingStatus}`, { onboardingStatus: o.onboardingStatus });
   }
   const verticals = appliedVerticals(o);
-  const ownerDocs = await mandatoryDocumentsSatisfied('OWNER', id, verticals);
-  const identityDocs = o.ownerType === 'INDIVIDUAL' ? await mandatoryDocumentsSatisfied('USER', o.userId, verticals) : { ok: true, missing: [] as string[] };
+  const ownerDocs = await mandatoryDocumentsSatisfied('OWNER', id, verticals, 'UPLOADED');
+  const identityDocs = o.ownerType === 'INDIVIDUAL' ? await mandatoryDocumentsSatisfied('USER', o.userId, verticals, 'UPLOADED') : { ok: true, missing: [] as string[] };
   const missing = [...ownerDocs.missing, ...identityDocs.missing];
-  if (missing.length) throw new BusinessRuleError('OWNER_DOCUMENTS_INCOMPLETE', 'Mandatory documents are missing or unverified', { missing });
+  if (missing.length) throw new BusinessRuleError('OWNER_DOCUMENTS_INCOMPLETE', 'Mandatory documents are missing', { missing });
   await prisma().$transaction(async (tx) => {
     await tx.ownerProfile.update({ where: { id }, data: { onboardingStatus: 'UNDER_REVIEW', rejectionReason: null } });
     for (const t of verticals) {
@@ -134,7 +178,12 @@ export async function approveOwner(scope: ActorScope, id: string, notes?: string
   if (!['UNDER_REVIEW', 'DOCUMENTS_SUBMITTED'].includes(o.onboardingStatus)) {
     throw new BusinessRuleError('OWNER_NOT_APPROVED', `Only a profile under review can be approved (current: ${o.onboardingStatus})`, { onboardingStatus: o.onboardingStatus });
   }
+  // The reviewer verifies every mandatory document before the profile is approved (vehicles can only be registered after this).
   const verticals = appliedVerticals(o);
+  const ownerDocs = await mandatoryDocumentsSatisfied('OWNER', id, verticals, 'VERIFIED');
+  const identityDocs = o.ownerType === 'INDIVIDUAL' ? await mandatoryDocumentsSatisfied('USER', o.userId, verticals, 'VERIFIED') : { ok: true, missing: [] as string[] };
+  const unverified = [...ownerDocs.missing, ...identityDocs.missing];
+  if (unverified.length) throw new BusinessRuleError('OWNER_DOCUMENTS_INCOMPLETE', 'Every mandatory document must be verified before approval', { missing: unverified });
   await prisma().$transaction(async (tx) => {
     await tx.ownerProfile.update({ where: { id }, data: { onboardingStatus: 'APPROVED', approvedByUserId: scope.actor.userId, approvedAt: new Date(), rejectionReason: null } });
     for (const t of verticals) {

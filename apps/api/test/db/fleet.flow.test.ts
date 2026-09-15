@@ -97,7 +97,7 @@ describeDb('fleet', () => {
   it('approval is gated on verified vehicle documents; identity edits after approval re-open it', async () => {
     const early = await bearer(request(h.app).post(`/api/v1/vehicles/${vehicleId}/submit-for-approval`), owner);
     expect(early.status).toBe(422);
-    expect(early.body.error.code).toBe('OWNER_DOCUMENTS_INCOMPLETE');
+    expect(early.body.error.code).toBe('VEHICLE_DOCUMENTS_INCOMPLETE');
     expect((early.body.error.details.missing as string[]).join(',')).toContain('VEHICLE_REGISTRATION');
 
     for (const [code, bytes, mime, extra] of [

@@ -4,8 +4,9 @@ import { cacheDel, cacheGet, cacheSet } from '@/common/throttle.js';
 /**
  * Permission resolution (architecture.md §5.1, api.md §6.1). The access token carries only
  * `pv`; the full set is loaded from Redis `perm:{userId}:{pv}` (TTL 15 min), falling back to
- * a user_roles ⋈ role_permissions ⋈ permissions query. Any role/permission change bumps
- * users.permission_version, which changes the key and makes every in-flight token resolve
+ * a user_roles ⋈ role_permissions ⋈ permissions query, then per-user overrides are applied
+ * (GRANT adds, DENY removes — vendor access control on top of roles). Any role/permission change
+ * bumps users.permission_version, which changes the key and makes every in-flight token resolve
  * the new set on its next request — revocation is immediate, the token stays small.
  */
 const TTL = 15 * 60;
@@ -32,6 +33,11 @@ export async function resolveAuthority(userId: string): Promise<ResolvedAuthorit
   const roles = grants.map((g) => g.role.code).sort();
   const permissions = new Set<string>();
   for (const g of grants) for (const rp of g.role.rolePermissions) permissions.add(rp.permission.code);
+  const overrides = await prisma().userPermissionOverride.findMany({ where: { userId }, select: { effect: true, permission: { select: { code: true } } } });
+  for (const o of overrides) {
+    if (o.effect === 'GRANT') permissions.add(o.permission.code);
+    else permissions.delete(o.permission.code);
+  }
   await cacheSet(key, JSON.stringify({ roles, permissions: [...permissions] }), TTL);
   return { roles, permissions, permissionVersion: pv };
 }

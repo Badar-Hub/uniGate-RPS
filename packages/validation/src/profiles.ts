@@ -113,6 +113,23 @@ export const createOwnerBody = z
   })
   .strict();
 
+/** POST /admin/vendors — admin creates the account and the owner profile in one step; the vendor activates and uploads documents. */
+export const createVendorBody = z
+  .object({
+    email: emailAddress,
+    phoneE164: phoneE164.optional(),
+    fullNameEn: safeText(160).pipe(z.string().min(2)),
+    fullNameAr: safeText(160).pipe(z.string().min(2)).optional(),
+    preferredLocale: locale.default('ar'),
+    ownerType: z.enum(['INDIVIDUAL', 'COMPANY']),
+    businessNameEn: optionalNullable(safeText(160)),
+    businessNameAr: optionalNullable(safeText(160)),
+    crNumber: optionalNullable(ksaCrNumber),
+    /** Verticals the vendor applies for; approval is per vertical. */
+    transportTypes: z.array(z.enum(['PASSENGER', 'GOODS'])).min(1).default(['PASSENGER']),
+  })
+  .strict();
+
 /** Which non-business fields the owner exposes to counterparties (BRIEF-§28). Enforced in the mapper. */
 export const ownerPrivacySettings = z
   .object({

@@ -119,6 +119,9 @@
       "COMMISSION_OVERRIDE_LOCKED": "The commission on this request can no longer change.",
       "PLATFORM_FLEET_VEHICLE_REQUIRED": "UniGate's own fleet only: subcontracted vehicles are awarded through their bids.",
       "TRIP_REGULATORY_DOCUMENT_REQUIRED": "A transport document (Bayan) reference is required before the driver leaves.",
+      "OWNER_SELF_REGISTRATION_DISABLED": "Vehicle owners are onboarded by UniGate. Contact us to become a vendor.",
+      "VEHICLE_DOCUMENTS_INCOMPLETE": "Mandatory vehicle documents are missing or not yet verified.",
+      "PERMISSION_NOT_HELD": "You can only grant permissions you hold yourself.",
       "EXPENSE_IMMUTABLE": "This expense is inside a paid settlement period and cannot change.",
       "RULE_CREDIT_LIMIT_EXCEEDED": "This would exceed the customer’s credit limit.",
       "TRIP_NOT_ACTIVE": "This trip has ended.",
@@ -140,6 +143,12 @@
     "createAccount": "Create an account"
   },
   "auth": {
+    "stepUp": {
+      "title": "Confirm it's you",
+      "description": "This action is sensitive. Enter the one-time code we just sent you.",
+      "confirm": "Confirm"
+    },
+    "vendorByInvitation": "Vehicle owners are onboarded by UniGate — contact us to become a vendor.",
     "signIn": "Sign in",
     "signInSubtitle": "Use your phone number or email",
     "identifier": "Phone number or email",
@@ -194,6 +203,7 @@
       "bids": "My bids",
       "bookings": "Bookings",
       "driverApp": "Driver app",
+      "vendors": "Vendors",
       "settlements": "Settlements",
       "invoices": "Invoices",
       "expenses": "Expenses",
@@ -644,6 +654,43 @@
       }
     },
     "finance": {
+    "vendors": {
+      "title": "Vendors",
+      "subtitle": "Third-party vehicle owners are added here by UniGate, activate their account, upload their documents and are approved before they register a fleet.",
+      "add": "Add a vendor",
+      "contactName": "Contact name",
+      "email": "Email",
+      "phone": "Phone",
+      "ownerType": "Type",
+      "types": { "COMPANY": "Company", "INDIVIDUAL": "Individual", "PLATFORM": "UniGate fleet" },
+      "businessName": "Business name",
+      "crNumber": "CR number",
+      "verticals": { "PASSENGER": "Passenger transport", "GOODS": "Goods transport" },
+      "create": "Create vendor",
+      "createdTitle": "Vendor account created for {name}",
+      "createdHint": "Send this one-time activation link to the vendor (valid until {until}). They set their password, sign in and upload documents; the profile enters your review queue automatically.",
+      "copy": "Copy link",
+      "copied": "Copied",
+      "vendor": "Vendor",
+      "contact": "Contact",
+      "statusLabel": "Onboarding",
+      "status": { "DRAFT": "Awaiting documents", "DOCUMENTS_SUBMITTED": "Documents in — review", "UNDER_REVIEW": "Under review", "APPROVED": "Approved", "REJECTED": "Rejected", "SUSPENDED": "Suspended" },
+      "review": "Review",
+      "accessLink": "Access",
+      "empty": "No vendors yet.",
+      "access": {
+        "title": "Vendor access",
+        "subtitle": "Roles: {roles}. Tick what this vendor may do; anything beyond the role becomes a grant, anything removed from it a deny.",
+        "module": "Module",
+        "actions": { "read": "Read", "create": "Create", "update": "Update", "delete": "Delete" },
+        "other": "Other actions",
+        "changes": "Changes",
+        "changesHint": "{grant} grants · {deny} denies compared with the role",
+        "note": "Note (audited)",
+        "save": "Save access",
+        "saved": "Saved — takes effect on the vendor's next request."
+      }
+    },
       "settlements": {
         "title": "Settlements",
         "subtitleOwner": "Your pending earnings and settlement history.",

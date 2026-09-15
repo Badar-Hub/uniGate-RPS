@@ -1396,6 +1396,114 @@
           "meta"
         ]
       },
+      "UserPermissions": {
+        "type": "object",
+        "properties": {
+          "userId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "roles": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "fromRoles": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "granted": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "denied": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "effective": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "catalogue": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "code": {
+                  "type": "string"
+                },
+                "module": {
+                  "type": "string"
+                },
+                "action": {
+                  "type": "string"
+                },
+                "descriptionEn": {
+                  "type": "string"
+                },
+                "descriptionAr": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "code",
+                "module",
+                "action",
+                "descriptionEn",
+                "descriptionAr"
+              ]
+            }
+          }
+        },
+        "required": [
+          "userId",
+          "roles",
+          "fromRoles",
+          "granted",
+          "denied",
+          "effective",
+          "catalogue"
+        ]
+      },
+      "UserPermissionsEnvelope": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "enum": [
+              true
+            ]
+          },
+          "data": {
+            "$ref": "#/components/schemas/UserPermissions"
+          },
+          "message": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "meta": {
+            "type": "object",
+            "additionalProperties": {}
+          }
+        },
+        "required": [
+          "success",
+          "data",
+          "message",
+          "meta"
+        ]
+      },
       "Role": {
         "type": "object",
         "properties": {
@@ -2665,6 +2773,76 @@
             "items": {
               "$ref": "#/components/schemas/Owner"
             }
+          },
+          "message": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "meta": {
+            "type": "object",
+            "additionalProperties": {}
+          }
+        },
+        "required": [
+          "success",
+          "data",
+          "message",
+          "meta"
+        ]
+      },
+      "VendorCreated": {
+        "type": "object",
+        "properties": {
+          "user": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "email": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            },
+            "required": [
+              "id",
+              "email"
+            ]
+          },
+          "owner": {
+            "$ref": "#/components/schemas/Owner"
+          },
+          "activationUrl": {
+            "type": "string"
+          },
+          "activationExpiresAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "user",
+          "owner",
+          "activationUrl",
+          "activationExpiresAt"
+        ]
+      },
+      "VendorCreatedEnvelope": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "enum": [
+              true
+            ]
+          },
+          "data": {
+            "$ref": "#/components/schemas/VendorCreated"
           },
           "message": {
             "type": [
@@ -13334,6 +13512,145 @@
         }
       }
     },
+    "/users/{id}/permissions": {
+      "get": {
+        "tags": [
+          "users"
+        ],
+        "summary": "A user’s effective access: roles, per-user overrides (grant/deny) and the assignable catalogue (permissions.assign)",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserPermissionsEnvelope"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "users"
+        ],
+        "summary": "Replace a user’s permission overrides on top of their roles (permissions.assign + step-up ROLE_CHANGE). An admin may only grant what they hold; audited SECURITY; bumps permission_version",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "description": "Single-use token from POST /auth/step-up/verify for this action class"
+            },
+            "required": true,
+            "name": "x-step-up-token",
+            "in": "header"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "grant": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "minLength": 3,
+                      "maxLength": 64
+                    },
+                    "maxItems": 200,
+                    "default": []
+                  },
+                  "deny": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "minLength": 3,
+                      "maxLength": 64
+                    },
+                    "maxItems": 200,
+                    "default": []
+                  },
+                  "note": {
+                    "type": "string",
+                    "maxLength": 500
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserPermissionsEnvelope"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "PERMISSION_NOT_HELD / PERM_DENIED (step-up)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {},
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "PERM_SELF_MODIFICATION / VALIDATION_FAILED",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {},
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/users/{id}/roles": {
       "put": {
         "tags": [
@@ -15555,6 +15872,127 @@
           },
           "409": {
             "description": "CONFLICT — user already has one",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {},
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/vendors": {
+      "post": {
+        "tags": [
+          "owners"
+        ],
+        "summary": "UniGate adds a third-party vendor (users.create + owners.create): account with the VEHICLE_OWNER role, owner profile, verticals applied for, and a one-time activation link shown to the admin. The vendor activates, uploads documents, and the profile enters the review queue by itself when every mandatory document is in",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "email": {
+                    "type": "string",
+                    "maxLength": 254,
+                    "format": "email"
+                  },
+                  "phoneE164": {
+                    "type": "string",
+                    "pattern": "^\\+[1-9]\\d{7,14}$"
+                  },
+                  "fullNameEn": {
+                    "type": "string",
+                    "maxLength": 160
+                  },
+                  "fullNameAr": {
+                    "type": "string",
+                    "maxLength": 160
+                  },
+                  "preferredLocale": {
+                    "type": "string",
+                    "enum": [
+                      "ar",
+                      "en"
+                    ],
+                    "default": "ar"
+                  },
+                  "ownerType": {
+                    "type": "string",
+                    "enum": [
+                      "INDIVIDUAL",
+                      "COMPANY"
+                    ]
+                  },
+                  "businessNameEn": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 160
+                  },
+                  "businessNameAr": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 160
+                  },
+                  "crNumber": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "pattern": "^\\d{10}$"
+                  },
+                  "transportTypes": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "enum": [
+                        "PASSENGER",
+                        "GOODS"
+                      ]
+                    },
+                    "minItems": 1,
+                    "default": [
+                      "PASSENGER"
+                    ]
+                  }
+                },
+                "required": [
+                  "email",
+                  "fullNameEn",
+                  "ownerType"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VendorCreatedEnvelope"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "AUTH_IDENTIFIER_TAKEN",
             "content": {
               "application/json": {
                 "schema": {

@@ -148,7 +148,8 @@ describeDb('profiles & documents', () => {
     const tooEarly = await bearer(request(h.app).post(`/api/v1/owners/${ownerProfileId}/submit-for-review`), owner);
     expect(tooEarly.status).toBe(422);
     expect(tooEarly.body.error.code).toBe('OWNER_DOCUMENTS_INCOMPLETE');
-    expect(tooEarly.body.error.details.missing).toEqual(expect.arrayContaining(['OWNER_CR', 'OWNER_TGA_LICENCE_PASSENGER']));
+    // the CR is uploaded (awaiting verification) — only the licence is missing; verification is the reviewer's step
+    expect(tooEarly.body.error.details.missing).toEqual(['OWNER_TGA_LICENCE_PASSENGER']);
 
     // requirements checklist agrees with the guard
     const reqs = await bearer(request(h.app).get('/api/v1/documents/requirements'), owner).query({ appliesTo: 'OWNER', targetId: ownerProfileId, transportType: 'PASSENGER' });
