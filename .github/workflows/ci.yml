@@ -1,0 +1,103 @@
+name: CI
+
+on:
+  push:
+    branches: [main, new-dev]
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  NODE_ENV: test
+  # Non-secret CI values. Real secrets never live here; these satisfy the env schema only.
+  APP_URL: http://localhost:3001
+  API_URL: http://localhost:4000
+  CORS_ORIGINS: http://localhost:3001
+  DATABASE_URL: postgresql://unigate:unigate@localhost:5432/unigate?schema=public
+  TEST_DATABASE_URL: postgresql://unigate:unigate@localhost:5432/unigate_test?schema=public
+  REDIS_URL: redis://localhost:6379
+  STORAGE_ENDPOINT: http://localhost:9000
+  STORAGE_BUCKET: unigate-documents
+  STORAGE_QUARANTINE_BUCKET: unigate-quarantine
+  STORAGE_ACCESS_KEY: ci-access-key
+  STORAGE_SECRET_KEY: ci-storage-key-0123456789abcdefghij
+  JWT_SECRET: ci-jwt-0123456789abcdefghijklmnopqrstuvwxyz
+  JWT_REFRESH_SECRET: ci-refresh-zyxwvutsrqponmlkjihgfedcba9876543210
+  ENCRYPTION_KEY: AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=
+  ENCRYPTION_KEY_ID: ci-1
+  BLIND_INDEX_PEPPER: ci-blind-index-pepper-0123456789abcdefghij
+  OTP_PEPPER: ci-otp-pepper-zyxwvutsrqponmlkjihgfedcba98
+  PAYMENT_PROVIDER: mock
+  OTP_PROVIDER: console
+
+jobs:
+  verify:
+    name: typecheck · lint · test · build
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: unigate
+          POSTGRES_PASSWORD: unigate
+          POSTGRES_DB: unigate
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U unigate -d unigate"
+          --health-interval 5s --health-timeout 3s --health-retries 10
+      redis:
+        image: redis:7-alpine
+        ports: ['6379:6379']
+        options: >-
+          --health-cmd "redis-cli ping" --health-interval 5s --health-timeout 3s --health-retries 10
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9.15.4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install
+        run: pnpm install --frozen-lockfile
+
+      - name: Prepare databases (extensions + test db, same as docker/postgres-init)
+        run: |
+          psql "postgresql://unigate:unigate@localhost:5432/unigate" -v ON_ERROR_STOP=1 -f docker/postgres-init/01-init.sql
+        env:
+          PGPASSWORD: unigate
+
+      - name: Secrets scan
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Typecheck, lint, test, build
+        run: pnpm turbo run typecheck lint test build
+
+      - name: Migrations apply cleanly and seed is idempotent
+        working-directory: apps/api
+        run: |
+          pnpm exec prisma migrate deploy
+          pnpm exec tsx prisma/seed/index.ts
+          pnpm exec tsx prisma/seed/index.ts
+        env:
+          SEED_ADMIN_EMAIL: ci-admin@unigate.local
+          SEED_ADMIN_PASSWORD: ci-only-password-not-real-1
+
+      - name: Committed openapi.json matches the generated spec
+        working-directory: apps/api
+        run: pnpm exec tsx src/docs/check.ts
+
+      - name: Documentation cross-references resolve
+        run: node scripts/verify-docs.mjs

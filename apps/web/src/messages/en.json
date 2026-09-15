@@ -1,0 +1,17 @@
+{
+  "common": {
+    "appName": "UniGate",
+    "tagline": "Vehicle hiring & management platform",
+    "language": "Language",
+    "arabic": "العربية",
+    "english": "English"
+  },
+  "home": {
+    "title": "UniGate platform",
+    "subtitle": "Passenger and goods transport across Saudi Arabia — coming soon",
+    "status": "Platform status",
+    "apiHealthy": "Service is up",
+    "apiDown": "Service unavailable",
+    "checking": "Checking…"
+  }
+}

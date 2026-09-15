@@ -1,0 +1,31 @@
+{
+  "name": "unigate",
+  "private": true,
+  "version": "0.1.0",
+  "description": "UniGate Vehicle Hiring & Management Platform — monorepo",
+  "packageManager": "pnpm@9.15.4",
+  "engines": {
+    "node": ">=22.0.0",
+    "pnpm": ">=9.0.0"
+  },
+  "scripts": {
+    "build": "turbo run build",
+    "dev": "turbo run dev",
+    "lint": "turbo run lint",
+    "typecheck": "turbo run typecheck",
+    "test": "turbo run test",
+    "ci": "turbo run typecheck lint test build",
+    "db:up": "docker compose up -d postgres redis minio mailhog",
+    "db:down": "docker compose down",
+    "db:migrate": "pnpm --filter @unigate/api db:migrate",
+    "db:seed": "pnpm --filter @unigate/api db:seed",
+    "db:reset": "pnpm --filter @unigate/api db:reset",
+    "format": "prettier --write \"**/*.{ts,tsx,js,json,md,yml,yaml}\"",
+    "format:check": "prettier --check \"**/*.{ts,tsx,js,json,md,yml,yaml}\""
+  },
+  "devDependencies": {
+    "prettier": "^3.3.3",
+    "turbo": "^2.3.3",
+    "typescript": "^5.6.3"
+  }
+}

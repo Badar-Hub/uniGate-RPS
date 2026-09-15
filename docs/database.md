@@ -269,8 +269,10 @@ CHECK (num_nonnulls(user_id, owner_profile_id, driver_profile_id, vehicle_id,
 
 - **`customer_profiles`** — `user_id` (unique FK), `customer_type` (`INDIVIDUAL` \| `CORPORATE`), `vat_number` NULL, `vat_number_verified_at` NULL, `default_city_id`, `rating_avg`, `rating_count`, `total_bookings`, `acquired_by_spo_id` NULL, `created_at`…
   > `vat_number` sits here rather than on the corporate profile because VAT registration belongs to the invoiced party, not to being a company — sole traders register too. It drives invoice type (§12.6).
-- **`corporate_customer_profiles`** — `customer_profile_id` (unique FK), `company_name_en`, `company_name_ar`, `cr_number` (Commercial Registration), `billing_address_line1/2`, `billing_city_id`, `billing_postal_code`, `contact_person_name`, `contact_person_phone`, `contact_person_email`, `credit_terms_days`, `is_verified`.
-- **`owner_profiles`** — `user_id` (unique FK), `owner_type` (`INDIVIDUAL` \| `COMPANY`), `business_name_en/ar`, `cr_number`, `vat_number` NULL, `is_vat_registered` (derived, but stored — see **OQ-24**; an owner who cannot issue UniGate a tax invoice changes the platform's recoverable input VAT), `national_id_encrypted`, `national_id_last4`, `national_id_blind_index`, `onboarding_status` (`DRAFT`, `DOCUMENTS_SUBMITTED`, `UNDER_REVIEW`, `APPROVED`, `REJECTED`, `SUSPENDED`), `approved_by_user_id`, `approved_at`, `rejection_reason`, `rating_avg`, `rating_count`, `privacy_settings` (jsonb — brief §28), `default_payout_account_id`.
+- **`corporate_customer_profiles`** — `customer_profile_id` (unique FK), `company_name_en`, `company_name_ar`, `cr_number` (Commercial Registration, 10 digits), **Saudi National Address** as structured fields — `address_building_number` (4 digits), `address_street_en/ar`, `address_district_en/ar`, `address_city_id`, `address_postal_code` (5 digits), `address_additional_number` (4 digits), `address_short_code` NULL (e.g. `RHAA1234`) — `contact_person_name`, `contact_person_phone`, `contact_person_email`, `credit_terms_days`, `is_verified`, `wafeq_contact_id` NULL, `wafeq_synced_at` NULL.
+  > **UniGate, 2026-09-15:** a client is registered in Wafeq with **VAT number, CR number and national address**, all mandatory before an invoice can be generated. The platform therefore captures the same three at corporate onboarding and **validates them before a customer can be approved for `INVOICED` billing**: VAT number 15 digits starting and ending in `3`, CR 10 digits, national address in the structured form above (ZATCA BR-KSA-09/-66…-70 require buyer building number, street, district, city and postal code for a Saudi buyer on a standard tax invoice). The free-text `billing_address_line1/2` fields are **replaced** by the structured address. The record is mirrored to Wafeq as a contact (`external_id` = customer id) so the invoice buyer block is identical in both systems (FR-PROFILES-14).
+- **`owner_profiles`** — `user_id` (unique FK), `owner_type` (`INDIVIDUAL` \| `COMPANY` \| **`PLATFORM`**), **`is_platform_fleet`** (true for exactly one row — UniGate's own vehicles; A-57: no commission, no settlement, no supplier invoice; trips are internal cost and appear in a separate margin report), `business_name_en/ar`, `cr_number`, `vat_number` NULL, `is_vat_registered` (derived, but stored — see **OQ-24**; an owner who cannot issue UniGate a tax invoice changes the platform's recoverable input VAT), `national_id_encrypted`, `national_id_last4`, `national_id_blind_index`, `onboarding_status` (`DRAFT`, `DOCUMENTS_SUBMITTED`, `UNDER_REVIEW`, `APPROVED`, `REJECTED`, `SUSPENDED`), `approved_by_user_id`, `approved_at`, `rejection_reason`, `rating_avg`, `rating_count`, `privacy_settings` (jsonb — brief §28), `default_payout_account_id`.
+- **`owner_vertical_approvals`** — `owner_profile_id`, `transport_type` (`PASSENGER` \| `GOODS`), `status` (`NOT_APPLIED`, `UNDER_REVIEW`, `APPROVED`, `REJECTED`, `SUSPENDED`), `approved_by_user_id`, `approved_at`, `licence_document_id` NULL, `notes`; unique on (owner, transport_type). **An owner is approved per vertical** ([ADR-010](decisions/ADR-010-vertical-modules-over-a-shared-core.md)): a fleet with buses and trucks holds two rows, and may bid only in verticals where `status = APPROVED`. `onboarding_status` above remains the identity-level gate; this table is the operating-licence gate. `driver_vertical_eligibility` mirrors it for drivers (licence classes and TGA driver cards differ by vertical).
 - **`driver_profiles`** — `user_id` (unique FK), `owner_profile_id` FK NULL (a driver may be independent), `national_id_encrypted` / `_last4` / `_blind_index`, `id_type` (`NATIONAL_ID` \| `IQAMA`), `date_of_birth`, `license_number_encrypted` / `_last4` / `_blind_index`, `license_expiry_date`, `license_categories` (text[]), `approval_status`, `availability_status` (`OFF_DUTY`, `AVAILABLE`, `ON_TRIP`), `rating_avg`, `rating_count`, `emergency_contact_name`, `emergency_contact_phone`.
 - **`spo_profiles`** — `user_id` (unique FK), `employee_code` (unique), `region_id`, `manager_user_id` NULL, `commission_model` (jsonb, deliberately open — see **OQ-09**), `is_active`.
 - **`spo_customer_assignments`** — `spo_profile_id`, `customer_profile_id`, `assigned_at`, `unassigned_at` NULL, `assigned_by`. Partial unique: one active assignment per customer.
@@ -286,7 +288,7 @@ This is the mechanism that satisfies "never expose other users' personal informa
 
 `regions` (13 KSA administrative regions, seeded with `name_en`/`name_ar`), `cities` (`region_id`, `name_en`, `name_ar`, `latitude`, `longitude`, `is_active`).
 
-`vehicle_categories`: `code`, `name_en`, `name_ar`, `transport_type` (`PASSENGER` \| `GOODS`), `description_en/ar`, `icon_key`, `min_passenger_capacity`, `max_passenger_capacity`, `min_payload_kg`, `max_payload_kg`, `requires_special_license`, `sort_order`, `is_active`.
+`vehicle_categories`: `code`, `name_en`, `name_ar`, `transport_type` (`PASSENGER` \| `GOODS` — **the binding of a category to exactly one vertical**; a coach is passenger, a flatbed is goods, nothing is both — [ADR-010](decisions/ADR-010-vertical-modules-over-a-shared-core.md)), `description_en/ar`, `icon_key`, `min_passenger_capacity`, `max_passenger_capacity`, `min_payload_kg`, `max_payload_kg`, `requires_special_license`, `sort_order`, `is_active`.
 
 Seeded: `SEDAN`, `SUV`, `VAN`, `MINIBUS`, `COASTER`, `BUS`, `LUXURY_CAR`, `PICKUP`, `LIGHT_TRUCK`, `HEAVY_TRUCK`, `FLATBED_TRAILER`, `CURTAIN_TRAILER`, `REFRIGERATED_TRUCK`, `TANKER`, `CAR_CARRIER`, `LOWBED_TRAILER`.
 
@@ -294,7 +296,9 @@ Seeded: `SEDAN`, `SUV`, `VAN`, `MINIBUS`, `COASTER`, `BUS`, `LUXURY_CAR`, `PICKU
 
 `expense_categories`, `maintenance_service_types`: `code`, `name_en`, `name_ar`, `is_active`, `sort_order`.
 
-`system_settings`: `key` (unique), `value` (jsonb), `value_type`, `scope` (`PUBLIC` \| `INTERNAL` \| `SECRET`), `description`, `updated_by_user_id`, `updated_at`. **`SECRET`-scoped settings are never returned by any API** — secrets belong in environment variables; this scope exists only to mark settings that hold sensitive non-secret config.
+`system_settings`: `key` (unique, `section.name`), **`section`** (enum: `booking`, `bidding`, `dispatch`, `settlement`, `billing`, `finance`, `onboarding`, `documents`, `spo`, `tracking`, `notifications`, `retention`, `platform`), `value` (jsonb), `value_type`, `scope` (`PUBLIC` \| `INTERNAL` \| `SECRET`), `description_en`, `description_ar`, `is_code_managed` (immutable via API), `updated_by_user_id`, `updated_at`. **Every key is listed in [settings-catalogue.md](settings-catalogue.md) with its type, seed, validation and whether it is snapshotted at use** — [ADR-009](decisions/ADR-009-configuration-over-constants.md), client-directed: no business value is a constant in code.
+
+`spo_commission_models`: `id`, `name`, `basis` (`NONE` \| `FIRST_BOOKING` \| `ALL_BOOKINGS` \| `WINDOW_DAYS`), `window_days` NULL, `calculation_type` (`NONE` \| `PERCENTAGE` \| `FIXED`), `value` NULL, `vesting_days_after_completion`, `clawback_on_refund`, `is_default`, `is_active`. `spo_profiles.commission_model` (jsonb) is replaced by `commission_model_id` FK; the applied model is frozen into `booking_financial_snapshots.spo_rule_snapshot` (OQ-09). **`SECRET`-scoped settings are never returned by any API** — secrets belong in environment variables; this scope exists only to mark settings that hold sensitive non-secret config.
 
 ---
 
@@ -655,6 +659,7 @@ Locks are always taken in the order **trip_request → bid → vehicle**, global
 | `currency` | char(3) | |
 | **State** | | |
 | `billing_mode` | `billing_mode` | `PREPAID` \| `INVOICED` — **snapshotted at award**. Determines the booking's entry state (§10.2) |
+| `credit_terms_days_snapshot` | smallint NULL | For `INVOICED` bookings only: the customer's payment term **as agreed at the moment the trip was confirmed** (UniGate, 2026-09-15: "payment term is already agreed upon receiving the trip"). A later change to the customer's terms never alters a trip already taken; the consolidated invoice's due date is computed from the terms snapshotted on the bookings it covers (the longest, so no line falls due before its own term) |
 | `fulfilment_sequence` | smallint | Which dispatch wave of the parent order this booking is (1-based) — see §8.6 |
 | `status` | `booking_status` | §10.2 |
 | `payment_status` | `booking_payment_status` | `UNPAID`, `INVOICED`, `PARTIALLY_PAID`, `PAID`, `REFUNDED`, `PARTIALLY_REFUNDED` |
@@ -705,9 +710,15 @@ Legal transitions live in `packages/types/src/domain/booking.transitions.ts` as 
 
 `booking_status_history`: `id`, `booking_id`, `from_status`, `to_status`, `changed_by_user_id` NULL, `actor_type` (`USER`/`SYSTEM`/`JOB`), `reason`, `metadata` jsonb, `occurred_at`. Append-only.
 
-`booking_cancellations`: `booking_id` (unique FK), `cancelled_by_user_id`, `cancelled_by_role` (`CUSTOMER`/`OWNER`/`DRIVER`/`ADMIN`/`SYSTEM`), `reason_code`, `reason_text`, `hours_before_pickup` numeric(8,2), `cancellation_fee_amount`, `refund_amount`, `fee_rule_snapshot` jsonb, `cancelled_at`.
+`booking_cancellations`: `booking_id` (unique FK), `cancelled_by_user_id`, `cancelled_by_role` (`CUSTOMER`/`OWNER`/`DRIVER`/`ADMIN`/`SYSTEM`), `event_type` (`CANCELLATION` \| `NO_SHOW`), `reason_code` (includes `CUSTOMER_NO_SHOW`, `OWNER_NO_SHOW`), `reason_text`, `hours_before_pickup` numeric(8,2), `fee_payer` (`CUSTOMER` \| `OWNER` \| `NONE`), `cancellation_fee_amount`, `refund_amount`, `fee_source` (`RULE` \| `OVERRIDE` \| `NONE`), `fee_rule_snapshot` jsonb, `fee_override_snapshot` jsonb NULL, `fee_waived_at` NULL, `fee_waived_by_user_id` NULL, `fee_waived_reason` NULL, `cancelled_at`.
 
-> Cancellation fee percentages are **not** hard-coded — the applied rule is snapshotted. The actual tiers are **OQ-05**.
+> **UniGate's answer to OQ-05 (2026-09-15): whether a cancellation or a no-show is charged at all is the admin's decision.** Same shape as commission (§12.3): standing policies the admin configures, plus a per-case decision, both frozen onto the record.
+
+`cancellation_policies` (admin-managed): `id`, `name`, `event_type` (`CANCELLATION` \| `NO_SHOW`), `cancelled_by_role` (`CUSTOMER` \| `OWNER`), `scope` (`GLOBAL`, `VEHICLE_CATEGORY`, `CUSTOMER`, `OWNER`), `vehicle_category_id` NULL, `customer_profile_id` NULL, `owner_profile_id` NULL, `charge_type` (**`NONE`**, `PERCENTAGE`, `FIXED`), `value` numeric(14,4) NULL, `tiers` jsonb NULL — an optional ordered list of `{ minHoursBeforePickup, chargeType, value }` for notice-based charging; when present it replaces the flat `charge_type`/`value` — `no_cancel_window_hours` NULL, `priority`, `effective_from`, `effective_to` NULL, `is_active`, `created_by_user_id`, `created_at`. Resolution mirrors commission rules: most specific scope, highest priority, effective at the time of the event. **Production seeds `GLOBAL / NONE` for every (event_type, cancelled_by_role) pair** — nobody is charged for anything until an admin decides to. Dev/test fixtures seed a tiered customer policy so the quote endpoint has something to show.
+
+**Who the fee flows to** is fixed by `cancelled_by_role`, not by the admin: a fee charged to a cancelling **customer** is retained against the booking (kept by the platform, or passed to the owner as compensation — the split is a `system_settings` percentage, default 100 % to the owner, since it is the owner whose vehicle sat idle); a fee charged to a cancelling or no-show **owner** is a `settlement_lines` adjustment deducted from the owner's next settlement, and the customer is refunded in full. An owner no-show is recorded by ops from the trip exception (`FR-TRIPS-07`) and creates the `NO_SHOW` cancellation row.
+
+**Per-case decision.** An admin holding `bookings.cancel` with global scope may (a) pass `feeOverride { type, value, reason }` when cancelling on someone's behalf, or (b) **waive** an already-computed fee (`fee_waived_*`) any time before the refund is processed or the owner settlement line is approved — after that it is a settlement adjustment, not an edit. The quote endpoint shows the customer exactly what the current policy will charge before they confirm.
 
 ---
 
@@ -730,10 +741,11 @@ Any state → CANCELLED (with reason)
 Any active state → EXCEPTION (breakdown/accident; resolves back or to CANCELLED)
 ```
 
-One enum, **two transition maps** keyed by `transport_type`:
+One enum, **two transition maps** — each owned by its vertical module and supplied to `trips` through `VerticalPlugin.tripStateMachine` ([ADR-010](decisions/ADR-010-vertical-modules-over-a-shared-core.md)); `trips` itself never inspects `transport_type`:
 
 ```ts
-export const TRIP_TRANSITIONS: Record<TransportType, Record<TripStatus, TripStatus[]>>
+// modules/passenger/trip.transitions.ts and modules/goods/trip.transitions.ts each export one of these
+export type TripTransitionMap = Record<TripStatus, TripStatus[]>
 ```
 
 A goods trip cannot skip `LOADED`; a passenger trip has no `LOADING` state available at all. Separate enums per type were considered and rejected — they would double every query, index and DTO for no gain.
@@ -797,9 +809,21 @@ At 1,000 concurrently-tracked vehicles this is ~100 writes/s to a bounded table 
 
 ### 12.3 `commission_rules` and `booking_financial_snapshots`
 
-`commission_rules`: `id`, `name`, `scope` (`GLOBAL`, `VEHICLE_CATEGORY`, `OWNER`, `OWNER_CATEGORY`), `vehicle_category_id` NULL, `owner_profile_id` NULL, `transport_type` NULL, `calculation_type` (`PERCENTAGE`, `FIXED`), `percentage_rate` numeric(6,4) NULL, `fixed_amount` numeric(14,2) NULL, `basis` (`GROSS` \| `NET_OF_VAT`), `min_amount` NULL, `max_amount` NULL, `currency`, `priority` int, `effective_from` timestamptz, `effective_to` timestamptz NULL, `is_active`, `created_by_user_id`, `created_at`.
+> **UniGate's answer to OQ-01 (2026-09-15):** commission is **not a fixed business constant**. Whether to charge at all, and whether as a percentage or a fixed amount, is an **admin decision** — set as standing rules, and **overridable per trip** when someone books. Nothing about the rate is hard-coded; the production seed charges **nothing** until an admin configures it.
 
-**Resolution:** highest `priority` among rules whose scope matches and whose effective window contains the booking's confirmation time; ties broken by most-specific scope (`OWNER_CATEGORY` > `OWNER` > `VEHICLE_CATEGORY` > `GLOBAL`). Exactly one `GLOBAL` active rule is required at all times — seeded, and its deletion is blocked.
+`commission_rules`: `id`, `name`, `scope` (`GLOBAL`, `VEHICLE_CATEGORY`, `OWNER`, `OWNER_CATEGORY`), `vehicle_category_id` NULL, `owner_profile_id` NULL, `transport_type` NULL, `calculation_type` (**`NONE`**, `PERCENTAGE`, `FIXED`), `percentage_rate` numeric(6,4) NULL, `fixed_amount` numeric(14,2) NULL, `basis` (`GROSS` \| `NET_OF_VAT`), `min_amount` NULL, `max_amount` NULL, `currency`, `priority` int, `effective_from` timestamptz, `effective_to` timestamptz NULL, `is_active`, `created_by_user_id`, `created_at`.
+
+`calculation_type = NONE` means *charge no commission* — it is a first-class value, not a zero-rate percentage, so "we chose not to charge" is distinguishable from "we charge 0%" in every report. A `CHECK` enforces that `PERCENTAGE` carries `percentage_rate` in `[0, 100]`, `FIXED` carries `fixed_amount ≥ 0`, and `NONE` carries neither.
+
+**Resolution:** highest `priority` among rules whose scope matches and whose effective window contains the booking's confirmation time; ties broken by most-specific scope (`OWNER_CATEGORY` > `OWNER` > `VEHICLE_CATEGORY` > `GLOBAL`). Exactly one `GLOBAL` active rule is required at all times — **seeded in production as `NONE`** (charge nothing until an admin decides otherwise), and its deletion is blocked. Development and test fixtures seed a 10 % `NET_OF_VAT` rule so worked examples have a non-trivial split (A-02).
+
+**Per-trip override — `trip_requests.commission_override`.** An admin holding `commissions.override` may set, on a specific trip request, any of `{ type: NONE | PERCENTAGE | FIXED, value, basis, reason }`. Stored as columns on `trip_requests`: `commission_override_type` NULL, `commission_override_value` numeric(14,4) NULL, `commission_override_basis` NULL, `commission_override_reason` text NULL, `commission_override_set_by_user_id` NULL, `commission_override_set_at` NULL. Semantics:
+
+- An override on the request applies to **every booking awarded from it after the override was set** — including later dispatch waves (A-45). The same object may also be supplied inline on `POST /bids/{id}/accept` or `POST /trip-requests/{id}/award` by a caller holding the permission; an award-time override wins for that award only and is recorded per booking.
+- **It beats every rule.** Resolution order is: award-time override → request-level override → `commission_rules` resolution above.
+- **It is frozen at confirmation like everything else.** The snapshot records `commission_source` (`RULE` \| `OVERRIDE` \| `NONE`) and `commission_override_snapshot` jsonb (type, value, basis, reason, who, when). After confirmation nothing here changes — a commercial correction is a `settlement_lines` adjustment against the owner's next settlement, never an edit to the snapshot (D6).
+- **Owners bid on a total; commission comes out of it.** So an override that would *raise* the commission above what the rules would have produced is accepted only while the request has **no submitted bids**; after that, overrides may only lower or remove the charge (`422 COMMISSION_OVERRIDE_AFTER_BIDS`). Lowering is always permitted. The request's effective commission (rule or override) is shown to invited owners before they bid.
+- Every set/clear is audited at `severity = NOTICE` with before/after and the reason; a `NONE` override on a request whose rule would have charged is the one case finance most wants to see, so it is surfaced in the commission report as *waived*.
 
 `booking_financial_snapshots` — **written once, never updated** (D6):
 
@@ -809,7 +833,8 @@ At 1,000 concurrently-tracked vehicles this is ~100 writes/s to a bounded table 
 | `gross_amount` | what the customer owes, VAT inclusive |
 | `vat_rate`, `vat_amount`, `net_of_vat_amount` | |
 | `commission_rule_id`, `commission_rule_snapshot` jsonb | the whole rule, frozen |
-| `commission_basis`, `commission_rate`, `commission_amount` | |
+| `commission_basis`, `commission_rate`, `commission_amount` | `commission_rate` is NULL for `FIXED` and `NONE` |
+| `commission_source`, `commission_override_snapshot` jsonb | `RULE` \| `OVERRIDE` \| `NONE` — which of the three resolution paths produced the figure; the override object frozen when it was one |
 | `commission_vat_amount` | VAT **on the commission** — the platform's own taxable supply |
 | `payment_fee_amount`, `payment_fee_snapshot` jsonb | |
 | `owner_gross_amount`, `owner_net_amount` | what the owner is owed |
@@ -838,7 +863,9 @@ An integration test asserts `SUM(debits) = SUM(credits)` per `transaction_group_
 
 `settlements`: `id`, `settlement_number`, `owner_profile_id`, `period_start`, `period_end`, `gross_amount`, `commission_amount`, `adjustments_amount`, `net_payable_amount`, `currency`, `status` (`DRAFT`, `PENDING_APPROVAL`, `APPROVED`, `PROCESSING`, `PAID`, `FAILED`, `CANCELLED`), `bank_account_id`, `payment_reference`, `approved_by_user_id`, `paid_at`, `notes`.
 
-`settlement_lines`: `id`, `settlement_id`, `booking_id` NULL, `line_type` (`BOOKING_EARNING`, `COMMISSION`, `ADJUSTMENT`, `PENALTY`, `REFUND_CLAWBACK`), `amount`, `currency`, `description`. Partial unique `(booking_id) WHERE line_type='BOOKING_EARNING'` — **a booking can never be settled twice**.
+`settlement_lines`: `id`, `settlement_id`, `booking_id` NULL, `line_type` (`BOOKING_EARNING`, `COMMISSION`, `ADJUSTMENT`, `PENALTY`, `REFUND_CLAWBACK`), `amount`, `currency`, `description`, **`hold_reason`** (`NONE` \| `SUPPLIER_INVOICE_MISSING` \| `BANK_ACCOUNT_COOLOFF` \| `DISPUTE` \| `MANUAL`), `held_since` NULL, `released_at` NULL, `supplier_invoice_id` NULL. Partial unique `(booking_id) WHERE line_type='BOOKING_EARNING'` — **a booking can never be settled twice**.
+
+> **The supplier's invoice is enforced by the payout** ([ADR-008](decisions/ADR-008-vat-operating-model.md) addendum 2, FR-FINANCE-25). For a VAT-registered owner, a `BOOKING_EARNING` line is created with `hold_reason = SUPPLIER_INVOICE_MISSING` and is released only when a `supplier_invoices` row for that booking is `VERIFIED` (supplier-issued: uploaded PDF/XML, QR decoded and cross-checked against the booking amount, seller VAT and UniGate as buyer) or `ACCEPTED` (self-billed under Art 53(2)). The settlement job pays released lines and carries held ones forward; `settlement.supplier_invoice_hold_periods_before_suspension` (seed `2`) escalates. Unregistered owners never carry this hold — there is no invoice to wait for.
 
 **Settlement eligibility never consults customer payment status (A-48).** A completed booking past its hold period is settled whether or not the corporate invoice covering it has been paid. UniGate funds that gap deliberately. Two consequences the design must carry rather than discover:
 
@@ -910,7 +937,9 @@ Fields added to `invoices`:
 
 7. **Third-party availability becomes a business dependency.** If clearance is unavailable, standard invoices cannot be issued at all. Invoices queue in `PENDING_CLEARANCE` with retry and alerting rather than failing the billing run, and the operational runbook must treat a clearance outage as a revenue-affecting incident. Recorded as risk **AR-9**.
 
-`invoice_lines`: `id`, `invoice_id`, `booking_id` NULL, `line_type` (`BOOKING`, `ADJUSTMENT`, `PENALTY`, `DISCOUNT`), `description_en` / `description_ar`, `quantity`, `unit_amount`, `net_amount`, `vat_rate`, `vat_amount`, `total_amount`, `sort_order`.
+`invoice_lines`: `id`, `invoice_id`, `line_type` (**`ORDER`**, `BOOKING`, `ADJUSTMENT`, `PENALTY`, `DISCOUNT`), `trip_request_id` NULL (for `ORDER` lines), `booking_id` NULL (for `BOOKING` lines), `description_en` / `description_ar`, `quantity`, `unit_amount`, `net_amount`, `vat_rate`, `vat_amount`, `total_amount`, `sort_order`. `invoice_line_bookings` (`invoice_line_id`, `booking_id`, unique on booking) records which bookings an `ORDER` line covers — **this is what keeps the one-live-invoice-per-booking guarantee (FR-FINANCE-17) intact when a line aggregates forty of them.**
+
+> **UniGate, 2026-09-15: the client's tax invoice is for the service, not per vehicle.** "They took this service from us for X, and the VAT is Y" — the vehicle count need not appear. So the default line granularity is **one `ORDER` line per trip request** ("Goods transport, Riyadh → Jeddah, 2026-10-01", qty 1), which satisfies Art 53(5)(f) ("scope and nature of the services rendered"). Per-vehicle detail is delivered as a **service statement annex** to the PDF, not as tax-invoice lines. `finance.invoice_line_granularity` (`ORDER` \| `BOOKING`) switches the default; a customer-level override exists for corporates whose AP department wants a line per vehicle. Snapshotted on the invoice.
 
 **Invoice type is decided at issue time, not on request (A-49).** UniGate is the invoice issuer and will supply VAT-reclaim invoices. The system therefore resolves the type when the invoice is created:
 
@@ -928,7 +957,18 @@ Fields added to `invoices`:
 
 **Corporate credit fields** added to `corporate_customer_profiles`: `credit_status` (`NONE`, `PENDING_APPROVAL`, `APPROVED`, `SUSPENDED`), `credit_limit_amount` numeric(14,2), `credit_terms_days` (existing — now used), `billing_cycle` (`PER_BOOKING`, `WEEKLY`, `MONTHLY`), `credit_approved_by_user_id`, `credit_approved_at`, `credit_suspended_reason`.
 
-**The credit check happens inside the award transaction.** Before an `INVOICED` booking is created, the service asserts that outstanding receivables plus this booking's total stay within `credit_limit_amount`, with the customer row locked `FOR UPDATE` so two concurrent awards cannot each pass a check that only one of them fits. Exceeding the limit returns `RULE_CREDIT_LIMIT_EXCEEDED`; `credit_status <> 'APPROVED'` returns `RULE_CREDIT_NOT_APPROVED`. Outstanding balance is read from the ledger (`CUSTOMER_RECEIVABLE` for that customer), not from a cached column — a denormalised balance is exactly the field that drifts and quietly extends unapproved credit.
+**The credit check happens inside the award transaction.** Before an `INVOICED` booking is created, the service asserts that **credit exposure** plus this booking's total stays within `credit_limit_amount`, with the customer row locked `FOR UPDATE` so two concurrent awards cannot each pass a check that only one of them fits. Exceeding the limit returns `RULE_CREDIT_LIMIT_EXCEEDED`; `credit_status <> 'APPROVED'` returns `RULE_CREDIT_NOT_APPROVED`.
+
+> **UniGate's answer to OQ-21 (2026-09-15): the limit is the only gate.** A corporate that has exceeded its credit limit cannot book another trip. A corporate with **unpaid — even overdue — invoices** can keep booking **as long as the exposure stays under the limit**; the credit they have left is theirs to use. So there is **no automatic suspension on overdue**, no dunning gate at award time, and existing confirmed bookings are never affected by receivables. Overdue is a *reporting* concern (ageing, FR-FINANCE-19) and a *manual* one — an admin may still move `credit_status` to `SUSPENDED` with a reason, which blocks the next award regardless of headroom.
+
+**Credit exposure is defined precisely, because the answer makes it the only protection UniGate has:**
+
+```
+exposure = unpaid balance of issued invoices          (ledger: CUSTOMER_RECEIVABLE for this customer, payments and credit notes netted)
+         + total of INVOICED bookings that are live    (CONFIRMED … COMPLETED and not yet on an issued invoice)
+```
+
+**UniGate confirmed this explicitly (2026-09-15):** the payment term is agreed the moment the trip is confirmed, so the commitment exists from confirmation and the system must count it against the limit *from confirmation*, invoice or no invoice. The second term is therefore a requirement, not a precaution. Under a `MONTHLY` cycle a corporate could otherwise confirm a month of trips against a limit that only counts last month's invoice. Both terms are read live — the first from the ledger, the second from `bookings` joined against `invoice_lines` — never from a cached column, because a denormalised balance is exactly the field that drifts and quietly extends unapproved credit. The `RULE_CREDIT_LIMIT_EXCEEDED` payload returns `creditLimitAmount`, `outstandingInvoicedAmount`, `uninvoicedBookingsAmount`, `requestedAmount` and `availableAmount` so the customer (and ops) can see which term consumed the headroom.
 
 > **`payments` now settles either a booking or an invoice.** `payments.booking_id` becomes nullable, `payments.invoice_id` is added, and `ck_payments_single_target` enforces `num_nonnulls(booking_id, invoice_id) = 1`. A corporate customer pays an invoice covering twenty bookings with one transaction; an individual pays one booking directly.
 

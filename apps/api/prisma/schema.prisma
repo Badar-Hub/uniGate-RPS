@@ -1,0 +1,2937 @@
+// UniGate — Prisma schema. Source of truth for structure is docs/database.md; this file
+// mirrors it model-for-model, mapped to snake_case. Things Prisma cannot express — EXCLUDE
+// constraints, partial unique indexes, CHECK constraints, partitioning, sequences, citext
+// collation behaviour, the append-only audit grant — live in hand-written SQL migrations
+// and are asserted by test/db/migration-integrity.test.ts.
+
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["postgresqlExtensions", "relationJoins"]
+}
+
+datasource db {
+  provider   = "postgresql"
+  url        = env("DATABASE_URL")
+  extensions = [btree_gist, citext, pgcrypto, pg_trgm]
+}
+
+// ═════════════════════════════════════════════════════════════════════════════
+// Enums (D7) — mirrored in packages/types/src/domain/enums.ts
+// ═════════════════════════════════════════════════════════════════════════════
+
+enum UserStatus {
+  PENDING_VERIFICATION
+  ACTIVE
+  SUSPENDED
+  DEACTIVATED
+
+  @@map("user_status")
+}
+
+enum ClientType {
+  WEB
+  IOS
+  ANDROID
+
+  @@map("client_type")
+}
+
+enum OtpChannel {
+  SMS
+  EMAIL
+
+  @@map("otp_channel")
+}
+
+enum OtpPurpose {
+  REGISTRATION
+  LOGIN
+  PHONE_VERIFICATION
+  PASSWORD_RESET
+  SENSITIVE_ACTION
+
+  @@map("otp_purpose")
+}
+
+enum TransportType {
+  PASSENGER
+  GOODS
+
+  @@map("transport_type")
+}
+
+enum CustomerType {
+  INDIVIDUAL
+  CORPORATE
+
+  @@map("customer_type")
+}
+
+enum OwnerType {
+  INDIVIDUAL
+  COMPANY
+  PLATFORM
+
+  @@map("owner_type")
+}
+
+enum OnboardingStatus {
+  DRAFT
+  DOCUMENTS_SUBMITTED
+  UNDER_REVIEW
+  APPROVED
+  REJECTED
+  SUSPENDED
+
+  @@map("onboarding_status")
+}
+
+enum VerticalApprovalStatus {
+  NOT_APPLIED
+  UNDER_REVIEW
+  APPROVED
+  REJECTED
+  SUSPENDED
+
+  @@map("vertical_approval_status")
+}
+
+enum IdType {
+  NATIONAL_ID
+  IQAMA
+
+  @@map("id_type")
+}
+
+enum DriverAvailabilityStatus {
+  OFF_DUTY
+  AVAILABLE
+  ON_TRIP
+
+  @@map("driver_availability_status")
+}
+
+enum SpoLeadStatus {
+  NEW
+  CONTACTED
+  QUALIFIED
+  CONVERTED
+  LOST
+
+  @@map("spo_lead_status")
+}
+
+enum SpoCommissionBasis {
+  NONE
+  FIRST_BOOKING
+  ALL_BOOKINGS
+  WINDOW_DAYS
+
+  @@map("spo_commission_basis")
+}
+
+enum CreditStatus {
+  NONE
+  PENDING_APPROVAL
+  APPROVED
+  SUSPENDED
+
+  @@map("credit_status")
+}
+
+enum BillingCycle {
+  PER_BOOKING
+  WEEKLY
+  MONTHLY
+
+  @@map("billing_cycle")
+}
+
+enum DocumentAppliesTo {
+  USER
+  OWNER
+  DRIVER
+  VEHICLE
+  CORPORATE_CUSTOMER
+  EXPENSE
+  MAINTENANCE_RECORD
+  TRIP_PROOF
+
+  @@map("document_applies_to")
+}
+
+enum SettingsSection {
+  booking
+  bidding
+  dispatch
+  settlement
+  billing
+  finance
+  onboarding
+  documents
+  spo
+  tracking
+  notifications
+  retention
+  platform
+
+  @@map("settings_section")
+}
+
+enum SettingScope {
+  PUBLIC
+  INTERNAL
+  SECRET
+
+  @@map("setting_scope")
+}
+
+enum SettingValueType {
+  STRING
+  INTEGER
+  DECIMAL
+  BOOLEAN
+  ENUM
+  STRING_ARRAY
+  INTEGER_ARRAY
+  JSON
+
+  @@map("setting_value_type")
+}
+
+enum DocumentUploadStatus {
+  PENDING
+  UPLOADED
+  FAILED
+  QUARANTINED
+
+  @@map("document_upload_status")
+}
+
+enum DocumentVerificationStatus {
+  PENDING
+  VERIFIED
+  REJECTED
+  EXPIRED
+
+  @@map("document_verification_status")
+}
+
+enum DocumentVisibility {
+  PRIVATE
+  INTERNAL
+  SHARED_WITH_COUNTERPARTY
+
+  @@map("document_visibility")
+}
+
+enum VehicleApprovalStatus {
+  DRAFT
+  PENDING_APPROVAL
+  APPROVED
+  REJECTED
+
+  @@map("vehicle_approval_status")
+}
+
+enum VehicleLifecycleStatus {
+  ACTIVE
+  INACTIVE
+  SUSPENDED
+  ARCHIVED
+
+  @@map("vehicle_lifecycle_status")
+}
+
+enum VehicleOperationalStatus {
+  IDLE
+  RESERVED
+  ON_TRIP
+  UNDER_MAINTENANCE
+  OUT_OF_SERVICE
+
+  @@map("vehicle_operational_status")
+}
+
+enum CalendarEntryType {
+  RESERVATION
+  MAINTENANCE
+  OWNER_BLOCK
+
+  @@map("calendar_entry_type")
+}
+
+enum CalendarEntryStatus {
+  HELD
+  CONFIRMED
+  RELEASED
+
+  @@map("calendar_entry_status")
+}
+
+enum GpsDeviceStatus {
+  ACTIVE
+  INACTIVE
+  FAULTY
+
+  @@map("gps_device_status")
+}
+
+enum TripDirection {
+  ONE_WAY
+  ROUND_TRIP
+
+  @@map("trip_direction")
+}
+
+enum TripRequestStatus {
+  DRAFT
+  PUBLISHED
+  PARTIALLY_AWARDED
+  FULLY_AWARDED
+  CLOSED_PARTIAL
+  COMPLETED
+  CANCELLED
+  EXPIRED
+
+  @@map("trip_request_status")
+}
+
+enum TripPurpose {
+  AIRPORT_TRANSFER
+  INTERCITY
+  CITY_TOUR
+  EMPLOYEE_TRANSPORT
+  HAJJ_UMRAH
+  EVENT
+  OTHER
+
+  @@map("trip_purpose")
+}
+
+enum CargoType {
+  GENERAL
+  FRAGILE
+  PERISHABLE
+  HAZARDOUS
+  LIVESTOCK
+  VEHICLE
+  BULK
+  CONTAINER
+  OTHER
+
+  @@map("cargo_type")
+}
+
+enum LoadingResponsibility {
+  CUSTOMER
+  DRIVER
+  THIRD_PARTY
+
+  @@map("loading_responsibility")
+}
+
+enum CommissionCalculationType {
+  NONE
+  PERCENTAGE
+  FIXED
+
+  @@map("commission_calculation_type")
+}
+
+enum CommissionBasis {
+  GROSS
+  NET_OF_VAT
+
+  @@map("commission_basis")
+}
+
+enum CommissionScope {
+  GLOBAL
+  VEHICLE_CATEGORY
+  OWNER
+  OWNER_CATEGORY
+
+  @@map("commission_scope")
+}
+
+enum CommissionSource {
+  RULE
+  OVERRIDE
+  NONE
+
+  @@map("commission_source")
+}
+
+enum BidStatus {
+  SUBMITTED
+  WITHDRAWN
+  ACCEPTED
+  REJECTED
+  EXPIRED
+
+  @@map("bid_status")
+}
+
+enum BillingMode {
+  PREPAID
+  INVOICED
+
+  @@map("billing_mode")
+}
+
+enum BookingStatus {
+  PENDING_PAYMENT
+  CONFIRMED
+  DRIVER_ASSIGNED
+  READY
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+  DISPUTED
+  REFUNDED
+
+  @@map("booking_status")
+}
+
+enum BookingPaymentStatus {
+  UNPAID
+  INVOICED
+  PARTIALLY_PAID
+  PAID
+  REFUNDED
+  PARTIALLY_REFUNDED
+
+  @@map("booking_payment_status")
+}
+
+enum ActorType {
+  USER
+  SYSTEM
+  JOB
+  ANONYMOUS
+
+  @@map("actor_type")
+}
+
+enum CancelledByRole {
+  CUSTOMER
+  OWNER
+  DRIVER
+  ADMIN
+  SYSTEM
+
+  @@map("cancelled_by_role")
+}
+
+enum CancellationEventType {
+  CANCELLATION
+  NO_SHOW
+
+  @@map("cancellation_event_type")
+}
+
+enum FeePayer {
+  CUSTOMER
+  OWNER
+  NONE
+
+  @@map("fee_payer")
+}
+
+enum FeeSource {
+  RULE
+  OVERRIDE
+  NONE
+
+  @@map("fee_source")
+}
+
+enum CancellationPolicyRole {
+  CUSTOMER
+  OWNER
+
+  @@map("cancellation_policy_role")
+}
+
+enum CancellationPolicyScope {
+  GLOBAL
+  VEHICLE_CATEGORY
+  CUSTOMER
+  OWNER
+
+  @@map("cancellation_policy_scope")
+}
+
+enum TripStatus {
+  BOOKED
+  DRIVER_ASSIGNED
+  DRIVER_EN_ROUTE
+  ARRIVED_AT_PICKUP
+  TRIP_STARTED
+  IN_PROGRESS
+  LOADING
+  LOADED
+  IN_TRANSIT
+  ARRIVED_AT_DESTINATION
+  UNLOADING
+  DELIVERED
+  COMPLETED
+  CANCELLED
+  EXCEPTION
+
+  @@map("trip_status")
+}
+
+enum TripProofType {
+  PICKUP_CONFIRMATION
+  DELIVERY_CONFIRMATION
+  DAMAGE_REPORT
+  EXCEPTION
+
+  @@map("trip_proof_type")
+}
+
+enum LocationSource {
+  DRIVER_APP
+  GPS_DEVICE
+  EXTERNAL_API
+
+  @@map("location_source")
+}
+
+enum TrackingSessionStatus {
+  ACTIVE
+  ENDED
+  INTERRUPTED
+
+  @@map("tracking_session_status")
+}
+
+enum PaymentPurpose {
+  BOOKING_PAYMENT
+  INVOICE_PAYMENT
+  ADDITIONAL_CHARGE
+  PENALTY
+
+  @@map("payment_purpose")
+}
+
+enum PaymentStatus {
+  PENDING
+  AUTHORIZED
+  PAID
+  FAILED
+  CANCELLED
+  REFUNDED
+  PARTIALLY_REFUNDED
+
+  @@map("payment_status")
+}
+
+enum PaymentMethodType {
+  MADA
+  VISA
+  MASTERCARD
+  STC_PAY
+  APPLE_PAY
+  BANK_TRANSFER
+  CASH
+
+  @@map("payment_method_type")
+}
+
+enum PaymentTransactionType {
+  AUTHORIZE
+  CAPTURE
+  VOID
+  REFUND
+  INQUIRY
+
+  @@map("payment_transaction_type")
+}
+
+enum PaymentTransactionStatus {
+  INITIATED
+  SUCCEEDED
+  FAILED
+
+  @@map("payment_transaction_status")
+}
+
+enum RefundStatus {
+  REQUESTED
+  APPROVED
+  PROCESSING
+  COMPLETED
+  FAILED
+  REJECTED
+
+  @@map("refund_status")
+}
+
+enum WebhookProcessingStatus {
+  RECEIVED
+  PROCESSING
+  PROCESSED
+  FAILED
+  IGNORED
+
+  @@map("webhook_processing_status")
+}
+
+enum VatTreatment {
+  DEEMED_SUPPLIER
+  OWNER_IS_SUPPLIER
+
+  @@map("vat_treatment")
+}
+
+enum LedgerAccountType {
+  ASSET
+  LIABILITY
+  REVENUE
+  EXPENSE
+
+  @@map("ledger_account_type")
+}
+
+enum LedgerDirection {
+  DEBIT
+  CREDIT
+
+  @@map("ledger_direction")
+}
+
+enum SettlementStatus {
+  DRAFT
+  PENDING_APPROVAL
+  APPROVED
+  PROCESSING
+  PAID
+  FAILED
+  CANCELLED
+
+  @@map("settlement_status")
+}
+
+enum SettlementLineType {
+  BOOKING_EARNING
+  COMMISSION
+  ADJUSTMENT
+  PENALTY
+  REFUND_CLAWBACK
+
+  @@map("settlement_line_type")
+}
+
+enum SettlementHoldReason {
+  NONE
+  SUPPLIER_INVOICE_MISSING
+  BANK_ACCOUNT_COOLOFF
+  DISPUTE
+  MANUAL
+
+  @@map("settlement_hold_reason")
+}
+
+enum InvoiceType {
+  TAX_INVOICE
+  SIMPLIFIED_TAX_INVOICE
+  CREDIT_NOTE
+  DEBIT_NOTE
+
+  @@map("invoice_type")
+}
+
+enum InvoiceStatus {
+  DRAFT
+  PENDING_CLEARANCE
+  ISSUED
+  PARTIALLY_PAID
+  PAID
+  OVERDUE
+  VOID
+  CREDITED
+  CLEARANCE_FAILED
+
+  @@map("invoice_status")
+}
+
+enum ClearanceStatus {
+  NOT_REQUIRED
+  PENDING
+  CLEARED
+  REPORTED
+  REJECTED
+
+  @@map("clearance_status")
+}
+
+enum InvoiceLineType {
+  ORDER
+  BOOKING
+  ADJUSTMENT
+  PENALTY
+  DISCOUNT
+
+  @@map("invoice_line_type")
+}
+
+enum InvoiceLineGranularity {
+  ORDER
+  BOOKING
+
+  @@map("invoice_line_granularity")
+}
+
+enum SupplierInvoiceKind {
+  SUPPLIER_ISSUED
+  SELF_BILLED
+
+  @@map("supplier_invoice_kind")
+}
+
+enum SupplierInvoiceStatus {
+  PENDING
+  VERIFIED
+  ACCEPTED
+  REJECTED
+  DISPUTED
+
+  @@map("supplier_invoice_status")
+}
+
+enum MaintenanceKind {
+  SCHEDULED
+  UNSCHEDULED
+  REPAIR
+  INSPECTION
+
+  @@map("maintenance_kind")
+}
+
+enum MaintenanceStatus {
+  PLANNED
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+
+  @@map("maintenance_status")
+}
+
+enum RaterRole {
+  CUSTOMER
+  OWNER
+  DRIVER
+
+  @@map("rater_role")
+}
+
+enum RatingSubjectType {
+  DRIVER
+  VEHICLE
+  OWNER
+  CUSTOMER
+  TRIP
+
+  @@map("rating_subject_type")
+}
+
+enum RatingStatus {
+  PUBLISHED
+  PENDING_REVIEW
+  HIDDEN
+
+  @@map("rating_status")
+}
+
+enum ComplaintAgainstType {
+  DRIVER
+  OWNER
+  CUSTOMER
+  VEHICLE
+  PLATFORM
+
+  @@map("complaint_against_type")
+}
+
+enum ComplaintSeverity {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+
+  @@map("complaint_severity")
+}
+
+enum ComplaintStatus {
+  OPEN
+  IN_REVIEW
+  AWAITING_RESPONSE
+  RESOLVED
+  REJECTED
+  CLOSED
+
+  @@map("complaint_status")
+}
+
+enum NotificationChannel {
+  IN_APP
+  EMAIL
+  SMS
+  PUSH
+
+  @@map("notification_channel")
+}
+
+enum NotificationStatus {
+  QUEUED
+  SENT
+  DELIVERED
+  FAILED
+  SUPPRESSED
+
+  @@map("notification_status")
+}
+
+enum DevicePlatform {
+  IOS
+  ANDROID
+  WEB
+
+  @@map("device_platform")
+}
+
+enum AuditSeverity {
+  INFO
+  NOTICE
+  WARNING
+  SECURITY
+
+  @@map("audit_severity")
+}
+
+enum OutboxStatus {
+  PENDING
+  PUBLISHED
+  FAILED
+
+  @@map("outbox_status")
+}
+
+enum IdempotencyStatus {
+  IN_PROGRESS
+  COMPLETED
+
+  @@map("idempotency_status")
+}
+
+enum ExportFormat {
+  CSV
+  XLSX
+  PDF
+
+  @@map("export_format")
+}
+
+enum ExportJobStatus {
+  QUEUED
+  RUNNING
+  COMPLETED
+  FAILED
+  EXPIRED
+
+  @@map("export_job_status")
+}
+
+// ═════════════════════════════════════════════════════════════════════════════
+// iam
+// ═════════════════════════════════════════════════════════════════════════════
+
+model User {
+  id                String     @id @db.Uuid
+  email             String?    @db.Citext
+  emailVerifiedAt   DateTime?  @map("email_verified_at") @db.Timestamptz
+  phoneE164         String?    @map("phone_e164") @db.VarChar(20)
+  phoneVerifiedAt   DateTime?  @map("phone_verified_at") @db.Timestamptz
+  passwordHash      String?    @map("password_hash")
+  passwordChangedAt DateTime?  @map("password_changed_at") @db.Timestamptz
+  fullNameEn        String     @map("full_name_en") @db.VarChar(160)
+  fullNameAr        String?    @map("full_name_ar") @db.VarChar(160)
+  status            UserStatus @default(PENDING_VERIFICATION)
+  preferredLocale   String     @default("ar") @map("preferred_locale") @db.VarChar(5)
+  timezone          String     @default("Asia/Riyadh") @db.VarChar(64)
+  permissionVersion Int        @default(1) @map("permission_version")
+  lastLoginAt       DateTime?  @map("last_login_at") @db.Timestamptz
+  createdAt         DateTime   @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt         DateTime   @updatedAt @map("updated_at") @db.Timestamptz
+  deletedAt         DateTime?  @map("deleted_at") @db.Timestamptz
+
+  sessions                Session[]
+  otpRequests             OtpRequest[]
+  passwordResetTokens     PasswordResetToken[]
+  userRoles               UserRole[]               @relation("UserRolesForUser")
+  grantedRoles            UserRole[]               @relation("UserRolesGrantedBy")
+  customerProfile         CustomerProfile?
+  ownerProfile            OwnerProfile?
+  driverProfile           DriverProfile?
+  spoProfile              SpoProfile?
+  documents               Document[]               @relation("DocumentUser")
+  notifications           Notification[]
+  notificationPreferences NotificationPreference[]
+  deviceTokens            DeviceToken[]
+  exportJobs              ExportJob[]
+
+  @@index([status])
+  @@map("users")
+}
+
+model Session {
+  id           String     @id @db.Uuid
+  userId       String     @map("user_id") @db.Uuid
+  deviceId     String?    @map("device_id") @db.VarChar(128)
+  deviceName   String?    @map("device_name") @db.VarChar(160)
+  clientType   ClientType @map("client_type")
+  userAgent    String?    @map("user_agent")
+  ipAddress    String?    @map("ip_address") @db.Inet
+  createdAt    DateTime   @default(now()) @map("created_at") @db.Timestamptz
+  lastSeenAt   DateTime   @default(now()) @map("last_seen_at") @db.Timestamptz
+  expiresAt    DateTime   @map("expires_at") @db.Timestamptz
+  revokedAt    DateTime?  @map("revoked_at") @db.Timestamptz
+  revokeReason String?    @map("revoke_reason") @db.VarChar(64)
+
+  user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  refreshTokens RefreshToken[]
+
+  @@index([userId, revokedAt])
+  @@map("sessions")
+}
+
+model RefreshToken {
+  id           String    @id @db.Uuid
+  sessionId    String    @map("session_id") @db.Uuid
+  familyId     String    @map("family_id") @db.Uuid
+  tokenHash    String    @unique(map: "uq_refresh_tokens_token_hash") @map("token_hash") @db.Char(64)
+  issuedAt     DateTime  @default(now()) @map("issued_at") @db.Timestamptz
+  expiresAt    DateTime  @map("expires_at") @db.Timestamptz
+  usedAt       DateTime? @map("used_at") @db.Timestamptz
+  revokedAt    DateTime? @map("revoked_at") @db.Timestamptz
+  replacedById String?   @map("replaced_by_id") @db.Uuid
+
+  session    Session        @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  replacedBy RefreshToken?  @relation("RefreshTokenReplacement", fields: [replacedById], references: [id])
+  replaces   RefreshToken[] @relation("RefreshTokenReplacement")
+
+  @@index([familyId])
+  @@index([sessionId])
+  @@map("refresh_tokens")
+}
+
+model OtpRequest {
+  id              String     @id @db.Uuid
+  channel         OtpChannel
+  destination     String     @db.VarChar(254)
+  destinationHash String     @map("destination_hash") @db.Char(64)
+  purpose         OtpPurpose
+  codeHash        String     @map("code_hash") @db.Char(64)
+  attemptCount    Int        @default(0) @map("attempt_count")
+  maxAttempts     Int        @default(5) @map("max_attempts")
+  expiresAt       DateTime   @map("expires_at") @db.Timestamptz
+  consumedAt      DateTime?  @map("consumed_at") @db.Timestamptz
+  ipAddress       String?    @map("ip_address") @db.Inet
+  userId          String?    @map("user_id") @db.Uuid
+  createdAt       DateTime   @default(now()) @map("created_at") @db.Timestamptz
+
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([destinationHash, createdAt], map: "idx_otp_destination_hash_created")
+  @@map("otp_requests")
+}
+
+model PasswordResetToken {
+  id        String    @id @db.Uuid
+  userId    String    @map("user_id") @db.Uuid
+  tokenHash String    @unique(map: "uq_password_reset_tokens_token_hash") @map("token_hash") @db.Char(64)
+  expiresAt DateTime  @map("expires_at") @db.Timestamptz
+  usedAt    DateTime? @map("used_at") @db.Timestamptz
+  createdAt DateTime  @default(now()) @map("created_at") @db.Timestamptz
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("password_reset_tokens")
+}
+
+model LoginAttempt {
+  id             String   @id @db.Uuid
+  identifier     String   @db.VarChar(254)
+  identifierHash String   @map("identifier_hash") @db.Char(64)
+  ipAddress      String?  @map("ip_address") @db.Inet
+  userAgent      String?  @map("user_agent")
+  succeeded      Boolean
+  failureReason  String?  @map("failure_reason") @db.VarChar(64)
+  createdAt      DateTime @default(now()) @map("created_at") @db.Timestamptz
+
+  @@index([identifierHash, createdAt])
+  @@index([createdAt])
+  @@map("login_attempts")
+}
+
+model Permission {
+  id            String  @id @db.Uuid
+  code          String  @unique(map: "uq_permissions_code") @db.VarChar(64)
+  module        String  @db.VarChar(32)
+  descriptionEn String  @map("description_en")
+  descriptionAr String  @map("description_ar")
+  isAssignable  Boolean @default(true) @map("is_assignable")
+
+  rolePermissions RolePermission[]
+
+  @@map("permissions")
+}
+
+model Role {
+  id          String   @id @db.Uuid
+  code        String   @unique(map: "uq_roles_code") @db.VarChar(48)
+  nameEn      String   @map("name_en") @db.VarChar(120)
+  nameAr      String   @map("name_ar") @db.VarChar(120)
+  description String?
+  isSystem    Boolean  @default(false) @map("is_system")
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt   DateTime @updatedAt @map("updated_at") @db.Timestamptz
+
+  rolePermissions RolePermission[]
+  userRoles       UserRole[]
+
+  @@map("roles")
+}
+
+model RolePermission {
+  roleId       String @map("role_id") @db.Uuid
+  permissionId String @map("permission_id") @db.Uuid
+
+  role       Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  permission Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  @@id([roleId, permissionId])
+  @@map("role_permissions")
+}
+
+model UserRole {
+  userId    String    @map("user_id") @db.Uuid
+  roleId    String    @map("role_id") @db.Uuid
+  grantedBy String?   @map("granted_by") @db.Uuid
+  grantedAt DateTime  @default(now()) @map("granted_at") @db.Timestamptz
+  expiresAt DateTime? @map("expires_at") @db.Timestamptz
+
+  user    User  @relation("UserRolesForUser", fields: [userId], references: [id], onDelete: Cascade)
+  role    Role  @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  granter User? @relation("UserRolesGrantedBy", fields: [grantedBy], references: [id], onDelete: SetNull)
+
+  @@id([userId, roleId])
+  @@map("user_roles")
+}
+
+// ═════════════════════════════════════════════════════════════════════════════
+// reference
+// ═════════════════════════════════════════════════════════════════════════════
+
+model Region {
+  id     String @id @db.Uuid
+  code   String @unique(map: "uq_regions_code") @db.VarChar(16)
+  nameEn String @map("name_en") @db.VarChar(120)
+  nameAr String @map("name_ar") @db.VarChar(120)
+
+  cities      City[]
+  spoProfiles SpoProfile[]
+
+  @@map("regions")
+}
+
+model City {
+  id        String  @id @db.Uuid
+  regionId  String  @map("region_id") @db.Uuid
+  code      String  @unique(map: "uq_cities_code") @db.VarChar(24)
+  nameEn    String  @map("name_en") @db.VarChar(120)
+  nameAr    String  @map("name_ar") @db.VarChar(120)
+  latitude  Decimal @db.Decimal(10, 7)
+  longitude Decimal @db.Decimal(10, 7)
+  isActive  Boolean @default(true) @map("is_active")
+
+  region              Region                     @relation(fields: [regionId], references: [id])
+  customerDefaults    CustomerProfile[]
+  corporateAddresses  CorporateCustomerProfile[]
+  savedLocations      SavedLocation[]
+  ownerServiceAreas   OwnerServiceArea[]
+  vehiclesBased       Vehicle[]
+  tripRequestsPickup  TripRequest[]              @relation("TripRequestPickupCity")
+  tripRequestsDropoff TripRequest[]              @relation("TripRequestDropoffCity")
+  bookingsPickup      Booking[]                  @relation("BookingPickupCity")
+  bookingsDropoff     Booking[]                  @relation("BookingDropoffCity")
+
+  @@index([regionId])
+  @@map("cities")
+}
+
+model VehicleCategory {
+  id                     String        @id @db.Uuid
+  code                   String        @unique(map: "uq_vehicle_categories_code") @db.VarChar(48)
+  nameEn                 String        @map("name_en") @db.VarChar(120)
+  nameAr                 String        @map("name_ar") @db.VarChar(120)
+  transportType          TransportType @map("transport_type")
+  descriptionEn          String?       @map("description_en")
+  descriptionAr          String?       @map("description_ar")
+  iconKey                String?       @map("icon_key") @db.VarChar(48)
+  minPassengerCapacity   Int?          @map("min_passenger_capacity") @db.SmallInt
+  maxPassengerCapacity   Int?          @map("max_passenger_capacity") @db.SmallInt
+  minPayloadKg           Decimal?      @map("min_payload_kg") @db.Decimal(10, 2)
+  maxPayloadKg           Decimal?      @map("max_payload_kg") @db.Decimal(10, 2)
+  requiresSpecialLicense Boolean       @default(false) @map("requires_special_license")
+  sortOrder              Int           @default(0) @map("sort_order")
+  isActive               Boolean       @default(true) @map("is_active")
+
+  vehicles             Vehicle[]
+  tripRequests         TripRequest[]
+  commissionRules      CommissionRule[]
+  cancellationPolicies CancellationPolicy[]
+
+  @@map("vehicle_categories")
+}
+
+model VehicleMake {
+  id       String  @id @db.Uuid
+  name     String  @unique(map: "uq_vehicle_makes_name") @db.VarChar(80)
+  isActive Boolean @default(true) @map("is_active")
+
+  models   VehicleModel[]
+  vehicles Vehicle[]
+
+  @@map("vehicle_makes")
+}
+
+model VehicleModel {
+  id       String  @id @db.Uuid
+  makeId   String  @map("make_id") @db.Uuid
+  name     String  @db.VarChar(80)
+  bodyType String? @map("body_type") @db.VarChar(48)
+  isActive Boolean @default(true) @map("is_active")
+
+  make     VehicleMake @relation(fields: [makeId], references: [id])
+  vehicles Vehicle[]
+
+  @@unique([makeId, name], map: "uq_vehicle_models_make_name")
+  @@map("vehicle_models")
+}
+
+model DocumentType {
+  code              String            @id @db.VarChar(48)
+  nameEn            String            @map("name_en") @db.VarChar(120)
+  nameAr            String            @map("name_ar") @db.VarChar(120)
+  appliesTo         DocumentAppliesTo @map("applies_to")
+  transportType     TransportType?    @map("transport_type")
+  requiresExpiry    Boolean           @default(false) @map("requires_expiry")
+  isMandatory       Boolean           @default(false) @map("is_mandatory")
+  maxSizeBytes      BigInt            @default(10485760) @map("max_size_bytes")
+  allowedMimeTypes  String[]          @map("allowed_mime_types")
+  expiryWarningDays Int               @default(30) @map("expiry_warning_days")
+  sortOrder         Int               @default(0) @map("sort_order")
+  isActive          Boolean           @default(true) @map("is_active")
+
+  documents Document[]
+
+  @@map("document_types")
+}
+
+model ExpenseCategory {
+  id        String  @id @db.Uuid
+  code      String  @unique(map: "uq_expense_categories_code") @db.VarChar(48)
+  nameEn    String  @map("name_en") @db.VarChar(120)
+  nameAr    String  @map("name_ar") @db.VarChar(120)
+  isActive  Boolean @default(true) @map("is_active")
+  sortOrder Int     @default(0) @map("sort_order")
+
+  expenses Expense[]
+
+  @@map("expense_categories")
+}
+
+model MaintenanceServiceType {
+  id        String  @id @db.Uuid
+  code      String  @unique(map: "uq_maintenance_service_types_code") @db.VarChar(48)
+  nameEn    String  @map("name_en") @db.VarChar(120)
+  nameAr    String  @map("name_ar") @db.VarChar(120)
+  isActive  Boolean @default(true) @map("is_active")
+  sortOrder Int     @default(0) @map("sort_order")
+
+  records   MaintenanceRecord[]
+  schedules MaintenanceSchedule[]
+
+  @@map("maintenance_service_types")
+}
+
+model SystemSetting {
+  key             String           @id @db.VarChar(96)
+  section         SettingsSection
+  value           Json
+  valueType       SettingValueType @map("value_type")
+  scope           SettingScope
+  descriptionEn   String           @map("description_en")
+  descriptionAr   String           @map("description_ar")
+  isCodeManaged   Boolean          @default(false) @map("is_code_managed")
+  updatedByUserId String?          @map("updated_by_user_id") @db.Uuid
+  updatedAt       DateTime         @default(now()) @map("updated_at") @db.Timestamptz
+
+  @@index([section])
+  @@map("system_settings")
+}
+
+model SpoCommissionModel {
+  id                         String                    @id @db.Uuid
+  name                       String                    @db.VarChar(120)
+  basis                      SpoCommissionBasis
+  windowDays                 Int?                      @map("window_days")
+  calculationType            CommissionCalculationType @map("calculation_type")
+  value                      Decimal?                  @db.Decimal(14, 4)
+  vestingDaysAfterCompletion Int                       @default(0) @map("vesting_days_after_completion")
+  clawbackOnRefund           Boolean                   @default(true) @map("clawback_on_refund")
+  isDefault                  Boolean                   @default(false) @map("is_default")
+  isActive                   Boolean                   @default(true) @map("is_active")
+  createdAt                  DateTime                  @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt                  DateTime                  @updatedAt @map("updated_at") @db.Timestamptz
+
+  spoProfiles SpoProfile[]
+
+  @@map("spo_commission_models")
+}
+
+// ═════════════════════════════════════════════════════════════════════════════
+// profiles
+// ═════════════════════════════════════════════════════════════════════════════
+
+model CustomerProfile {
+  id                  String       @id @db.Uuid
+  userId              String       @unique(map: "uq_customer_profiles_user") @map("user_id") @db.Uuid
+  customerType        CustomerType @map("customer_type")
+  vatNumber           String?      @map("vat_number") @db.VarChar(15)
+  vatNumberVerifiedAt DateTime?    @map("vat_number_verified_at") @db.Timestamptz
+  defaultCityId       String?      @map("default_city_id") @db.Uuid
+  ratingAvg           Decimal      @default(0) @map("rating_avg") @db.Decimal(3, 2)
+  ratingCount         Int          @default(0) @map("rating_count")
+  totalBookings       Int          @default(0) @map("total_bookings")
+  acquiredBySpoId     String?      @map("acquired_by_spo_id") @db.Uuid
+  createdAt           DateTime     @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt           DateTime     @updatedAt @map("updated_at") @db.Timestamptz
+
+  user                 User                      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  defaultCity          City?                     @relation(fields: [defaultCityId], references: [id])
+  acquiredBySpo        SpoProfile?               @relation("SpoAcquiredCustomers", fields: [acquiredBySpoId], references: [id])
+  corporate            CorporateCustomerProfile?
+  savedLocations       SavedLocation[]
+  spoAssignments       SpoCustomerAssignment[]
+  tripRequests         TripRequest[]
+  bookings             Booking[]
+  payments             Payment[]
+  paymentTokens        PaymentMethodToken[]
+  invoices             Invoice[]
+  cancellationPolicies CancellationPolicy[]
+
+  @@map("customer_profiles")
+}
+
+model CorporateCustomerProfile {
+  id                      String                  @id @db.Uuid
+  customerProfileId       String                  @unique(map: "uq_corporate_customer_profiles_customer") @map("customer_profile_id") @db.Uuid
+  companyNameEn           String                  @map("company_name_en") @db.VarChar(160)
+  companyNameAr           String                  @map("company_name_ar") @db.VarChar(160)
+  crNumber                String                  @map("cr_number") @db.VarChar(10)
+  addressBuildingNumber   String?                 @map("address_building_number") @db.VarChar(4)
+  addressStreetEn         String?                 @map("address_street_en") @db.VarChar(160)
+  addressStreetAr         String?                 @map("address_street_ar") @db.VarChar(160)
+  addressDistrictEn       String?                 @map("address_district_en") @db.VarChar(120)
+  addressDistrictAr       String?                 @map("address_district_ar") @db.VarChar(120)
+  addressCityId           String?                 @map("address_city_id") @db.Uuid
+  addressPostalCode       String?                 @map("address_postal_code") @db.VarChar(5)
+  addressAdditionalNumber String?                 @map("address_additional_number") @db.VarChar(4)
+  addressShortCode        String?                 @map("address_short_code") @db.VarChar(8)
+  contactPersonName       String                  @map("contact_person_name") @db.VarChar(160)
+  contactPersonPhone      String                  @map("contact_person_phone") @db.VarChar(20)
+  contactPersonEmail      String?                 @map("contact_person_email") @db.Citext
+  creditStatus            CreditStatus            @default(NONE) @map("credit_status")
+  creditLimitAmount       Decimal                 @default(0) @map("credit_limit_amount") @db.Decimal(14, 2)
+  creditTermsDays         Int                     @default(30) @map("credit_terms_days") @db.SmallInt
+  billingCycle            BillingCycle            @default(MONTHLY) @map("billing_cycle")
+  creditApprovedByUserId  String?                 @map("credit_approved_by_user_id") @db.Uuid
+  creditApprovedAt        DateTime?               @map("credit_approved_at") @db.Timestamptz
+  creditSuspendedReason   String?                 @map("credit_suspended_reason")
+  invoiceLineGranularity  InvoiceLineGranularity? @map("invoice_line_granularity")
+  isVerified              Boolean                 @default(false) @map("is_verified")
+  wafeqContactId          String?                 @map("wafeq_contact_id") @db.VarChar(64)
+  wafeqSyncedAt           DateTime?               @map("wafeq_synced_at") @db.Timestamptz
+  createdAt               DateTime                @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt               DateTime                @updatedAt @map("updated_at") @db.Timestamptz
+
+  customerProfile CustomerProfile @relation(fields: [customerProfileId], references: [id], onDelete: Cascade)
+  addressCity     City?           @relation(fields: [addressCityId], references: [id])
+  documents       Document[]      @relation("DocumentCorporate")
+  invoices        Invoice[]
+
+  @@map("corporate_customer_profiles")
+}
+
+model OwnerProfile {
+  id                     String           @id @db.Uuid
+  userId                 String           @unique(map: "uq_owner_profiles_user") @map("user_id") @db.Uuid
+  ownerType              OwnerType        @map("owner_type")
+  isPlatformFleet        Boolean          @default(false) @map("is_platform_fleet")
+  businessNameEn         String?          @map("business_name_en") @db.VarChar(160)
+  businessNameAr         String?          @map("business_name_ar") @db.VarChar(160)
+  crNumber               String?          @map("cr_number") @db.VarChar(10)
+  vatNumber              String?          @map("vat_number") @db.VarChar(15)
+  isVatRegistered        Boolean          @default(false) @map("is_vat_registered")
+  vatVerifiedAt          DateTime?        @map("vat_verified_at") @db.Timestamptz
+  nationalIdEncrypted    String?          @map("national_id_encrypted")
+  nationalIdLast4        String?          @map("national_id_last4") @db.Char(4)
+  nationalIdBlindIndex   String?          @map("national_id_blind_index") @db.Char(64)
+  onboardingStatus       OnboardingStatus @default(DRAFT) @map("onboarding_status")
+  approvedByUserId       String?          @map("approved_by_user_id") @db.Uuid
+  approvedAt             DateTime?        @map("approved_at") @db.Timestamptz
+  rejectionReason        String?          @map("rejection_reason")
+  ratingAvg              Decimal          @default(0) @map("rating_avg") @db.Decimal(3, 2)
+  ratingCount            Int              @default(0) @map("rating_count")
+  privacySettings        Json             @default("{}") @map("privacy_settings")
+  defaultPayoutAccountId String?          @map("default_payout_account_id") @db.Uuid
+  createdAt              DateTime         @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt              DateTime         @updatedAt @map("updated_at") @db.Timestamptz
+
+  user                  User                    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  verticalApprovals     OwnerVerticalApproval[]
+  drivers               DriverProfile[]
+  vehicles              Vehicle[]
+  serviceAreas          OwnerServiceArea[]
+  documents             Document[]              @relation("DocumentOwner")
+  bankAccounts          OwnerBankAccount[]
+  invitations           TripRequestInvitation[]
+  bids                  Bid[]
+  bookings              Booking[]
+  settlements           Settlement[]
+  expenses              Expense[]
+  commissionRules       CommissionRule[]
+  cancellationPolicies  CancellationPolicy[]
+  supplierInvoices      SupplierInvoice[]
+  selfBillingAgreements SelfBillingAgreement[]
+
+  @@index([onboardingStatus])
+  @@map("owner_profiles")
+}
+
+model OwnerVerticalApproval {
+  id                String                 @id @db.Uuid
+  ownerProfileId    String                 @map("owner_profile_id") @db.Uuid
+  transportType     TransportType          @map("transport_type")
+  status            VerticalApprovalStatus @default(NOT_APPLIED)
+  approvedByUserId  String?                @map("approved_by_user_id") @db.Uuid
+  approvedAt        DateTime?              @map("approved_at") @db.Timestamptz
+  licenceDocumentId String?                @map("licence_document_id") @db.Uuid
+  notes             String?
+  createdAt         DateTime               @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt         DateTime               @updatedAt @map("updated_at") @db.Timestamptz
+
+  ownerProfile OwnerProfile @relation(fields: [ownerProfileId], references: [id], onDelete: Cascade)
+
+  @@unique([ownerProfileId, transportType], map: "uq_owner_vertical_approvals_owner_type")
+  @@map("owner_vertical_approvals")
+}
+
+model DriverProfile {
+  id                      String                   @id @db.Uuid
+  userId                  String                   @unique(map: "uq_driver_profiles_user") @map("user_id") @db.Uuid
+  ownerProfileId          String?                  @map("owner_profile_id") @db.Uuid
+  nationalIdEncrypted     String?                  @map("national_id_encrypted")
+  nationalIdLast4         String?                  @map("national_id_last4") @db.Char(4)
+  nationalIdBlindIndex    String?                  @map("national_id_blind_index") @db.Char(64)
+  idType                  IdType                   @map("id_type")
+  dateOfBirth             DateTime?                @map("date_of_birth") @db.Date
+  licenseNumberEncrypted  String?                  @map("license_number_encrypted")
+  licenseNumberLast4      String?                  @map("license_number_last4") @db.Char(4)
+  licenseNumberBlindIndex String?                  @map("license_number_blind_index") @db.Char(64)
+  licenseExpiryDate       DateTime?                @map("license_expiry_date") @db.Date
+  licenseCategories       String[]                 @map("license_categories")
+  approvalStatus          OnboardingStatus         @default(DRAFT) @map("approval_status")
+  availabilityStatus      DriverAvailabilityStatus @default(OFF_DUTY) @map("availability_status")
+  ratingAvg               Decimal                  @default(0) @map("rating_avg") @db.Decimal(3, 2)
+  ratingCount             Int                      @default(0) @map("rating_count")
+  emergencyContactName    String?                  @map("emergency_contact_name") @db.VarChar(160)
+  emergencyContactPhone   String?                  @map("emergency_contact_phone") @db.VarChar(20)
+  createdAt               DateTime                 @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt               DateTime                 @updatedAt @map("updated_at") @db.Timestamptz
+
+  user                User                        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  ownerProfile        OwnerProfile?               @relation(fields: [ownerProfileId], references: [id], onDelete: SetNull)
+  verticalEligibility DriverVerticalEligibility[]
+  assignments         VehicleDriverAssignment[]
+  documents           Document[]                  @relation("DocumentDriver")
+  bids                Bid[]
+  bookings            Booking[]
+  trips               Trip[]
+  trackingSessions    TrackingSession[]
+  expenses            Expense[]
+
+  @@index([ownerProfileId])
+  @@map("driver_profiles")
+}
+
+model DriverVerticalEligibility {
+  id               String                 @id @db.Uuid
+  driverProfileId  String                 @map("driver_profile_id") @db.Uuid
+  transportType    TransportType          @map("transport_type")
+  status           VerticalApprovalStatus @default(NOT_APPLIED)
+  approvedByUserId String?                @map("approved_by_user_id") @db.Uuid
+  approvedAt       DateTime?              @map("approved_at") @db.Timestamptz
+  notes            String?
+  createdAt        DateTime               @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt        DateTime               @updatedAt @map("updated_at") @db.Timestamptz
+
+  driverProfile DriverProfile @relation(fields: [driverProfileId], references: [id], onDelete: Cascade)
+
+  @@unique([driverProfileId, transportType], map: "uq_driver_vertical_eligibility_driver_type")
+  @@map("driver_vertical_eligibility")
+}
+
+model SpoProfile {
+  id                String   @id @db.Uuid
+  userId            String   @unique(map: "uq_spo_profiles_user") @map("user_id") @db.Uuid
+  employeeCode      String   @unique(map: "uq_spo_profiles_employee_code") @map("employee_code") @db.VarChar(32)
+  regionId          String?  @map("region_id") @db.Uuid
+  managerUserId     String?  @map("manager_user_id") @db.Uuid
+  commissionModelId String?  @map("commission_model_id") @db.Uuid
+  isActive          Boolean  @default(true) @map("is_active")
+  createdAt         DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt         DateTime @updatedAt @map("updated_at") @db.Timestamptz
+
+  user              User                    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  region            Region?                 @relation(fields: [regionId], references: [id])
+  commissionModel   SpoCommissionModel?     @relation(fields: [commissionModelId], references: [id])
+  acquiredCustomers CustomerProfile[]       @relation("SpoAcquiredCustomers")
+  assignments       SpoCustomerAssignment[]
+  leads             SpoLead[]
+  tripRequests      TripRequest[]
+  bookings          Booking[]
+
+  @@map("spo_profiles")
+}
+
+model SpoCustomerAssignment {
+  id                String    @id @db.Uuid
+  spoProfileId      String    @map("spo_profile_id") @db.Uuid
+  customerProfileId String    @map("customer_profile_id") @db.Uuid
+  assignedAt        DateTime  @default(now()) @map("assigned_at") @db.Timestamptz
+  unassignedAt      DateTime? @map("unassigned_at") @db.Timestamptz
+  assignedBy        String?   @map("assigned_by") @db.Uuid
+
+  spoProfile      SpoProfile      @relation(fields: [spoProfileId], references: [id], onDelete: Cascade)
+  customerProfile CustomerProfile @relation(fields: [customerProfileId], references: [id], onDelete: Cascade)
+
+  @@index([customerProfileId])
+  @@map("spo_customer_assignments")
+}
+
+model SpoLead {
+  id              String        @id @db.Uuid
+  spoProfileId    String        @map("spo_profile_id") @db.Uuid
+  contactName     String        @map("contact_name") @db.VarChar(160)
+  contactPhone    String        @map("contact_phone") @db.VarChar(20)
+  companyName     String?       @map("company_name") @db.VarChar(160)
+  status          SpoLeadStatus @default(NEW)
+  convertedUserId String?       @map("converted_user_id") @db.Uuid
+  notes           String?
+  createdAt       DateTime      @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt       DateTime      @updatedAt @map("updated_at") @db.Timestamptz
+
+  spoProfile SpoProfile @relation(fields: [spoProfileId], references: [id], onDelete: Cascade)
+
+  @@index([spoProfileId, status])
+  @@map("spo_leads")
+}
+
+model SavedLocation {
+  id                String    @id @db.Uuid
+  customerProfileId String    @map("customer_profile_id") @db.Uuid
+  label             String    @db.VarChar(80)
+  addressLine       String    @map("address_line")
+  cityId            String    @map("city_id") @db.Uuid
+  latitude          Decimal   @db.Decimal(10, 7)
+  longitude         Decimal   @db.Decimal(10, 7)
+  placeId           String?   @map("place_id") @db.VarChar(255)
+  createdAt         DateTime  @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt         DateTime  @updatedAt @map("updated_at") @db.Timestamptz
+  deletedAt         DateTime? @map("deleted_at") @db.Timestamptz
+
+  customerProfile CustomerProfile @relation(fields: [customerProfileId], references: [id], onDelete: Cascade)
+  city            City            @relation(fields: [cityId], references: [id])
+
+  @@index([customerProfileId])
+  @@map("saved_locations")
+}
+
+// ═════════════════════════════════════════════════════════════════════════════
+// documents
+// ═════════════════════════════════════════════════════════════════════════════
+
+model Document {
+  id                         String                     @id @db.Uuid
+  documentTypeCode           String                     @map("document_type_code") @db.VarChar(48)
+  userId                     String?                    @map("user_id") @db.Uuid
+  ownerProfileId             String?                    @map("owner_profile_id") @db.Uuid
+  driverProfileId            String?                    @map("driver_profile_id") @db.Uuid
+  vehicleId                  String?                    @map("vehicle_id") @db.Uuid
+  corporateCustomerProfileId String?                    @map("corporate_customer_profile_id") @db.Uuid
+  expenseId                  String?                    @map("expense_id") @db.Uuid
+  maintenanceRecordId        String?                    @map("maintenance_record_id") @db.Uuid
+  tripProofId                String?                    @map("trip_proof_id") @db.Uuid
+  storageBucket              String                     @map("storage_bucket") @db.VarChar(128)
+  storageKey                 String                     @map("storage_key")
+  originalFilename           String                     @map("original_filename") @db.VarChar(255)
+  mimeType                   String                     @map("mime_type") @db.VarChar(128)
+  sizeBytes                  BigInt                     @map("size_bytes")
+  checksumSha256             String                     @map("checksum_sha256") @db.Char(64)
+  uploadStatus               DocumentUploadStatus       @default(PENDING) @map("upload_status")
+  verificationStatus         DocumentVerificationStatus @default(PENDING) @map("verification_status")
+  verifiedByUserId           String?                    @map("verified_by_user_id") @db.Uuid
+  verifiedAt                 DateTime?                  @map("verified_at") @db.Timestamptz
+  rejectionReason            String?                    @map("rejection_reason")
+  issueDate                  DateTime?                  @map("issue_date") @db.Date
+  expiryDate                 DateTime?                  @map("expiry_date") @db.Date
+  visibility                 DocumentVisibility         @default(PRIVATE)
+  createdAt                  DateTime                   @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt                  DateTime                   @updatedAt @map("updated_at") @db.Timestamptz
+  deletedAt                  DateTime?                  @map("deleted_at") @db.Timestamptz
+
+  documentType      DocumentType              @relation(fields: [documentTypeCode], references: [code])
+  user              User?                     @relation("DocumentUser", fields: [userId], references: [id], onDelete: Cascade)
+  ownerProfile      OwnerProfile?             @relation("DocumentOwner", fields: [ownerProfileId], references: [id], onDelete: Cascade)
+  driverProfile     DriverProfile?            @relation("DocumentDriver", fields: [driverProfileId], references: [id], onDelete: Cascade)
+  vehicle           Vehicle?                  @relation("DocumentVehicle", fields: [vehicleId], references: [id], onDelete: Cascade)
+  corporateCustomer CorporateCustomerProfile? @relation("DocumentCorporate", fields: [corporateCustomerProfileId], references: [id], onDelete: Cascade)
+  expense           Expense?                  @relation("DocumentExpense", fields: [expenseId], references: [id], onDelete: Cascade)
+  maintenanceRecord MaintenanceRecord?        @relation("DocumentMaintenance", fields: [maintenanceRecordId], references: [id], onDelete: Cascade)
+  tripProof         TripProof?                @relation("DocumentTripProof", fields: [tripProofId], references: [id], onDelete: Cascade)
+
+  @@index([vehicleId])
+  @@index([ownerProfileId])
+  @@index([driverProfileId])
+  @@index([verificationStatus])
+  @@map("documents")
+}
+
+// ═════════════════════════════════════════════════════════════════════════════
+// fleet
+// ═════════════════════════════════════════════════════════════════════════════
+
+model Vehicle {
+  id                     String                   @id @db.Uuid
+  ownerProfileId         String                   @map("owner_profile_id") @db.Uuid
+  vehicleCategoryId      String                   @map("vehicle_category_id") @db.Uuid
+  vehicleMakeId          String?                  @map("vehicle_make_id") @db.Uuid
+  vehicleModelId         String?                  @map("vehicle_model_id") @db.Uuid
+  modelYear              Int                      @map("model_year") @db.SmallInt
+  plateNumberEn          String                   @map("plate_number_en") @db.VarChar(16)
+  plateNumberAr          String?                  @map("plate_number_ar") @db.VarChar(24)
+  sequenceNumber         String?                  @map("sequence_number") @db.VarChar(32)
+  registrationNumber     String                   @map("registration_number") @db.VarChar(64)
+  vin                    String?                  @db.VarChar(17)
+  colorCode              String                   @map("color_code") @db.VarChar(32)
+  passengerCapacity      Int?                     @map("passenger_capacity") @db.SmallInt
+  payloadCapacityKg      Decimal?                 @map("payload_capacity_kg") @db.Decimal(10, 2)
+  cargoVolumeM3          Decimal?                 @map("cargo_volume_m3") @db.Decimal(10, 2)
+  cargoLengthCm          Int?                     @map("cargo_length_cm")
+  cargoWidthCm           Int?                     @map("cargo_width_cm")
+  cargoHeightCm          Int?                     @map("cargo_height_cm")
+  bodyType               String?                  @map("body_type") @db.VarChar(48)
+  hasRefrigeration       Boolean                  @default(false) @map("has_refrigeration")
+  hasTailLift            Boolean                  @default(false) @map("has_tail_lift")
+  approvalStatus         VehicleApprovalStatus    @default(DRAFT) @map("approval_status")
+  lifecycleStatus        VehicleLifecycleStatus   @default(ACTIVE) @map("lifecycle_status")
+  operationalStatus      VehicleOperationalStatus @default(IDLE) @map("operational_status")
+  approvedByUserId       String?                  @map("approved_by_user_id") @db.Uuid
+  approvedAt             DateTime?                @map("approved_at") @db.Timestamptz
+  rejectionReason        String?                  @map("rejection_reason")
+  insurancePolicyNumber  String?                  @map("insurance_policy_number") @db.VarChar(64)
+  insuranceExpiryDate    DateTime?                @map("insurance_expiry_date") @db.Date
+  registrationExpiryDate DateTime?                @map("registration_expiry_date") @db.Date
+  inspectionExpiryDate   DateTime?                @map("inspection_expiry_date") @db.Date
+  odometerKm             Int?                     @map("odometer_km")
+  gpsDeviceId            String?                  @unique(map: "uq_vehicles_gps_device") @map("gps_device_id") @db.Uuid
+  baseCityId             String?                  @map("base_city_id") @db.Uuid
+  notes                  String?
+  ratingAvg              Decimal                  @default(0) @map("rating_avg") @db.Decimal(3, 2)
+  ratingCount            Int                      @default(0) @map("rating_count")
+  createdAt              DateTime                 @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt              DateTime                 @updatedAt @map("updated_at") @db.Timestamptz
+  deletedAt              DateTime?                @map("deleted_at") @db.Timestamptz
+
+  ownerProfile         OwnerProfile              @relation(fields: [ownerProfileId], references: [id])
+  category             VehicleCategory           @relation(fields: [vehicleCategoryId], references: [id])
+  make                 VehicleMake?              @relation(fields: [vehicleMakeId], references: [id])
+  model                VehicleModel?             @relation(fields: [vehicleModelId], references: [id])
+  gpsDevice            GpsDevice?                @relation(fields: [gpsDeviceId], references: [id])
+  baseCity             City?                     @relation(fields: [baseCityId], references: [id])
+  driverAssignments    VehicleDriverAssignment[]
+  calendarEntries      VehicleCalendarEntry[]
+  documents            Document[]                @relation("DocumentVehicle")
+  invitations          TripRequestInvitation[]
+  bids                 Bid[]
+  bookings             Booking[]
+  trips                Trip[]
+  currentLocation      CurrentVehicleLocation?
+  trackingSessions     TrackingSession[]
+  locationPoints       VehicleLocationPoint[]
+  maintenanceRecords   MaintenanceRecord[]
+  maintenanceSchedules MaintenanceSchedule[]
+  expenses             Expense[]
+
+  @@index([ownerProfileId, lifecycleStatus])
+  @@index([vehicleCategoryId, approvalStatus, lifecycleStatus])
+  @@index([plateNumberEn(ops: raw("gin_trgm_ops"))], map: "idx_vehicles_plate_trgm", type: Gin)
+  @@map("vehicles")
+}
+
+model VehicleDriverAssignment {
+  id               String    @id @db.Uuid
+  vehicleId        String    @map("vehicle_id") @db.Uuid
+  driverProfileId  String    @map("driver_profile_id") @db.Uuid
+  assignedFrom     DateTime  @map("assigned_from") @db.Timestamptz
+  assignedTo       DateTime? @map("assigned_to") @db.Timestamptz
+  isPrimary        Boolean   @default(false) @map("is_primary")
+  assignedByUserId String?   @map("assigned_by_user_id") @db.Uuid
+  unassignedReason String?   @map("unassigned_reason")
+  createdAt        DateTime  @default(now()) @map("created_at") @db.Timestamptz
+
+  vehicle       Vehicle       @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+  driverProfile DriverProfile @relation(fields: [driverProfileId], references: [id], onDelete: Cascade)
+
+  @@index([vehicleId, assignedTo])
+  @@index([driverProfileId, assignedTo])
+  @@map("vehicle_driver_assignments")
+}
+
+/// The availability guarantee (database.md §7.3). `period` is a tstzrange; the EXCLUDE
+/// constraint lives in SQL. Prisma cannot express ranges, so the column is Unsupported and
+/// written through a reviewed $executeRaw in fleet.calendar.repository.
+model VehicleCalendarEntry {
+  id                  String                   @id @db.Uuid
+  vehicleId           String                   @map("vehicle_id") @db.Uuid
+  entryType           CalendarEntryType        @map("entry_type")
+  period              Unsupported("tstzrange")
+  bookingId           String?                  @unique(map: "uq_vehicle_calendar_entries_booking") @map("booking_id") @db.Uuid
+  maintenanceRecordId String?                  @unique(map: "uq_vehicle_calendar_entries_maintenance") @map("maintenance_record_id") @db.Uuid
+  status              CalendarEntryStatus      @default(HELD)
+  createdByUserId     String?                  @map("created_by_user_id") @db.Uuid
+  notes               String?
+  createdAt           DateTime                 @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt           DateTime                 @updatedAt @map("updated_at") @db.Timestamptz
+
+  vehicle           Vehicle            @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+  booking           Booking?           @relation(fields: [bookingId], references: [id])
+  maintenanceRecord MaintenanceRecord? @relation(fields: [maintenanceRecordId], references: [id])
+
+  @@index([vehicleId, status])
+  @@map("vehicle_calendar_entries")
+}
+
+model OwnerServiceArea {
+  ownerProfileId String  @map("owner_profile_id") @db.Uuid
+  cityId         String  @map("city_id") @db.Uuid
+  isActive       Boolean @default(true) @map("is_active")
+
+  ownerProfile OwnerProfile @relation(fields: [ownerProfileId], references: [id], onDelete: Cascade)
+  city         City         @relation(fields: [cityId], references: [id])
+
+  @@id([ownerProfileId, cityId])
+  @@map("owner_service_areas")
+}
+
+model GpsDevice {
+  id                  String          @id @db.Uuid
+  providerCode        String          @map("provider_code") @db.VarChar(48)
+  deviceIdentifier    String          @map("device_identifier") @db.VarChar(128)
+  simNumberEncrypted  String?         @map("sim_number_encrypted")
+  simNumberLast4      String?         @map("sim_number_last4") @db.Char(4)
+  simNumberBlindIndex String?         @map("sim_number_blind_index") @db.Char(64)
+  status              GpsDeviceStatus @default(INACTIVE)
+  lastSeenAt          DateTime?       @map("last_seen_at") @db.Timestamptz
+  installedAt         DateTime?       @map("installed_at") @db.Timestamptz
+  metadata            Json            @default("{}")
+  createdAt           DateTime        @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt           DateTime        @updatedAt @map("updated_at") @db.Timestamptz
+
+  vehicle Vehicle?
+
+  @@unique([providerCode, deviceIdentifier], map: "uq_gps_devices_provider_identifier")
+  @@map("gps_devices")
+}
+
+// ═════════════════════════════════════════════════════════════════════════════
+// demand
+// ═════════════════════════════════════════════════════════════════════════════
+
+model TripRequest {
+  id                            String                     @id @db.Uuid
+  requestNumber                 String                     @unique(map: "uq_trip_requests_number") @map("request_number") @db.VarChar(24)
+  customerProfileId             String                     @map("customer_profile_id") @db.Uuid
+  createdByUserId               String                     @map("created_by_user_id") @db.Uuid
+  attributedSpoProfileId        String?                    @map("attributed_spo_profile_id") @db.Uuid
+  transportType                 TransportType              @map("transport_type")
+  vehicleCategoryId             String?                    @map("vehicle_category_id") @db.Uuid
+  vehiclesRequired              Int                        @default(1) @map("vehicles_required") @db.SmallInt
+  allowPartialFulfilment        Boolean                    @map("allow_partial_fulfilment")
+  tripDirection                 TripDirection              @map("trip_direction")
+  pickupAddressLine             String                     @map("pickup_address_line")
+  pickupCityId                  String                     @map("pickup_city_id") @db.Uuid
+  pickupLatitude                Decimal                    @map("pickup_latitude") @db.Decimal(10, 7)
+  pickupLongitude               Decimal                    @map("pickup_longitude") @db.Decimal(10, 7)
+  pickupPlaceId                 String?                    @map("pickup_place_id") @db.VarChar(255)
+  dropoffAddressLine            String                     @map("dropoff_address_line")
+  dropoffCityId                 String                     @map("dropoff_city_id") @db.Uuid
+  dropoffLatitude               Decimal                    @map("dropoff_latitude") @db.Decimal(10, 7)
+  dropoffLongitude              Decimal                    @map("dropoff_longitude") @db.Decimal(10, 7)
+  dropoffPlaceId                String?                    @map("dropoff_place_id") @db.VarChar(255)
+  estimatedDistanceKm           Decimal?                   @map("estimated_distance_km") @db.Decimal(10, 2)
+  estimatedDurationMinutes      Int?                       @map("estimated_duration_minutes")
+  pickupAt                      DateTime                   @map("pickup_at") @db.Timestamptz
+  returnAt                      DateTime?                  @map("return_at") @db.Timestamptz
+  biddingClosesAt               DateTime                   @map("bidding_closes_at") @db.Timestamptz
+  remainderClosesAt             DateTime?                  @map("remainder_closes_at") @db.Timestamptz
+  status                        TripRequestStatus          @default(DRAFT)
+  vehiclesAwarded               Int                        @default(0) @map("vehicles_awarded") @db.SmallInt
+  vehiclesDispatched            Int                        @default(0) @map("vehicles_dispatched") @db.SmallInt
+  vehiclesCompleted             Int                        @default(0) @map("vehicles_completed") @db.SmallInt
+  vehiclesCancelled             Int                        @default(0) @map("vehicles_cancelled") @db.SmallInt
+  budgetAmount                  Decimal?                   @map("budget_amount") @db.Decimal(14, 2)
+  currency                      String                     @default("SAR") @db.Char(3)
+  specialInstructions           String?                    @map("special_instructions")
+  cancellationReason            String?                    @map("cancellation_reason")
+  commissionOverrideType        CommissionCalculationType? @map("commission_override_type")
+  commissionOverrideValue       Decimal?                   @map("commission_override_value") @db.Decimal(14, 4)
+  commissionOverrideBasis       CommissionBasis?           @map("commission_override_basis")
+  commissionOverrideReason      String?                    @map("commission_override_reason")
+  commissionOverrideSetByUserId String?                    @map("commission_override_set_by_user_id") @db.Uuid
+  commissionOverrideSetAt       DateTime?                  @map("commission_override_set_at") @db.Timestamptz
+  createdAt                     DateTime                   @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt                     DateTime                   @updatedAt @map("updated_at") @db.Timestamptz
+
+  customerProfile  CustomerProfile         @relation(fields: [customerProfileId], references: [id])
+  attributedSpo    SpoProfile?             @relation(fields: [attributedSpoProfileId], references: [id])
+  vehicleCategory  VehicleCategory?        @relation(fields: [vehicleCategoryId], references: [id])
+  pickupCity       City                    @relation("TripRequestPickupCity", fields: [pickupCityId], references: [id])
+  dropoffCity      City                    @relation("TripRequestDropoffCity", fields: [dropoffCityId], references: [id])
+  passengerDetails PassengerTripDetails?
+  goodsDetails     GoodsTripDetails?
+  invitations      TripRequestInvitation[]
+  bids             Bid[]
+  bookings         Booking[]
+  invoiceLines     InvoiceLine[]
+
+  @@index([status, pickupAt])
+  @@index([customerProfileId, createdAt(sort: Desc)])
+  @@index([pickupCityId, transportType, status])
+  @@map("trip_requests")
+}
+
+model PassengerTripDetails {
+  tripRequestId            String      @id @map("trip_request_id") @db.Uuid
+  passengerCount           Int         @map("passenger_count") @db.SmallInt
+  luggageCount             Int         @default(0) @map("luggage_count") @db.SmallInt
+  luggageNotes             String?     @map("luggage_notes")
+  tripPurpose              TripPurpose @map("trip_purpose")
+  requiresFemaleDriver     Boolean     @default(false) @map("requires_female_driver")
+  requiresWheelchairAccess Boolean     @default(false) @map("requires_wheelchair_access")
+  childSeatsRequired       Int         @default(0) @map("child_seats_required") @db.SmallInt
+  waitingTimeMinutes       Int         @default(0) @map("waiting_time_minutes")
+  isMultiDay               Boolean     @default(false) @map("is_multi_day")
+  driverLanguagePreference String[]    @map("driver_language_preference")
+
+  tripRequest TripRequest @relation(fields: [tripRequestId], references: [id], onDelete: Cascade)
+
+  @@map("passenger_trip_details")
+}
+
+model GoodsTripDetails {
+  tripRequestId           String                @id @map("trip_request_id") @db.Uuid
+  cargoType               CargoType             @map("cargo_type")
+  cargoDescription        String                @map("cargo_description")
+  cargoWeightKg           Decimal               @map("cargo_weight_kg") @db.Decimal(12, 2)
+  cargoVolumeM3           Decimal?              @map("cargo_volume_m3") @db.Decimal(10, 2)
+  packageCount            Int?                  @map("package_count")
+  packageLengthCm         Int?                  @map("package_length_cm")
+  packageWidthCm          Int?                  @map("package_width_cm")
+  packageHeightCm         Int?                  @map("package_height_cm")
+  requiresRefrigeration   Boolean               @default(false) @map("requires_refrigeration")
+  requiredTemperatureMinC Decimal?              @map("required_temperature_min_c") @db.Decimal(5, 2)
+  requiredTemperatureMaxC Decimal?              @map("required_temperature_max_c") @db.Decimal(5, 2)
+  requiresTailLift        Boolean               @default(false) @map("requires_tail_lift")
+  requiresCrane           Boolean               @default(false) @map("requires_crane")
+  loadingResponsibility   LoadingResponsibility @map("loading_responsibility")
+  unloadingResponsibility LoadingResponsibility @map("unloading_responsibility")
+  loadingInstructions     String?               @map("loading_instructions")
+  unloadingInstructions   String?               @map("unloading_instructions")
+  declaredValueAmount     Decimal?              @map("declared_value_amount") @db.Decimal(14, 2)
+  requiresInsurance       Boolean               @default(false) @map("requires_insurance")
+  hazmatClass             String?               @map("hazmat_class") @db.VarChar(16)
+  shipperContactName      String?               @map("shipper_contact_name") @db.VarChar(160)
+  shipperContactPhone     String?               @map("shipper_contact_phone") @db.VarChar(20)
+  consigneeContactName    String?               @map("consignee_contact_name") @db.VarChar(160)
+  consigneeContactPhone   String?               @map("consignee_contact_phone") @db.VarChar(20)
+  bayanReference          String?               @map("bayan_reference") @db.VarChar(64)
+
+  tripRequest TripRequest @relation(fields: [tripRequestId], references: [id], onDelete: Cascade)
+
+  @@map("goods_trip_details")
+}
+
+model TripRequestInvitation {
+  id                   String    @id @db.Uuid
+  tripRequestId        String    @map("trip_request_id") @db.Uuid
+  ownerProfileId       String    @map("owner_profile_id") @db.Uuid
+  vehicleId            String?   @map("vehicle_id") @db.Uuid
+  matchScore           Decimal?  @map("match_score") @db.Decimal(5, 2)
+  matchReason          Json      @default("{}") @map("match_reason")
+  notifiedAt           DateTime? @map("notified_at") @db.Timestamptz
+  notificationChannels String[]  @map("notification_channels")
+  viewedAt             DateTime? @map("viewed_at") @db.Timestamptz
+  dismissedAt          DateTime? @map("dismissed_at") @db.Timestamptz
+  createdAt            DateTime  @default(now()) @map("created_at") @db.Timestamptz
+
+  tripRequest  TripRequest  @relation(fields: [tripRequestId], references: [id], onDelete: Cascade)
+  ownerProfile OwnerProfile @relation(fields: [ownerProfileId], references: [id], onDelete: Cascade)
+  vehicle      Vehicle?     @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+
+  @@unique([tripRequestId, ownerProfileId, vehicleId], map: "uq_trip_request_invitations_request_owner_vehicle")
+  @@index([ownerProfileId, dismissedAt])
+  @@map("trip_request_invitations")
+}
+
+// ═════════════════════════════════════════════════════════════════════════════
+// bidding
+// ═════════════════════════════════════════════════════════════════════════════
+
+model Bid {
+  id                       String    @id @db.Uuid
+  bidNumber                String    @unique(map: "uq_bids_number") @map("bid_number") @db.VarChar(24)
+  tripRequestId            String    @map("trip_request_id") @db.Uuid
+  ownerProfileId           String    @map("owner_profile_id") @db.Uuid
+  vehicleId                String    @map("vehicle_id") @db.Uuid
+  driverProfileId          String?   @map("driver_profile_id") @db.Uuid
+  baseAmount               Decimal   @map("base_amount") @db.Decimal(14, 2)
+  extrasAmount             Decimal   @default(0) @map("extras_amount") @db.Decimal(14, 2)
+  extrasBreakdown          Json?     @map("extras_breakdown")
+  vatRate                  Decimal   @map("vat_rate") @db.Decimal(6, 4)
+  vatAmount                Decimal   @map("vat_amount") @db.Decimal(14, 2)
+  totalAmount              Decimal   @map("total_amount") @db.Decimal(14, 2)
+  currency                 String    @default("SAR") @db.Char(3)
+  estimatedArrivalAt       DateTime? @map("estimated_arrival_at") @db.Timestamptz
+  estimatedDurationMinutes Int?      @map("estimated_duration_minutes")
+  validUntil               DateTime  @map("valid_until") @db.Timestamptz
+  ownerNotes               String?   @map("owner_notes")
+  status                   BidStatus @default(SUBMITTED)
+  version                  Int       @default(1)
+  lastRevisedAt            DateTime? @map("last_revised_at") @db.Timestamptz
+  rejectedReason           String?   @map("rejected_reason")
+  submittedAt              DateTime  @default(now()) @map("submitted_at") @db.Timestamptz
+  decidedAt                DateTime? @map("decided_at") @db.Timestamptz
+  createdAt                DateTime  @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt                DateTime  @updatedAt @map("updated_at") @db.Timestamptz
+
+  tripRequest   TripRequest    @relation(fields: [tripRequestId], references: [id])
+  ownerProfile  OwnerProfile   @relation(fields: [ownerProfileId], references: [id])
+  vehicle       Vehicle        @relation(fields: [vehicleId], references: [id])
+  driverProfile DriverProfile? @relation(fields: [driverProfileId], references: [id])
+  booking       Booking?
+
+  @@index([tripRequestId, totalAmount], map: "idx_bids_request_total")
+  @@index([ownerProfileId, status, submittedAt(sort: Desc)], map: "idx_bids_owner_status")
+  @@map("bids")
+}
+
+// ═════════════════════════════════════════════════════════════════════════════
+// bookings
+// ═════════════════════════════════════════════════════════════════════════════
+
+model Booking {
+  id                          String               @id @db.Uuid
+  bookingNumber               String               @unique(map: "uq_bookings_number") @map("booking_number") @db.VarChar(24)
+  tripRequestId               String               @map("trip_request_id") @db.Uuid
+  bidId                       String               @unique(map: "uq_bookings_bid") @map("bid_id") @db.Uuid
+  customerProfileId           String               @map("customer_profile_id") @db.Uuid
+  ownerProfileId              String               @map("owner_profile_id") @db.Uuid
+  vehicleId                   String               @map("vehicle_id") @db.Uuid
+  driverProfileId             String?              @map("driver_profile_id") @db.Uuid
+  attributedSpoProfileId      String?              @map("attributed_spo_profile_id") @db.Uuid
+  vehiclePlateSnapshot        String               @map("vehicle_plate_snapshot") @db.VarChar(16)
+  vehicleDescriptionSnapshot  String               @map("vehicle_description_snapshot") @db.VarChar(160)
+  vehicleCategoryCodeSnapshot String               @map("vehicle_category_code_snapshot") @db.VarChar(48)
+  ownerNameSnapshot           String               @map("owner_name_snapshot") @db.VarChar(160)
+  transportType               TransportType        @map("transport_type")
+  pickupAddressLine           String               @map("pickup_address_line")
+  pickupCityId                String               @map("pickup_city_id") @db.Uuid
+  pickupLatitude              Decimal              @map("pickup_latitude") @db.Decimal(10, 7)
+  pickupLongitude             Decimal              @map("pickup_longitude") @db.Decimal(10, 7)
+  dropoffAddressLine          String               @map("dropoff_address_line")
+  dropoffCityId               String               @map("dropoff_city_id") @db.Uuid
+  dropoffLatitude             Decimal              @map("dropoff_latitude") @db.Decimal(10, 7)
+  dropoffLongitude            Decimal              @map("dropoff_longitude") @db.Decimal(10, 7)
+  scheduledStartAt            DateTime             @map("scheduled_start_at") @db.Timestamptz
+  scheduledEndAt              DateTime             @map("scheduled_end_at") @db.Timestamptz
+  agreedBaseAmount            Decimal              @map("agreed_base_amount") @db.Decimal(14, 2)
+  agreedExtrasAmount          Decimal              @default(0) @map("agreed_extras_amount") @db.Decimal(14, 2)
+  vatRate                     Decimal              @map("vat_rate") @db.Decimal(6, 4)
+  vatAmount                   Decimal              @map("vat_amount") @db.Decimal(14, 2)
+  totalAmount                 Decimal              @map("total_amount") @db.Decimal(14, 2)
+  currency                    String               @default("SAR") @db.Char(3)
+  billingMode                 BillingMode          @map("billing_mode")
+  creditTermsDaysSnapshot     Int?                 @map("credit_terms_days_snapshot") @db.SmallInt
+  fulfilmentSequence          Int                  @default(1) @map("fulfilment_sequence") @db.SmallInt
+  status                      BookingStatus
+  paymentStatus               BookingPaymentStatus @default(UNPAID) @map("payment_status")
+  paymentDueBy                DateTime?            @map("payment_due_by") @db.Timestamptz
+  nonCircumventionUntil       DateTime?            @map("non_circumvention_until") @db.Timestamptz
+  confirmedAt                 DateTime?            @map("confirmed_at") @db.Timestamptz
+  completedAt                 DateTime?            @map("completed_at") @db.Timestamptz
+  cancelledAt                 DateTime?            @map("cancelled_at") @db.Timestamptz
+  createdAt                   DateTime             @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt                   DateTime             @updatedAt @map("updated_at") @db.Timestamptz
+
+  tripRequest       TripRequest               @relation(fields: [tripRequestId], references: [id])
+  bid               Bid                       @relation(fields: [bidId], references: [id])
+  customerProfile   CustomerProfile           @relation(fields: [customerProfileId], references: [id])
+  ownerProfile      OwnerProfile              @relation(fields: [ownerProfileId], references: [id])
+  vehicle           Vehicle                   @relation(fields: [vehicleId], references: [id])
+  driverProfile     DriverProfile?            @relation(fields: [driverProfileId], references: [id])
+  attributedSpo     SpoProfile?               @relation(fields: [attributedSpoProfileId], references: [id])
+  pickupCity        City                      @relation("BookingPickupCity", fields: [pickupCityId], references: [id])
+  dropoffCity       City                      @relation("BookingDropoffCity", fields: [dropoffCityId], references: [id])
+  statusHistory     BookingStatusHistory[]
+  cancellation      BookingCancellation?
+  calendarEntry     VehicleCalendarEntry?
+  trip              Trip?
+  payments          Payment[]
+  refunds           Refund[]
+  financialSnapshot BookingFinancialSnapshot?
+  ledgerEntries     LedgerEntry[]
+  settlementLines   SettlementLine[]
+  invoiceLines      InvoiceLine[]
+  invoiceLineLinks  InvoiceLineBooking[]
+  ratings           Rating[]
+  complaints        Complaint[]
+  supplierInvoices  SupplierInvoice[]
+
+  @@index([customerProfileId, createdAt(sort: Desc)])
+  @@index([ownerProfileId, status, scheduledStartAt])
+  @@index([status, scheduledStartAt])
+  @@index([tripRequestId, fulfilmentSequence])
+  @@map("bookings")
+}
+
+model BookingStatusHistory {
+  id              String         @id @db.Uuid
+  bookingId       String         @map("booking_id") @db.Uuid
+  fromStatus      BookingStatus? @map("from_status")
+  toStatus        BookingStatus  @map("to_status")
+  changedByUserId String?        @map("changed_by_user_id") @db.Uuid
+  actorType       ActorType      @map("actor_type")
+  reason          String?
+  metadata        Json           @default("{}")
+  occurredAt      DateTime       @default(now()) @map("occurred_at") @db.Timestamptz
+
+  booking Booking @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+
+  @@index([bookingId, occurredAt])
+  @@map("booking_status_history")
+}
+
+model BookingCancellation {
+  bookingId             String                @id @map("booking_id") @db.Uuid
+  cancelledByUserId     String?               @map("cancelled_by_user_id") @db.Uuid
+  cancelledByRole       CancelledByRole       @map("cancelled_by_role")
+  eventType             CancellationEventType @default(CANCELLATION) @map("event_type")
+  reasonCode            String                @map("reason_code") @db.VarChar(48)
+  reasonText            String?               @map("reason_text")
+  hoursBeforePickup     Decimal               @map("hours_before_pickup") @db.Decimal(8, 2)
+  feePayer              FeePayer              @default(NONE) @map("fee_payer")
+  cancellationFeeAmount Decimal               @default(0) @map("cancellation_fee_amount") @db.Decimal(14, 2)
+  refundAmount          Decimal               @default(0) @map("refund_amount") @db.Decimal(14, 2)
+  currency              String                @default("SAR") @db.Char(3)
+  feeSource             FeeSource             @default(NONE) @map("fee_source")
+  feeRuleSnapshot       Json                  @default("{}") @map("fee_rule_snapshot")
+  feeOverrideSnapshot   Json?                 @map("fee_override_snapshot")
+  feeWaivedAt           DateTime?             @map("fee_waived_at") @db.Timestamptz
+  feeWaivedByUserId     String?               @map("fee_waived_by_user_id") @db.Uuid
+  feeWaivedReason       String?               @map("fee_waived_reason")
+  cancelledAt           DateTime              @default(now()) @map("cancelled_at") @db.Timestamptz
+
+  booking Booking @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+
+  @@map("booking_cancellations")
+}
+
+model CancellationPolicy {
+  id                  String                    @id @db.Uuid
+  name                String                    @db.VarChar(120)
+  eventType           CancellationEventType     @map("event_type")
+  cancelledByRole     CancellationPolicyRole    @map("cancelled_by_role")
+  scope               CancellationPolicyScope
+  vehicleCategoryId   String?                   @map("vehicle_category_id") @db.Uuid
+  customerProfileId   String?                   @map("customer_profile_id") @db.Uuid
+  ownerProfileId      String?                   @map("owner_profile_id") @db.Uuid
+  chargeType          CommissionCalculationType @map("charge_type")
+  value               Decimal?                  @db.Decimal(14, 4)
+  tiers               Json?
+  noCancelWindowHours Decimal?                  @map("no_cancel_window_hours") @db.Decimal(6, 2)
+  priority            Int                       @default(0)
+  effectiveFrom       DateTime                  @map("effective_from") @db.Timestamptz
+  effectiveTo         DateTime?                 @map("effective_to") @db.Timestamptz
+  isActive            Boolean                   @default(true) @map("is_active")
+  createdByUserId     String?                   @map("created_by_user_id") @db.Uuid
+  createdAt           DateTime                  @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt           DateTime                  @updatedAt @map("updated_at") @db.Timestamptz
+
+  vehicleCategory VehicleCategory? @relation(fields: [vehicleCategoryId], references: [id])
+  customerProfile CustomerProfile? @relation(fields: [customerProfileId], references: [id])
+  ownerProfile    OwnerProfile?    @relation(fields: [ownerProfileId], references: [id])
+
+  @@index([eventType, cancelledByRole, scope, isActive])
+  @@map("cancellation_policies")
+}
+
+// ═════════════════════════════════════════════════════════════════════════════
+// trips & tracking
+// ═════════════════════════════════════════════════════════════════════════════
+
+model Trip {
+  id               String        @id @db.Uuid
+  tripNumber       String        @unique(map: "uq_trips_number") @map("trip_number") @db.VarChar(24)
+  bookingId        String        @unique(map: "uq_trips_booking") @map("booking_id") @db.Uuid
+  vehicleId        String        @map("vehicle_id") @db.Uuid
+  driverProfileId  String?       @map("driver_profile_id") @db.Uuid
+  transportType    TransportType @map("transport_type")
+  status           TripStatus    @default(BOOKED)
+  actualStartAt    DateTime?     @map("actual_start_at") @db.Timestamptz
+  actualEndAt      DateTime?     @map("actual_end_at") @db.Timestamptz
+  startOdometerKm  Int?          @map("start_odometer_km")
+  endOdometerKm    Int?          @map("end_odometer_km")
+  actualDistanceKm Decimal?      @map("actual_distance_km") @db.Decimal(10, 2)
+  driverNotes      String?       @map("driver_notes")
+  customerNotes    String?       @map("customer_notes")
+  delayMinutes     Int?          @map("delay_minutes")
+  createdAt        DateTime      @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt        DateTime      @updatedAt @map("updated_at") @db.Timestamptz
+
+  booking          Booking             @relation(fields: [bookingId], references: [id])
+  vehicle          Vehicle             @relation(fields: [vehicleId], references: [id])
+  driverProfile    DriverProfile?      @relation(fields: [driverProfileId], references: [id])
+  statusHistory    TripStatusHistory[]
+  proofs           TripProof[]
+  trackingSessions TrackingSession[]
+  ratings          Rating[]
+  complaints       Complaint[]
+  expenses         Expense[]
+
+  @@index([status])
+  @@index([driverProfileId, status])
+  @@map("trips")
+}
+
+model TripStatusHistory {
+  id              String      @id @db.Uuid
+  tripId          String      @map("trip_id") @db.Uuid
+  fromStatus      TripStatus? @map("from_status")
+  toStatus        TripStatus  @map("to_status")
+  changedByUserId String?     @map("changed_by_user_id") @db.Uuid
+  actorType       ActorType   @map("actor_type")
+  latitude        Decimal?    @db.Decimal(10, 7)
+  longitude       Decimal?    @db.Decimal(10, 7)
+  accuracyM       Decimal?    @map("accuracy_m") @db.Decimal(8, 2)
+  note            String?
+  occurredAt      DateTime    @map("occurred_at") @db.Timestamptz
+  recordedAt      DateTime    @default(now()) @map("recorded_at") @db.Timestamptz
+
+  trip Trip @relation(fields: [tripId], references: [id], onDelete: Cascade)
+
+  @@index([tripId, occurredAt])
+  @@map("trip_status_history")
+}
+
+model TripProof {
+  id                  String        @id @db.Uuid
+  tripId              String        @map("trip_id") @db.Uuid
+  proofType           TripProofType @map("proof_type")
+  recipientName       String?       @map("recipient_name") @db.VarChar(160)
+  recipientIdLast4    String?       @map("recipient_id_last4") @db.Char(4)
+  signatureDocumentId String?       @map("signature_document_id") @db.Uuid
+  latitude            Decimal?      @db.Decimal(10, 7)
+  longitude           Decimal?      @db.Decimal(10, 7)
+  notes               String?
+  capturedByUserId    String?       @map("captured_by_user_id") @db.Uuid
+  capturedAt          DateTime      @default(now()) @map("captured_at") @db.Timestamptz
+
+  trip      Trip       @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  documents Document[] @relation("DocumentTripProof")
+
+  @@index([tripId])
+  @@map("trip_proofs")
+}
+
+model CurrentVehicleLocation {
+  vehicleId  String         @id @map("vehicle_id") @db.Uuid
+  latitude   Decimal        @db.Decimal(10, 7)
+  longitude  Decimal        @db.Decimal(10, 7)
+  accuracyM  Decimal?       @map("accuracy_m") @db.Decimal(8, 2)
+  headingDeg Decimal?       @map("heading_deg") @db.Decimal(5, 2)
+  speedKmh   Decimal?       @map("speed_kmh") @db.Decimal(6, 2)
+  source     LocationSource
+  tripId     String?        @map("trip_id") @db.Uuid
+  recordedAt DateTime       @map("recorded_at") @db.Timestamptz
+  updatedAt  DateTime       @updatedAt @map("updated_at") @db.Timestamptz
+
+  vehicle Vehicle @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+
+  @@map("current_vehicle_locations")
+}
+
+model TrackingSession {
+  id              String                @id @db.Uuid
+  tripId          String                @map("trip_id") @db.Uuid
+  vehicleId       String                @map("vehicle_id") @db.Uuid
+  driverProfileId String?               @map("driver_profile_id") @db.Uuid
+  providerCode    String                @map("provider_code") @db.VarChar(48)
+  startedAt       DateTime              @default(now()) @map("started_at") @db.Timestamptz
+  endedAt         DateTime?             @map("ended_at") @db.Timestamptz
+  pointCount      Int                   @default(0) @map("point_count")
+  totalDistanceKm Decimal               @default(0) @map("total_distance_km") @db.Decimal(10, 2)
+  status          TrackingSessionStatus @default(ACTIVE)
+
+  trip          Trip                   @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  vehicle       Vehicle                @relation(fields: [vehicleId], references: [id])
+  driverProfile DriverProfile?         @relation(fields: [driverProfileId], references: [id])
+  points        VehicleLocationPoint[]
+
+  @@index([tripId])
+  @@map("tracking_sessions")
+}
+
+/// RANGE-partitioned monthly on recorded_at (SQL migration). Partition key must be in the PK.
+model VehicleLocationPoint {
+  id                String   @db.Uuid
+  trackingSessionId String   @map("tracking_session_id") @db.Uuid
+  vehicleId         String   @map("vehicle_id") @db.Uuid
+  latitude          Decimal  @db.Decimal(10, 7)
+  longitude         Decimal  @db.Decimal(10, 7)
+  accuracyM         Decimal? @map("accuracy_m") @db.Decimal(8, 2)
+  headingDeg        Decimal? @map("heading_deg") @db.Decimal(5, 2)
+  speedKmh          Decimal? @map("speed_kmh") @db.Decimal(6, 2)
+  recordedAt        DateTime @map("recorded_at") @db.Timestamptz
+  receivedAt        DateTime @default(now()) @map("received_at") @db.Timestamptz
+
+  trackingSession TrackingSession @relation(fields: [trackingSessionId], references: [id], onDelete: Cascade)
+  vehicle         Vehicle         @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+
+  @@id([id, recordedAt])
+  @@index([trackingSessionId, recordedAt])
+  @@map("vehicle_location_points")
+}
+
+// ═════════════════════════════════════════════════════════════════════════════
+// payments
+// ═════════════════════════════════════════════════════════════════════════════
+
+model Payment {
+  id                 String             @id @db.Uuid
+  paymentNumber      String             @unique(map: "uq_payments_number") @map("payment_number") @db.VarChar(24)
+  bookingId          String?            @map("booking_id") @db.Uuid
+  invoiceId          String?            @map("invoice_id") @db.Uuid
+  customerProfileId  String             @map("customer_profile_id") @db.Uuid
+  purpose            PaymentPurpose
+  amount             Decimal            @db.Decimal(14, 2)
+  currency           String             @default("SAR") @db.Char(3)
+  status             PaymentStatus      @default(PENDING)
+  providerCode       String             @map("provider_code") @db.VarChar(48)
+  providerPaymentId  String?            @map("provider_payment_id") @db.VarChar(128)
+  paymentMethodType  PaymentMethodType? @map("payment_method_type")
+  paymentMethodLast4 String?            @map("payment_method_last4") @db.Char(4)
+  authorizedAt       DateTime?          @map("authorized_at") @db.Timestamptz
+  paidAt             DateTime?          @map("paid_at") @db.Timestamptz
+  failedAt           DateTime?          @map("failed_at") @db.Timestamptz
+  failureCode        String?            @map("failure_code") @db.VarChar(64)
+  failureMessage     String?            @map("failure_message")
+  expiresAt          DateTime?          @map("expires_at") @db.Timestamptz
+  idempotencyKey     String?            @map("idempotency_key") @db.VarChar(64)
+  metadata           Json               @default("{}")
+  createdAt          DateTime           @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt          DateTime           @updatedAt @map("updated_at") @db.Timestamptz
+
+  booking         Booking?              @relation(fields: [bookingId], references: [id])
+  invoice         Invoice?              @relation(fields: [invoiceId], references: [id])
+  customerProfile CustomerProfile       @relation(fields: [customerProfileId], references: [id])
+  transactions    PaymentTransaction[]
+  refunds         Refund[]
+  webhookEvents   PaymentWebhookEvent[]
+  ledgerEntries   LedgerEntry[]
+
+  @@index([bookingId])
+  @@index([invoiceId])
+  @@index([customerProfileId, createdAt(sort: Desc)])
+  @@index([providerCode, providerPaymentId])
+  @@map("payments")
+}
+
+model PaymentTransaction {
+  id                      String                   @id @db.Uuid
+  paymentId               String                   @map("payment_id") @db.Uuid
+  type                    PaymentTransactionType
+  amount                  Decimal                  @db.Decimal(14, 2)
+  currency                String                   @default("SAR") @db.Char(3)
+  status                  PaymentTransactionStatus
+  providerTransactionId   String?                  @map("provider_transaction_id") @db.VarChar(128)
+  providerResponseCode    String?                  @map("provider_response_code") @db.VarChar(64)
+  requestPayloadRedacted  Json?                    @map("request_payload_redacted")
+  responsePayloadRedacted Json?                    @map("response_payload_redacted")
+  occurredAt              DateTime                 @default(now()) @map("occurred_at") @db.Timestamptz
+
+  payment Payment @relation(fields: [paymentId], references: [id], onDelete: Cascade)
+
+  @@index([paymentId, occurredAt])
+  @@map("payment_transactions")
+}
+
+model Refund {
+  id                String       @id @db.Uuid
+  refundNumber      String       @unique(map: "uq_refunds_number") @map("refund_number") @db.VarChar(24)
+  paymentId         String       @map("payment_id") @db.Uuid
+  bookingId         String?      @map("booking_id") @db.Uuid
+  amount            Decimal      @db.Decimal(14, 2)
+  currency          String       @default("SAR") @db.Char(3)
+  reasonCode        String       @map("reason_code") @db.VarChar(48)
+  reasonText        String?      @map("reason_text")
+  status            RefundStatus @default(REQUESTED)
+  requestedByUserId String?      @map("requested_by_user_id") @db.Uuid
+  approvedByUserId  String?      @map("approved_by_user_id") @db.Uuid
+  providerRefundId  String?      @map("provider_refund_id") @db.VarChar(128)
+  processedAt       DateTime?    @map("processed_at") @db.Timestamptz
+  createdAt         DateTime     @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt         DateTime     @updatedAt @map("updated_at") @db.Timestamptz
+
+  payment       Payment       @relation(fields: [paymentId], references: [id])
+  booking       Booking?      @relation(fields: [bookingId], references: [id])
+  ledgerEntries LedgerEntry[]
+
+  @@index([paymentId])
+  @@map("refunds")
+}
+
+model PaymentMethodToken {
+  id                String            @id @db.Uuid
+  customerProfileId String            @map("customer_profile_id") @db.Uuid
+  providerCode      String            @map("provider_code") @db.VarChar(48)
+  providerToken     String            @map("provider_token")
+  methodType        PaymentMethodType @map("method_type")
+  brand             String?           @db.VarChar(32)
+  last4             String?           @db.Char(4)
+  expiryMonth       Int?              @map("expiry_month") @db.SmallInt
+  expiryYear        Int?              @map("expiry_year") @db.SmallInt
+  isDefault         Boolean           @default(false) @map("is_default")
+  createdAt         DateTime          @default(now()) @map("created_at") @db.Timestamptz
+  deletedAt         DateTime?         @map("deleted_at") @db.Timestamptz
+
+  customerProfile CustomerProfile @relation(fields: [customerProfileId], references: [id], onDelete: Cascade)
+
+  @@index([customerProfileId])
+  @@map("payment_method_tokens")
+}
+
+model PaymentWebhookEvent {
+  id               String                  @id @db.Uuid
+  providerCode     String                  @map("provider_code") @db.VarChar(48)
+  providerEventId  String                  @map("provider_event_id") @db.VarChar(128)
+  eventType        String                  @map("event_type") @db.VarChar(96)
+  signatureHeader  String?                 @map("signature_header")
+  signatureValid   Boolean                 @map("signature_valid")
+  rawPayload       Json                    @map("raw_payload")
+  httpHeaders      Json                    @default("{}") @map("http_headers")
+  receivedAt       DateTime                @default(now()) @map("received_at") @db.Timestamptz
+  processingStatus WebhookProcessingStatus @default(RECEIVED) @map("processing_status")
+  processedAt      DateTime?               @map("processed_at") @db.Timestamptz
+  attemptCount     Int                     @default(0) @map("attempt_count")
+  lastError        String?                 @map("last_error")
+  relatedPaymentId String?                 @map("related_payment_id") @db.Uuid
+
+  relatedPayment Payment? @relation(fields: [relatedPaymentId], references: [id])
+
+  @@unique([providerCode, providerEventId], map: "uq_webhook_provider_event")
+  @@index([processingStatus, receivedAt])
+  @@map("payment_webhook_events")
+}
+
+// ═════════════════════════════════════════════════════════════════════════════
+// finance
+// ═════════════════════════════════════════════════════════════════════════════
+
+model CommissionRule {
+  id                String                    @id @db.Uuid
+  name              String                    @db.VarChar(120)
+  scope             CommissionScope
+  vehicleCategoryId String?                   @map("vehicle_category_id") @db.Uuid
+  ownerProfileId    String?                   @map("owner_profile_id") @db.Uuid
+  transportType     TransportType?            @map("transport_type")
+  calculationType   CommissionCalculationType @map("calculation_type")
+  percentageRate    Decimal?                  @map("percentage_rate") @db.Decimal(6, 4)
+  fixedAmount       Decimal?                  @map("fixed_amount") @db.Decimal(14, 2)
+  basis             CommissionBasis           @default(NET_OF_VAT)
+  minAmount         Decimal?                  @map("min_amount") @db.Decimal(14, 2)
+  maxAmount         Decimal?                  @map("max_amount") @db.Decimal(14, 2)
+  currency          String                    @default("SAR") @db.Char(3)
+  priority          Int                       @default(0)
+  effectiveFrom     DateTime                  @map("effective_from") @db.Timestamptz
+  effectiveTo       DateTime?                 @map("effective_to") @db.Timestamptz
+  isActive          Boolean                   @default(true) @map("is_active")
+  createdByUserId   String?                   @map("created_by_user_id") @db.Uuid
+  createdAt         DateTime                  @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt         DateTime                  @updatedAt @map("updated_at") @db.Timestamptz
+
+  vehicleCategory VehicleCategory?           @relation(fields: [vehicleCategoryId], references: [id])
+  ownerProfile    OwnerProfile?              @relation(fields: [ownerProfileId], references: [id])
+  snapshots       BookingFinancialSnapshot[]
+
+  @@index([scope, isActive, effectiveFrom])
+  @@map("commission_rules")
+}
+
+model BookingFinancialSnapshot {
+  id                         String           @id @db.Uuid
+  bookingId                  String           @unique(map: "uq_booking_financial_snapshots_booking") @map("booking_id") @db.Uuid
+  grossAmount                Decimal          @map("gross_amount") @db.Decimal(14, 2)
+  vatRate                    Decimal          @map("vat_rate") @db.Decimal(6, 4)
+  vatAmount                  Decimal          @map("vat_amount") @db.Decimal(14, 2)
+  netOfVatAmount             Decimal          @map("net_of_vat_amount") @db.Decimal(14, 2)
+  commissionRuleId           String?          @map("commission_rule_id") @db.Uuid
+  commissionRuleSnapshot     Json             @default("{}") @map("commission_rule_snapshot")
+  commissionBasis            CommissionBasis? @map("commission_basis")
+  commissionRate             Decimal?         @map("commission_rate") @db.Decimal(6, 4)
+  commissionAmount           Decimal          @default(0) @map("commission_amount") @db.Decimal(14, 2)
+  commissionSource           CommissionSource @map("commission_source")
+  commissionOverrideSnapshot Json?            @map("commission_override_snapshot")
+  commissionVatAmount        Decimal          @default(0) @map("commission_vat_amount") @db.Decimal(14, 2)
+  paymentFeeAmount           Decimal          @default(0) @map("payment_fee_amount") @db.Decimal(14, 2)
+  paymentFeeSnapshot         Json             @default("{}") @map("payment_fee_snapshot")
+  ownerGrossAmount           Decimal          @map("owner_gross_amount") @db.Decimal(14, 2)
+  ownerNetAmount             Decimal          @map("owner_net_amount") @db.Decimal(14, 2)
+  spoCommissionAmount        Decimal          @default(0) @map("spo_commission_amount") @db.Decimal(14, 2)
+  spoRuleSnapshot            Json             @default("{}") @map("spo_rule_snapshot")
+  vatTreatment               VatTreatment     @map("vat_treatment")
+  ownerVatRegisteredSnapshot Boolean          @map("owner_vat_registered_snapshot")
+  ownerVatNumberSnapshot     String?          @map("owner_vat_number_snapshot") @db.VarChar(15)
+  currency                   String           @default("SAR") @db.Char(3)
+  computedAt                 DateTime         @default(now()) @map("computed_at") @db.Timestamptz
+  calculationVersion         Int              @map("calculation_version")
+
+  booking        Booking         @relation(fields: [bookingId], references: [id])
+  commissionRule CommissionRule? @relation(fields: [commissionRuleId], references: [id])
+
+  @@map("booking_financial_snapshots")
+}
+
+model LedgerAccount {
+  id       String            @id @db.Uuid
+  code     String            @unique(map: "uq_ledger_accounts_code") @db.VarChar(48)
+  nameEn   String            @map("name_en") @db.VarChar(120)
+  nameAr   String            @map("name_ar") @db.VarChar(120)
+  type     LedgerAccountType
+  isActive Boolean           @default(true) @map("is_active")
+
+  entries LedgerEntry[]
+
+  @@map("ledger_accounts")
+}
+
+model LedgerEntry {
+  id                 String          @id @db.Uuid
+  transactionGroupId String          @map("transaction_group_id") @db.Uuid
+  ledgerAccountId    String          @map("ledger_account_id") @db.Uuid
+  direction          LedgerDirection
+  amount             Decimal         @db.Decimal(14, 2)
+  currency           String          @default("SAR") @db.Char(3)
+  ownerProfileId     String?         @map("owner_profile_id") @db.Uuid
+  customerProfileId  String?         @map("customer_profile_id") @db.Uuid
+  bookingId          String?         @map("booking_id") @db.Uuid
+  paymentId          String?         @map("payment_id") @db.Uuid
+  settlementId       String?         @map("settlement_id") @db.Uuid
+  refundId           String?         @map("refund_id") @db.Uuid
+  invoiceId          String?         @map("invoice_id") @db.Uuid
+  description        String
+  occurredAt         DateTime        @map("occurred_at") @db.Timestamptz
+  createdAt          DateTime        @default(now()) @map("created_at") @db.Timestamptz
+
+  account    LedgerAccount @relation(fields: [ledgerAccountId], references: [id])
+  booking    Booking?      @relation(fields: [bookingId], references: [id])
+  payment    Payment?      @relation(fields: [paymentId], references: [id])
+  settlement Settlement?   @relation(fields: [settlementId], references: [id])
+  refund     Refund?       @relation(fields: [refundId], references: [id])
+  invoice    Invoice?      @relation(fields: [invoiceId], references: [id])
+
+  @@index([transactionGroupId])
+  @@index([ledgerAccountId, occurredAt])
+  @@index([ownerProfileId, ledgerAccountId])
+  @@index([customerProfileId, ledgerAccountId])
+  @@map("ledger_entries")
+}
+
+model Settlement {
+  id                String           @id @db.Uuid
+  settlementNumber  String           @unique(map: "uq_settlements_number") @map("settlement_number") @db.VarChar(24)
+  ownerProfileId    String           @map("owner_profile_id") @db.Uuid
+  periodStart       DateTime         @map("period_start") @db.Timestamptz
+  periodEnd         DateTime         @map("period_end") @db.Timestamptz
+  grossAmount       Decimal          @default(0) @map("gross_amount") @db.Decimal(14, 2)
+  commissionAmount  Decimal          @default(0) @map("commission_amount") @db.Decimal(14, 2)
+  adjustmentsAmount Decimal          @default(0) @map("adjustments_amount") @db.Decimal(14, 2)
+  netPayableAmount  Decimal          @default(0) @map("net_payable_amount") @db.Decimal(14, 2)
+  currency          String           @default("SAR") @db.Char(3)
+  status            SettlementStatus @default(DRAFT)
+  bankAccountId     String?          @map("bank_account_id") @db.Uuid
+  paymentReference  String?          @map("payment_reference") @db.VarChar(128)
+  approvedByUserId  String?          @map("approved_by_user_id") @db.Uuid
+  paidAt            DateTime?        @map("paid_at") @db.Timestamptz
+  notes             String?
+  createdAt         DateTime         @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt         DateTime         @updatedAt @map("updated_at") @db.Timestamptz
+
+  ownerProfile  OwnerProfile      @relation(fields: [ownerProfileId], references: [id])
+  bankAccount   OwnerBankAccount? @relation(fields: [bankAccountId], references: [id])
+  lines         SettlementLine[]
+  ledgerEntries LedgerEntry[]
+
+  @@index([ownerProfileId, periodStart])
+  @@index([status])
+  @@map("settlements")
+}
+
+model SettlementLine {
+  id                String               @id @db.Uuid
+  settlementId      String               @map("settlement_id") @db.Uuid
+  bookingId         String?              @map("booking_id") @db.Uuid
+  lineType          SettlementLineType   @map("line_type")
+  amount            Decimal              @db.Decimal(14, 2)
+  currency          String               @default("SAR") @db.Char(3)
+  description       String
+  holdReason        SettlementHoldReason @default(NONE) @map("hold_reason")
+  heldSince         DateTime?            @map("held_since") @db.Timestamptz
+  releasedAt        DateTime?            @map("released_at") @db.Timestamptz
+  supplierInvoiceId String?              @map("supplier_invoice_id") @db.Uuid
+  eligibleAt        DateTime?            @map("eligible_at") @db.Timestamptz
+  createdAt         DateTime             @default(now()) @map("created_at") @db.Timestamptz
+
+  settlement      Settlement       @relation(fields: [settlementId], references: [id], onDelete: Cascade)
+  booking         Booking?         @relation(fields: [bookingId], references: [id])
+  supplierInvoice SupplierInvoice? @relation(fields: [supplierInvoiceId], references: [id])
+
+  @@index([settlementId])
+  @@index([holdReason])
+  @@map("settlement_lines")
+}
+
+model OwnerBankAccount {
+  id                String    @id @db.Uuid
+  ownerProfileId    String    @map("owner_profile_id") @db.Uuid
+  accountHolderName String    @map("account_holder_name") @db.VarChar(160)
+  bankName          String    @map("bank_name") @db.VarChar(120)
+  ibanEncrypted     String    @map("iban_encrypted")
+  ibanLast4         String    @map("iban_last4") @db.Char(4)
+  ibanBlindIndex    String    @map("iban_blind_index") @db.Char(64)
+  isVerified        Boolean   @default(false) @map("is_verified")
+  verifiedAt        DateTime? @map("verified_at") @db.Timestamptz
+  isDefault         Boolean   @default(false) @map("is_default")
+  activationAt      DateTime  @map("activation_at") @db.Timestamptz
+  lastChangedAt     DateTime  @default(now()) @map("last_changed_at") @db.Timestamptz
+  changedByUserId   String?   @map("changed_by_user_id") @db.Uuid
+  createdAt         DateTime  @default(now()) @map("created_at") @db.Timestamptz
+  deletedAt         DateTime? @map("deleted_at") @db.Timestamptz
+
+  ownerProfile OwnerProfile @relation(fields: [ownerProfileId], references: [id], onDelete: Cascade)
+  settlements  Settlement[]
+
+  @@index([ownerProfileId])
+  @@map("owner_bank_accounts")
+}
+
+model Invoice {
+  id                         String                 @id @db.Uuid
+  invoiceNumber              String                 @unique(map: "uq_invoices_number") @map("invoice_number") @db.VarChar(32)
+  invoiceType                InvoiceType            @map("invoice_type")
+  issuedToCustomerProfileId  String                 @map("issued_to_customer_profile_id") @db.Uuid
+  corporateCustomerProfileId String?                @map("corporate_customer_profile_id") @db.Uuid
+  correctsInvoiceId          String?                @map("corrects_invoice_id") @db.Uuid
+  billingPeriodStart         DateTime?              @map("billing_period_start") @db.Date
+  billingPeriodEnd           DateTime?              @map("billing_period_end") @db.Date
+  sellerVatNumber            String                 @map("seller_vat_number") @db.VarChar(15)
+  buyerVatNumber             String?                @map("buyer_vat_number") @db.VarChar(15)
+  lineGranularitySnapshot    InvoiceLineGranularity @default(ORDER) @map("line_granularity_snapshot")
+  subtotalAmount             Decimal                @map("subtotal_amount") @db.Decimal(14, 2)
+  vatAmount                  Decimal                @map("vat_amount") @db.Decimal(14, 2)
+  totalAmount                Decimal                @map("total_amount") @db.Decimal(14, 2)
+  paidAmount                 Decimal                @default(0) @map("paid_amount") @db.Decimal(14, 2)
+  outstandingAmount          Decimal                @map("outstanding_amount") @db.Decimal(14, 2)
+  currency                   String                 @default("SAR") @db.Char(3)
+  issueDate                  DateTime               @map("issue_date") @db.Date
+  supplyDate                 DateTime               @map("supply_date") @db.Date
+  dueDate                    DateTime               @map("due_date") @db.Date
+  status                     InvoiceStatus          @default(DRAFT)
+  pdfDocumentId              String?                @map("pdf_document_id") @db.Uuid
+  // e-invoicing (database.md §12.7)
+  einvoiceUuid               String?                @map("einvoice_uuid") @db.Uuid
+  icv                        BigInt?
+  previousInvoiceHash        String?                @map("previous_invoice_hash")
+  invoiceHash                String?                @map("invoice_hash")
+  cryptographicStamp         String?                @map("cryptographic_stamp")
+  qrCodeTlv                  String?                @map("qr_code_tlv")
+  xmlDocumentId              String?                @map("xml_document_id") @db.Uuid
+  clearedXmlDocumentId       String?                @map("cleared_xml_document_id") @db.Uuid
+  clearanceStatus            ClearanceStatus        @default(NOT_REQUIRED) @map("clearance_status")
+  clearanceSubmittedAt       DateTime?              @map("clearance_submitted_at") @db.Timestamptz
+  clearanceCompletedAt       DateTime?              @map("clearance_completed_at") @db.Timestamptz
+  clearanceResponse          Json?                  @map("clearance_response")
+  clearanceAttemptCount      Int                    @default(0) @map("clearance_attempt_count")
+  reportingDueAt             DateTime?              @map("reporting_due_at") @db.Timestamptz
+  providerReference          String?                @map("provider_reference") @db.VarChar(128)
+  createdAt                  DateTime               @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt                  DateTime               @updatedAt @map("updated_at") @db.Timestamptz
+
+  issuedTo          CustomerProfile           @relation(fields: [issuedToCustomerProfileId], references: [id])
+  corporateCustomer CorporateCustomerProfile? @relation(fields: [corporateCustomerProfileId], references: [id])
+  corrects          Invoice?                  @relation("InvoiceCorrection", fields: [correctsInvoiceId], references: [id])
+  correctedBy       Invoice[]                 @relation("InvoiceCorrection")
+  lines             InvoiceLine[]
+  payments          Payment[]
+  ledgerEntries     LedgerEntry[]
+
+  @@index([issuedToCustomerProfileId, issueDate(sort: Desc)])
+  @@index([status, dueDate])
+  @@index([clearanceStatus])
+  @@map("invoices")
+}
+
+model InvoiceLine {
+  id            String          @id @db.Uuid
+  invoiceId     String          @map("invoice_id") @db.Uuid
+  lineType      InvoiceLineType @map("line_type")
+  tripRequestId String?         @map("trip_request_id") @db.Uuid
+  bookingId     String?         @map("booking_id") @db.Uuid
+  descriptionEn String          @map("description_en")
+  descriptionAr String          @map("description_ar")
+  quantity      Decimal         @default(1) @db.Decimal(10, 2)
+  unitAmount    Decimal         @map("unit_amount") @db.Decimal(14, 2)
+  netAmount     Decimal         @map("net_amount") @db.Decimal(14, 2)
+  vatRate       Decimal         @map("vat_rate") @db.Decimal(6, 4)
+  vatAmount     Decimal         @map("vat_amount") @db.Decimal(14, 2)
+  totalAmount   Decimal         @map("total_amount") @db.Decimal(14, 2)
+  vatCategory   String          @default("S") @map("vat_category") @db.Char(1)
+  sortOrder     Int             @default(0) @map("sort_order")
+
+  invoice     Invoice              @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  tripRequest TripRequest?         @relation(fields: [tripRequestId], references: [id])
+  booking     Booking?             @relation(fields: [bookingId], references: [id])
+  bookings    InvoiceLineBooking[]
+
+  @@index([invoiceId, sortOrder])
+  @@map("invoice_lines")
+}
+
+/// Which bookings an ORDER line covers — keeps "one live invoice per booking" intact when a
+/// line aggregates many (database.md §12.6, FR-FINANCE-17).
+model InvoiceLineBooking {
+  invoiceLineId String @map("invoice_line_id") @db.Uuid
+  bookingId     String @unique(map: "uq_invoice_line_bookings_booking") @map("booking_id") @db.Uuid
+
+  invoiceLine InvoiceLine @relation(fields: [invoiceLineId], references: [id], onDelete: Cascade)
+  booking     Booking     @relation(fields: [bookingId], references: [id])
+
+  @@id([invoiceLineId, bookingId])
+  @@map("invoice_line_bookings")
+}
+
+/// The supplier's (owner's) invoice TO UniGate for a booking — supplier-issued and verified,
+/// or self-billed under Art 53(2) and accepted. Releases the settlement hold (FR-FINANCE-25).
+model SupplierInvoice {
+  id                    String                @id @db.Uuid
+  ownerProfileId        String                @map("owner_profile_id") @db.Uuid
+  bookingId             String                @map("booking_id") @db.Uuid
+  kind                  SupplierInvoiceKind
+  status                SupplierInvoiceStatus @default(PENDING)
+  supplierInvoiceNumber String?               @map("supplier_invoice_number") @db.VarChar(64)
+  sellerVatNumber       String                @map("seller_vat_number") @db.VarChar(15)
+  netAmount             Decimal               @map("net_amount") @db.Decimal(14, 2)
+  vatAmount             Decimal               @map("vat_amount") @db.Decimal(14, 2)
+  totalAmount           Decimal               @map("total_amount") @db.Decimal(14, 2)
+  currency              String                @default("SAR") @db.Char(3)
+  issueDate             DateTime              @map("issue_date") @db.Date
+  einvoiceUuid          String?               @map("einvoice_uuid") @db.Uuid
+  qrVerifiedAt          DateTime?             @map("qr_verified_at") @db.Timestamptz
+  pdfDocumentId         String?               @map("pdf_document_id") @db.Uuid
+  xmlDocumentId         String?               @map("xml_document_id") @db.Uuid
+  agreementId           String?               @map("agreement_id") @db.Uuid
+  providerReference     String?               @map("provider_reference") @db.VarChar(128)
+  verifiedByUserId      String?               @map("verified_by_user_id") @db.Uuid
+  verifiedAt            DateTime?             @map("verified_at") @db.Timestamptz
+  rejectionReason       String?               @map("rejection_reason")
+  createdAt             DateTime              @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt             DateTime              @updatedAt @map("updated_at") @db.Timestamptz
+
+  ownerProfile    OwnerProfile          @relation(fields: [ownerProfileId], references: [id])
+  booking         Booking               @relation(fields: [bookingId], references: [id])
+  agreement       SelfBillingAgreement? @relation(fields: [agreementId], references: [id])
+  settlementLines SettlementLine[]
+
+  @@index([bookingId, status])
+  @@index([ownerProfileId, status])
+  @@map("supplier_invoices")
+}
+
+/// One per VAT-registered supplier (research §11); ZATCA approval reference recorded per row.
+model SelfBillingAgreement {
+  id                      String    @id @db.Uuid
+  ownerProfileId          String    @map("owner_profile_id") @db.Uuid
+  supplierVatNumber       String    @map("supplier_vat_number") @db.VarChar(15)
+  templateVersion         String    @map("template_version") @db.VarChar(16)
+  signedDocumentId        String?   @map("signed_document_id") @db.Uuid
+  effectiveFrom           DateTime? @map("effective_from") @db.Date
+  expiresAt               DateTime? @map("expires_at") @db.Date
+  acceptanceWindowDays    Int       @default(5) @map("acceptance_window_days") @db.SmallInt
+  status                  String    @default("DRAFT") @db.VarChar(24)
+  zatcaApprovalReference  String?   @map("zatca_approval_reference") @db.VarChar(128)
+  zatcaSubmittedAt        DateTime? @map("zatca_submitted_at") @db.Timestamptz
+  zatcaApprovedAt         DateTime? @map("zatca_approved_at") @db.Timestamptz
+  zatcaApprovalDocumentId String?   @map("zatca_approval_document_id") @db.Uuid
+  suspendedReason         String?   @map("suspended_reason")
+  createdAt               DateTime  @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt               DateTime  @updatedAt @map("updated_at") @db.Timestamptz
+
+  ownerProfile     OwnerProfile      @relation(fields: [ownerProfileId], references: [id])
+  supplierInvoices SupplierInvoice[]
+
+  @@index([ownerProfileId, status])
+  @@map("self_billing_agreements")
+}
+
+model Expense {
+  id                String    @id @db.Uuid
+  ownerProfileId    String    @map("owner_profile_id") @db.Uuid
+  vehicleId         String?   @map("vehicle_id") @db.Uuid
+  driverProfileId   String?   @map("driver_profile_id") @db.Uuid
+  tripId            String?   @map("trip_id") @db.Uuid
+  expenseCategoryId String    @map("expense_category_id") @db.Uuid
+  amount            Decimal   @db.Decimal(14, 2)
+  vatAmount         Decimal   @default(0) @map("vat_amount") @db.Decimal(14, 2)
+  totalAmount       Decimal   @map("total_amount") @db.Decimal(14, 2)
+  currency          String    @default("SAR") @db.Char(3)
+  expenseDate       DateTime  @map("expense_date") @db.Date
+  description       String?
+  vendorName        String?   @map("vendor_name") @db.VarChar(160)
+  odometerKm        Int?      @map("odometer_km")
+  receiptDocumentId String?   @map("receipt_document_id") @db.Uuid
+  isReimbursable    Boolean   @default(false) @map("is_reimbursable")
+  createdByUserId   String    @map("created_by_user_id") @db.Uuid
+  createdAt         DateTime  @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt         DateTime  @updatedAt @map("updated_at") @db.Timestamptz
+  deletedAt         DateTime? @map("deleted_at") @db.Timestamptz
+
+  ownerProfile  OwnerProfile    @relation(fields: [ownerProfileId], references: [id])
+  vehicle       Vehicle?        @relation(fields: [vehicleId], references: [id])
+  driverProfile DriverProfile?  @relation(fields: [driverProfileId], references: [id])
+  trip          Trip?           @relation(fields: [tripId], references: [id])
+  category      ExpenseCategory @relation(fields: [expenseCategoryId], references: [id])
+  documents     Document[]      @relation("DocumentExpense")
+
+  @@index([ownerProfileId, expenseDate(sort: Desc)])
+  @@index([vehicleId, expenseDate])
+  @@map("expenses")
+}
+
+// ═════════════════════════════════════════════════════════════════════════════
+// maintenance
+// ═════════════════════════════════════════════════════════════════════════════
+
+model MaintenanceRecord {
+  id                       String            @id @db.Uuid
+  vehicleId                String            @map("vehicle_id") @db.Uuid
+  maintenanceServiceTypeId String            @map("maintenance_service_type_id") @db.Uuid
+  maintenanceKind          MaintenanceKind   @map("maintenance_kind")
+  status                   MaintenanceStatus @default(PLANNED)
+  scheduledStartAt         DateTime          @map("scheduled_start_at") @db.Timestamptz
+  scheduledEndAt           DateTime          @map("scheduled_end_at") @db.Timestamptz
+  actualStartAt            DateTime?         @map("actual_start_at") @db.Timestamptz
+  actualEndAt              DateTime?         @map("actual_end_at") @db.Timestamptz
+  odometerKm               Int?              @map("odometer_km")
+  costAmount               Decimal           @default(0) @map("cost_amount") @db.Decimal(14, 2)
+  vatAmount                Decimal           @default(0) @map("vat_amount") @db.Decimal(14, 2)
+  totalAmount              Decimal           @default(0) @map("total_amount") @db.Decimal(14, 2)
+  currency                 String            @default("SAR") @db.Char(3)
+  workshopName             String?           @map("workshop_name") @db.VarChar(160)
+  workshopContact          String?           @map("workshop_contact") @db.VarChar(160)
+  description              String?
+  partsReplaced            Json              @default("[]") @map("parts_replaced")
+  nextServiceDate          DateTime?         @map("next_service_date") @db.Date
+  nextServiceOdometerKm    Int?              @map("next_service_odometer_km")
+  createdByUserId          String?           @map("created_by_user_id") @db.Uuid
+  createdAt                DateTime          @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt                DateTime          @updatedAt @map("updated_at") @db.Timestamptz
+
+  vehicle       Vehicle                @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+  serviceType   MaintenanceServiceType @relation(fields: [maintenanceServiceTypeId], references: [id])
+  calendarEntry VehicleCalendarEntry?
+  documents     Document[]             @relation("DocumentMaintenance")
+
+  @@index([vehicleId, scheduledStartAt])
+  @@map("maintenance_records")
+}
+
+model MaintenanceSchedule {
+  id                       String    @id @db.Uuid
+  vehicleId                String    @map("vehicle_id") @db.Uuid
+  maintenanceServiceTypeId String    @map("maintenance_service_type_id") @db.Uuid
+  intervalKm               Int?      @map("interval_km")
+  intervalDays             Int?      @map("interval_days")
+  lastServiceAt            DateTime? @map("last_service_at") @db.Timestamptz
+  lastServiceOdometerKm    Int?      @map("last_service_odometer_km")
+  nextDueAt                DateTime? @map("next_due_at") @db.Timestamptz
+  nextDueOdometerKm        Int?      @map("next_due_odometer_km")
+  isActive                 Boolean   @default(true) @map("is_active")
+  createdAt                DateTime  @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt                DateTime  @updatedAt @map("updated_at") @db.Timestamptz
+
+  vehicle     Vehicle                @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+  serviceType MaintenanceServiceType @relation(fields: [maintenanceServiceTypeId], references: [id])
+
+  @@index([nextDueAt])
+  @@map("maintenance_schedules")
+}
+
+// ═════════════════════════════════════════════════════════════════════════════
+// engagement
+// ═════════════════════════════════════════════════════════════════════════════
+
+model Rating {
+  id                String            @id @db.Uuid
+  bookingId         String            @map("booking_id") @db.Uuid
+  tripId            String?           @map("trip_id") @db.Uuid
+  raterUserId       String            @map("rater_user_id") @db.Uuid
+  raterRole         RaterRole         @map("rater_role")
+  subjectType       RatingSubjectType @map("subject_type")
+  subjectId         String            @map("subject_id") @db.Uuid
+  score             Int               @db.SmallInt
+  comment           String?
+  status            RatingStatus      @default(PUBLISHED)
+  moderatedByUserId String?           @map("moderated_by_user_id") @db.Uuid
+  createdAt         DateTime          @default(now()) @map("created_at") @db.Timestamptz
+
+  booking Booking @relation(fields: [bookingId], references: [id])
+  trip    Trip?   @relation(fields: [tripId], references: [id])
+
+  @@unique([bookingId, raterUserId, subjectType, subjectId], map: "uq_ratings_once")
+  @@index([subjectType, subjectId, status])
+  @@map("ratings")
+}
+
+model Complaint {
+  id               String               @id @db.Uuid
+  complaintNumber  String               @unique(map: "uq_complaints_number") @map("complaint_number") @db.VarChar(24)
+  raisedByUserId   String               @map("raised_by_user_id") @db.Uuid
+  bookingId        String?              @map("booking_id") @db.Uuid
+  tripId           String?              @map("trip_id") @db.Uuid
+  againstType      ComplaintAgainstType @map("against_type")
+  againstId        String?              @map("against_id") @db.Uuid
+  category         String               @db.VarChar(48)
+  subject          String               @db.VarChar(200)
+  description      String
+  severity         ComplaintSeverity    @default(MEDIUM)
+  status           ComplaintStatus      @default(OPEN)
+  assignedToUserId String?              @map("assigned_to_user_id") @db.Uuid
+  resolution       String?
+  resolvedAt       DateTime?            @map("resolved_at") @db.Timestamptz
+  createdAt        DateTime             @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt        DateTime             @updatedAt @map("updated_at") @db.Timestamptz
+
+  booking Booking?        @relation(fields: [bookingId], references: [id])
+  trip    Trip?           @relation(fields: [tripId], references: [id])
+  notes   ComplaintNote[]
+
+  @@index([status, severity])
+  @@index([assignedToUserId, status])
+  @@map("complaints")
+}
+
+model ComplaintNote {
+  id           String   @id @db.Uuid
+  complaintId  String   @map("complaint_id") @db.Uuid
+  authorUserId String   @map("author_user_id") @db.Uuid
+  body         String
+  isInternal   Boolean  @default(true) @map("is_internal")
+  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz
+
+  complaint Complaint @relation(fields: [complaintId], references: [id], onDelete: Cascade)
+
+  @@index([complaintId, createdAt])
+  @@map("complaint_notes")
+}
+
+// ═════════════════════════════════════════════════════════════════════════════
+// notifications
+// ═════════════════════════════════════════════════════════════════════════════
+
+model NotificationTemplate {
+  id        String              @id @db.Uuid
+  code      String              @db.VarChar(64)
+  channel   NotificationChannel
+  locale    String              @db.VarChar(5)
+  subject   String?             @db.VarChar(200)
+  body      String
+  variables String[]
+  category  String              @db.VarChar(48)
+  isActive  Boolean             @default(true) @map("is_active")
+  version   Int                 @default(1)
+  createdAt DateTime            @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt DateTime            @updatedAt @map("updated_at") @db.Timestamptz
+
+  @@unique([code, channel, locale], map: "uq_notification_templates_code_channel_locale")
+  @@map("notification_templates")
+}
+
+model Notification {
+  id                String              @id @db.Uuid
+  userId            String              @map("user_id") @db.Uuid
+  templateCode      String              @map("template_code") @db.VarChar(64)
+  channel           NotificationChannel
+  category          String              @db.VarChar(48)
+  title             String?             @db.VarChar(200)
+  body              String
+  data              Json                @default("{}")
+  status            NotificationStatus  @default(QUEUED)
+  providerMessageId String?             @map("provider_message_id") @db.VarChar(128)
+  errorMessage      String?             @map("error_message")
+  dedupeKey         String?             @map("dedupe_key") @db.VarChar(160)
+  sentAt            DateTime?           @map("sent_at") @db.Timestamptz
+  readAt            DateTime?           @map("read_at") @db.Timestamptz
+  createdAt         DateTime            @default(now()) @map("created_at") @db.Timestamptz
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, readAt, createdAt(sort: Desc)])
+  @@index([status, createdAt])
+  @@map("notifications")
+}
+
+model NotificationPreference {
+  userId    String              @map("user_id") @db.Uuid
+  category  String              @db.VarChar(48)
+  channel   NotificationChannel
+  isEnabled Boolean             @default(true) @map("is_enabled")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([userId, category, channel])
+  @@map("notification_preferences")
+}
+
+model DeviceToken {
+  id         String         @id @db.Uuid
+  userId     String         @map("user_id") @db.Uuid
+  token      String         @unique(map: "uq_device_tokens_token")
+  platform   DevicePlatform
+  appVersion String?        @map("app_version") @db.VarChar(32)
+  isActive   Boolean        @default(true) @map("is_active")
+  lastUsedAt DateTime?      @map("last_used_at") @db.Timestamptz
+  createdAt  DateTime       @default(now()) @map("created_at") @db.Timestamptz
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, isActive])
+  @@map("device_tokens")
+}
+
+// ═════════════════════════════════════════════════════════════════════════════
+// platform
+// ═════════════════════════════════════════════════════════════════════════════
+
+/// RANGE-partitioned monthly on occurred_at; append-only at the DB-role level (SQL migration).
+model AuditLog {
+  id            String        @db.Uuid
+  actorUserId   String?       @map("actor_user_id") @db.Uuid
+  actorType     ActorType     @map("actor_type")
+  actorRoles    String[]      @map("actor_roles")
+  action        String        @db.VarChar(96)
+  entityType    String        @map("entity_type") @db.VarChar(64)
+  entityId      String        @map("entity_id") @db.VarChar(128)
+  beforeValue   Json?         @map("before_value")
+  afterValue    Json?         @map("after_value")
+  changedFields String[]      @map("changed_fields")
+  ipAddress     String?       @map("ip_address") @db.Inet
+  userAgent     String?       @map("user_agent")
+  requestId     String?       @map("request_id") @db.Uuid
+  severity      AuditSeverity @default(INFO)
+  occurredAt    DateTime      @map("occurred_at") @db.Timestamptz
+
+  @@id([id, occurredAt])
+  @@index([entityType, entityId, occurredAt(sort: Desc)])
+  @@index([actorUserId, occurredAt(sort: Desc)])
+  @@index([severity, occurredAt(sort: Desc)])
+  @@map("audit_logs")
+}
+
+model OutboxEvent {
+  id            String       @id @db.Uuid
+  aggregateType String       @map("aggregate_type") @db.VarChar(64)
+  aggregateId   String       @map("aggregate_id") @db.Uuid
+  eventType     String       @map("event_type") @db.VarChar(96)
+  payload       Json
+  status        OutboxStatus @default(PENDING)
+  attemptCount  Int          @default(0) @map("attempt_count")
+  availableAt   DateTime     @default(now()) @map("available_at") @db.Timestamptz
+  publishedAt   DateTime?    @map("published_at") @db.Timestamptz
+  lastError     String?      @map("last_error")
+  createdAt     DateTime     @default(now()) @map("created_at") @db.Timestamptz
+
+  @@index([status, availableAt])
+  @@index([aggregateType, aggregateId])
+  @@map("outbox_events")
+}
+
+model IdempotencyKey {
+  key            String            @id @db.VarChar(96)
+  userId         String?           @map("user_id") @db.Uuid
+  endpoint       String            @db.VarChar(160)
+  requestHash    String            @map("request_hash") @db.Char(64)
+  responseStatus Int?              @map("response_status") @db.SmallInt
+  responseBody   Json?             @map("response_body")
+  status         IdempotencyStatus @default(IN_PROGRESS)
+  createdAt      DateTime          @default(now()) @map("created_at") @db.Timestamptz
+  expiresAt      DateTime          @map("expires_at") @db.Timestamptz
+
+  @@index([expiresAt])
+  @@map("idempotency_keys")
+}
+
+model ExportJob {
+  id                String          @id @db.Uuid
+  requestedByUserId String          @map("requested_by_user_id") @db.Uuid
+  reportCode        String          @map("report_code") @db.VarChar(64)
+  format            ExportFormat
+  filters           Json            @default("{}")
+  status            ExportJobStatus @default(QUEUED)
+  rowCount          Int?            @map("row_count")
+  documentId        String?         @map("document_id") @db.Uuid
+  errorMessage      String?         @map("error_message")
+  expiresAt         DateTime?       @map("expires_at") @db.Timestamptz
+  createdAt         DateTime        @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt         DateTime        @updatedAt @map("updated_at") @db.Timestamptz
+
+  requestedBy User @relation(fields: [requestedByUserId], references: [id])
+
+  @@index([requestedByUserId, createdAt(sort: Desc)])
+  @@map("export_jobs")
+}

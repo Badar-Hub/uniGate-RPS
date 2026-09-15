@@ -88,6 +88,15 @@ It also **dissolves the concern raised as AR-10**. The fear was stranded input V
 - [VATupdate — Wave 25 announcement](https://www.vatupdate.com/2026/07/27/zatca-announces-wave-25-of-e-invoicing-threshold-halved-to-sar-187500-integration-deadline-1-february-2027/)
 - [ZATCA — VAT Implementing Regulations](https://zatca.gov.sa/en/RulesRegulations/Taxes/Pages/VATImplementingRegulations.aspx)
 
+## Addendum, 2026-09-14 (later) — the provider is already chosen, and it is two APIs
+
+UniGate has since stated that its sales invoices already issue through **Wafeq Premium connected to Fatoora**. Two consequences for this ADR:
+
+1. **The wave/deadline concern above is closed** for UniGate's own paper (OQ-04 closed, AR-11 downgraded to an operational check that the device is a *production* registration).
+2. **"Provider API" resolves to Wafeq — but Wafeq is two products on one host.** The **Public API** (`POST /v1/invoices/` → `/invoices/{id}/tax-authority/report/`) is the accounting-system path UniGate uses today; it has **no self-billing flag** and its supplier `bills` have **no ZATCA reporting endpoint**. The separately-sold **Wafeq ZATCA API** (`POST /v1/zatca/invoices/report/`) is a standalone compliance service that exposes `indicators: ["SELF_BILLING", …]` and takes the seller per document, but posts nothing to the ledger. The `EInvoicingProvider` abstraction therefore gets **two adapters**: `WafeqPublicApiProvider` for the sales leg and `WafeqZatcaApiProvider` for the self-billed leg (ADR-008 / OQ-25), the second contingent on Wafeq confirming that a `SELF_BILLING` document may carry a supplier VAT number other than the account's own (**OQ-30**). Neither API offers webhooks; status is polled.
+
+Full analysis, ZATCA and Wafeq question sets, agreement structure and data model: [research/2026-09-14-self-billing-art-53-2-and-wafeq.md](../research/2026-09-14-self-billing-art-53-2-and-wafeq.md).
+
 ## Alternatives considered
 
 | Alternative | Rejected because |

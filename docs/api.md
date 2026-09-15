@@ -375,7 +375,7 @@ Both mean "I understood you and you may do this kind of thing, but not now." The
 | `RULE_PARTIAL_AWARD_NOT_ALLOWED` | 422 | Single-bid acceptance attempted on a request with `allow_partial_fulfilment = false` | Use `POST /trip-requests/{id}/award` with a bid set covering the whole remainder (**A-45**) |
 | `RULE_AWARD_SET_INCOMPLETE` | 422 | A group award's bid set does not cover `vehicles_required − vehicles_awarded` exactly | All-or-nothing award submitted with too few or too many bids |
 | `RULE_VEHICLES_REQUIRED_BELOW_AWARDED` | 422 | `PATCH …/remainder` would set `vehiclesRequired` below `vehicles_awarded` | Shrinking an order below what is already awarded — cancel a booking instead |
-| `RULE_CREDIT_LIMIT_EXCEEDED` | 422 | Outstanding `CUSTOMER_RECEIVABLE` + this booking's total exceeds `credit_limit_amount` | `INVOICED` award for a corporate customer at their ceiling (**A-46**) |
+| `RULE_CREDIT_LIMIT_EXCEEDED` | 422 | Credit exposure (unpaid issued invoices **+ live bookings not yet invoiced**) + this booking's total exceeds `credit_limit_amount` | `INVOICED` award for a corporate customer at their ceiling (**A-46**, **OQ-21**: the limit is the only gate — unpaid or overdue invoices alone never block while headroom remains) |
 | `RULE_CREDIT_NOT_APPROVED` | 422 | `corporate_customer_profiles.credit_status` is not `APPROVED` | `INVOICED` award for a customer whose credit is `NONE`, `PENDING_APPROVAL` or `SUSPENDED` |
 | `BID_EXPIRED` | 422 | `now() > valid_until` | Accepting a stale bid |
 | `BID_ALREADY_DECIDED` | 409 | Status is not `SUBMITTED` | Double-accept, or accepting a withdrawn bid |
@@ -388,7 +388,9 @@ Both mean "I understood you and you may do this kind of thing, but not now." The
 | `BOOKING_ALREADY_CANCELLED` | 409 | Already `CANCELLED`/`REFUNDED` | Double cancel |
 | `BOOKING_PAYMENT_REQUIRED` | 422 | Transition needs `payment_status = PAID` | Confirming an unpaid `PREPAID` booking. **Never raised for `billing_mode = INVOICED`** — those bookings enter at `CONFIRMED` and are collected by invoice (**A-46**) |
 | `BOOKING_DRIVER_ALREADY_ASSIGNED` | 409 | A driver is already assigned; unassign first | |
-| `BOOKING_CANCELLATION_WINDOW_PASSED` | 422 | Inside the no-cancel window (**OQ-05**) | Cancelling 30 min before pickup |
+| `BOOKING_CANCELLATION_WINDOW_PASSED` | 422 | Inside the policy's `no_cancel_window_hours` for the canceller's role (**OQ-05** — admin-configured; production default has no window) | Cancelling 30 min before pickup under a policy that sets one |
+| `CANCELLATION_FEE_OVERRIDE_FORBIDDEN` | 403 | `feeOverride` supplied by a caller without global-scope `bookings.cancel` | A customer trying to waive their own fee |
+| `CANCELLATION_FEE_LOCKED` | 409 | Waiver attempted after the refund was processed or the owner settlement line approved | Use a settlement adjustment / manual refund instead |
 
 #### Trips & tracking
 
@@ -428,8 +430,12 @@ Both mean "I understood you and you may do this kind of thing, but not now." The
 | `INVOICE_IMMUTABLE` | 409 | Modification attempted on an invoice past `DRAFT` | Editing lines, re-rendering or recalculating an issued invoice. Corrections are a credit or debit note, never an edit (**ADR-007**) |
 | `INVOICE_ALREADY_CLEARED` | 409 | Clearance retry or resubmission attempted on an invoice already `CLEARED`/`REPORTED` | `POST /admin/invoices/{id}/retry-clearance` on a settled invoice; a duplicate submission would burn an `icv` |
 | `CLEARANCE_PROVIDER_UNAVAILABLE` | 503 | The e-invoicing provider is unreachable or past its deadline. **Retryable**; `Retry-After` is set | Provider outage during an issue path or a billing run. The invoice is **not** discarded — it rests in `PENDING_CLEARANCE` and the retry job picks it up (risk **AR-9**) |
-| `COMMISSION_GLOBAL_RULE_REQUIRED` | 422 | Deleting/deactivating the last active `GLOBAL` rule | |
+| `COMMISSION_GLOBAL_RULE_REQUIRED` | 422 | Deleting/deactivating the last active `GLOBAL` rule | Set it to `NONE` instead if the intent is to stop charging |
 | `COMMISSION_RULE_OVERLAP` | 409 | Another rule with identical scope, priority and overlapping effective window | |
+| `COMMISSION_OVERRIDE_FORBIDDEN` | 403 | `commissionOverride` supplied by a caller without `commissions.override` | A customer or owner trying to set their own commission |
+| `COMMISSION_OVERRIDE_INVALID` | 422 | `PERCENTAGE` outside 0–100, negative `FIXED`, `FIXED` exceeding the bid's net amount, `NONE` with a value, or a missing `reason` | |
+| `COMMISSION_OVERRIDE_AFTER_BIDS` | 422 | An override that would charge *more* than the resolved rule, on a request that already has submitted bids | Owners priced their bids against the commission shown at the time; raise it only before bidding opens, or cancel and re-raise |
+| `COMMISSION_OVERRIDE_LOCKED` | 409 | Override attempted on a request whose remainder is closed, or on a booking already confirmed | Post-confirmation corrections are settlement adjustments |
 | `SETTLEMENT_BOOKING_ALREADY_SETTLED` | 409 | Partial-unique collision on `settlement_lines(booking_id) WHERE line_type='BOOKING_EARNING'` | Rebuilding a settlement over an already-paid period |
 | `SETTLEMENT_INVALID_TRANSITION` | 422 | Illegal `settlements.status` move | Paying a `DRAFT` settlement |
 | `SETTLEMENT_NO_ELIGIBLE_LINES` | 422 | Period contains no settleable bookings | |
@@ -471,7 +477,7 @@ Both mean "I understood you and you may do this kind of thing, but not now." The
 | `RULE_PARTIAL_AWARD_NOT_ALLOWED` | `{ tripRequestId, vehiclesRequired, vehiclesAwarded, remainder, awardEndpoint: "POST /api/v1/trip-requests/{id}/award" }` |
 | `RULE_AWARD_SET_INCOMPLETE` | `{ tripRequestId, remainder, suppliedBidCount, bidIds: string[] }` |
 | `RULE_VEHICLES_REQUIRED_BELOW_AWARDED` | `{ tripRequestId, requested, vehiclesAwarded }` |
-| `RULE_CREDIT_LIMIT_EXCEEDED` | `{ customerProfileId, creditLimitAmount, outstandingAmount, requestedAmount, availableAmount, currency }` |
+| `RULE_CREDIT_LIMIT_EXCEEDED` | `{ customerProfileId, creditLimitAmount, outstandingInvoicedAmount, uninvoicedBookingsAmount, requestedAmount, availableAmount, currency }` |
 | `RULE_CREDIT_NOT_APPROVED` | `{ customerProfileId, creditStatus }` |
 | `INVOICE_NOT_VOIDABLE` | `{ invoiceId, invoiceNumber, status, paidAmount, currency }` |
 | `INVOICE_BOOKING_ALREADY_BILLED` | `{ bookingId, bookingNumber, invoiceNumber }` |
@@ -1166,7 +1172,7 @@ Reference data is cacheable: `GET` responses carry `ETag` and `Cache-Control: pu
 | PATCH | `/trip-requests/{id}` | `trip_requests.update` | own | Editable only in `DRAFT`. After `PUBLISHED`, changing commercial terms would invalidate live bids; the customer must cancel and re-raise. |
 | POST | `/trip-requests/{id}/publish` | `trip_requests.update` | own | `DRAFT` → `PUBLISHED`. Runs the matcher, writes `trip_request_invitations`, emits `trip_request.published` to the outbox. |
 | POST | `/trip-requests/{id}/cancel` | `trip_requests.cancel` | own → global | → `CANCELLED` with a reason. Rejects all `SUBMITTED` bids and notifies their owners. Refused once `vehiclesAwarded > 0` — cancel the bookings individually, or close the remainder. |
-| POST | `/trip-requests/{id}/award` **†⧗** | `bids.accept` | own(customer) → global | **All-or-nothing group award.** Accepts an array of bid IDs covering the entire remainder in one transaction: every booking is created, or none is. The only way to award a request with `allowPartialFulfilment: false`. |
+| POST | `/trip-requests/{id}/award` **†⧗** | `bids.accept` | own(customer) → global | **All-or-nothing group award.** Accepts an array of bid IDs covering the entire remainder in one transaction: every booking is created, or none is. The only way to award a request with `allowPartialFulfilment: false`. Optional `commissionOverride` (admin callers with `commissions.override` only, else `403 COMMISSION_OVERRIDE_FORBIDDEN`) applies to this award's bookings and beats the request-level override. |
 | POST | `/trip-requests/{id}/close-remainder` **†⧗** | `trip_requests.update` | own → global | `PARTIALLY_AWARDED` → `CLOSED_PARTIAL`. The customer (or an admin acting for them) declares the unfilled balance abandoned. Rejects the remaining live bids and stops the opportunity feed. **The system never does this on its own** ([database.md §8.4](database.md)). |
 | PATCH | `/trip-requests/{id}/remainder` **†** | `trip_requests.update` | own → global | Adjust `vehiclesRequired` and/or `remainderClosesAt` while `PARTIALLY_AWARDED`. Reducing `vehiclesRequired` below `vehiclesAwarded` → `422 RULE_VEHICLES_REQUIRED_BELOW_AWARDED`. Setting `vehiclesRequired = vehiclesAwarded` closes the order into `FULLY_AWARDED`. |
 | GET | `/trip-requests/{id}/bids` | `bids.read` | own(customer) → global | The comparison list (BRIEF-§12): `totalAmount`, `estimatedArrivalAt`, vehicle summary, `vehicleRatingAvg`, `ownerRatingAvg`, `validUntil`. Default sort `totalAmount asc`. While `PARTIALLY_AWARDED` this list still returns live bids competing for the balance — siblings are rejected only at full award. Owners cannot use this endpoint to read rival bids — for an owner the scope filters to their own rows. |
@@ -1195,7 +1201,7 @@ An opportunity is a `trip_request_invitations` row joined to its request. It exi
 | GET | `/bids/{id}` | `bids.read` | party → global | Full bid incl. `extrasBreakdown`, vehicle and driver summary. |
 | PATCH | `/bids/{id}` **⧗** | `bids.update` | own | Revise a `SUBMITTED` bid: increments `version`, sets `last_revised_at`, recomputes totals, keeps `status = SUBMITTED` (V4). Refused after `bidding_closes_at`. Notifies the customer that the bid changed. |
 | POST | `/bids/{id}/withdraw` | `bids.withdraw` | own | → `WITHDRAWN`. Refused if already `ACCEPTED`. |
-| POST | `/bids/{id}/accept` **†⧗** | `bids.accept` | own(customer) → global | The concurrency-critical path: creates one booking, reserves the vehicle, freezes finance, and — for `INVOICED` customers — runs the credit check inside the same transaction. Refused with `422 RULE_PARTIAL_AWARD_NOT_ALLOWED` on a request with `allowPartialFulfilment: false`; use `POST /trip-requests/{id}/award`. |
+| POST | `/bids/{id}/accept` **†⧗** | `bids.accept` | own(customer) → global | The concurrency-critical path: creates one booking, reserves the vehicle, freezes finance (rule, request override or inline `commissionOverride` — admin callers only), and — for `INVOICED` customers — runs the credit check inside the same transaction. Refused with `422 RULE_PARTIAL_AWARD_NOT_ALLOWED` on a request with `allowPartialFulfilment: false`; use `POST /trip-requests/{id}/award`. |
 | POST | `/bids/{id}/reject` | `bids.accept` | own(customer) → global | → `REJECTED` with an optional reason. A courtesy rejection; siblings are auto-rejected only when the request becomes `FULLY_AWARDED` or the remainder is closed. |
 
 ### 8.14 `/bookings` (12)
@@ -1213,7 +1219,9 @@ An opportunity is a `trip_request_invitations` row joined to its request. It exi
 | POST | `/bookings/{id}/dispute` | `complaints.create` | party → global | `IN_PROGRESS`/`COMPLETED` → `DISPUTED`, opening a linked complaint. `POST …/resolve-dispute` (`complaints.manage`) returns it to `COMPLETED` or moves it to `REFUNDED`. |
 | GET | `/bookings/{id}/status-history` | `bookings.read` | party → global | `booking_status_history`, append-only, with actor and reason. |
 | GET | `/bookings/{id}/financials` | `commissions.read` | party → global | The `booking_financial_snapshots` row. **Projected by role**: the customer sees gross/VAT/total; the owner sees gross, commission, commission VAT, payment fee and `ownerNetAmount`; finance staff see everything including `commissionRuleSnapshot`. |
-| GET | `/bookings/{id}/cancellation-quote` | `bookings.read` | party → global | Dry run of the cancellation fee: `hoursBeforePickup`, `feeAmount`, `refundAmount`, `feeRuleSnapshot`. Read-only, no state change — so the confirmation dialog shows the customer exactly what `POST …/cancel` will do. **OQ-05**. |
+| POST | `/bookings/{id}/no-show` **†⧗** | `bookings.cancel` | global | Ops records a **customer or owner no-show** (`party: CUSTOMER \| OWNER`, usually from a trip exception). Writes a `NO_SHOW` cancellation row, resolves the `cancellation_policies` charge for that party (production default: none), and — for an owner no-show — refunds the customer in full and queues the owner deduction as a settlement adjustment. Optional `feeOverride`. **OQ-05.** |
+| POST | `/bookings/{id}/cancellation/waive-fee` **†** | `bookings.cancel` | global | **Per-case admin decision:** waive a computed cancellation or no-show fee with a mandatory reason, before the refund is processed / settlement line approved (`409 CANCELLATION_FEE_LOCKED` after). Audited `NOTICE`. **OQ-05.** |
+| GET | `/bookings/{id}/cancellation-quote` | `bookings.read` | party → global | Dry run of the cancellation fee under the **currently effective admin policy**: `hoursBeforePickup`, `feeAmount`, `refundAmount`, `feeRuleSnapshot`, `feeSource`. Read-only, no state change — so the confirmation dialog shows the customer exactly what `POST …/cancel` will do. **OQ-05**. |
 
 ### 8.15 `/trips` (8)
 
@@ -1330,9 +1338,10 @@ The e-invoicing block on every invoice DTO — `null` throughout for an invoice 
 | Method | Path | Permission | Scope | Description |
 |---|---|---|---|---|
 | GET | `/commissions/rules` | `commissions.read` | global | Filters: `scope`, `vehicleCategoryId`, `ownerProfileId`, `isActive`, `effectiveOn`. |
-| POST | `/commissions/rules` | `commissions.manage` | global | Create a rule (`GLOBAL`, `VEHICLE_CATEGORY`, `OWNER`, `OWNER_CATEGORY`). `409 COMMISSION_RULE_OVERLAP` on an identical-scope, overlapping-window duplicate. **OQ-01**. |
+| POST | `/commissions/rules` | `commissions.manage` | global | Create a rule (`GLOBAL`, `VEHICLE_CATEGORY`, `OWNER`, `OWNER_CATEGORY`) with `calculationType` `NONE` \| `PERCENTAGE` \| `FIXED`. `409 COMMISSION_RULE_OVERLAP` on an identical-scope, overlapping-window duplicate. **OQ-01 answered:** the value is whatever the admin sets; the production seed is a `GLOBAL` `NONE` rule. |
+| PATCH | `/trip-requests/{id}/commission` **†** | `commissions.override` | global | **Per-trip admin decision.** Body `{ type: NONE \| PERCENTAGE \| FIXED, value?, basis?, reason }` or `null` to clear. Applies to every booking awarded from this request from now on, including later waves. Guards: `COMMISSION_OVERRIDE_INVALID`, `COMMISSION_OVERRIDE_AFTER_BIDS` (may only lower once bids exist), `COMMISSION_OVERRIDE_LOCKED`. Audited `NOTICE` with before/after. The response echoes `effectiveCommission` — what the next award would actually charge, override or rule. |
 | PATCH | `/commissions/rules/{id}` | `commissions.manage` | global | Editing a rule **never** rewrites history — existing `booking_financial_snapshots` hold their own frozen copy (D6). Deactivating the last active `GLOBAL` rule → `422 COMMISSION_GLOBAL_RULE_REQUIRED`. `DELETE` shares this guard. |
-| POST | `/commissions/rules/preview` | `commissions.read` | global | Dry run: given an owner, category, transport type and gross amount, return which rule resolves and the resulting split. No writes. Makes rule precedence testable before it is applied to real money. |
+| POST | `/commissions/rules/preview` | `commissions.read` | global | Dry run: given an owner, category, transport type and gross amount — and optionally a `commissionOverride` or a `tripRequestId` whose override should apply — return which path resolves (`RULE` \| `OVERRIDE` \| `NONE`) and the resulting split. No writes. Makes rule precedence *and* overrides testable before they touch real money. |
 | GET | `/commissions/earnings` | `commissions.read` | own → global | Aggregated commission lines. For an owner, scoped to their own bookings and rendered as *what was deducted*; for finance (`reports.financial.read` also required for cross-tenant totals), as platform revenue. Filters: `ownerProfileId`, `vehicleCategoryId`, `dateFrom`/`dateTo`, `groupBy`. |
 
 ### 8.21 `/settlements` and `/ledger` (9)
@@ -1488,8 +1497,9 @@ Two codes exist because the confirmed business rules created reporting questions
 | Method | Path | Permission | Scope | Description |
 |---|---|---|---|---|
 | GET | `/settings/public` | public | public | The `PUBLIC`-scoped subset: VAT rate, supported locales, default currency, min/max booking lead time, maintenance-mode flag. Cached, served to unauthenticated clients so the marketing site and the request form render correctly. |
-| GET | `/settings` | `settings.read` | global | `PUBLIC` + `INTERNAL` settings with `valueType` and description. **`SECRET`-scoped keys are filtered out unconditionally**, before serialisation — not hidden by a DTO field list that a future refactor could drop. |
-| PUT | `/settings/{key}` | `settings.manage` | global | Update one setting. Value is validated against `valueType` and a per-key Zod schema. `409 SETTINGS_KEY_IMMUTABLE` for code-managed keys. Audited with before/after. |
+| GET | `/settings/sections` | `settings.read` | global | The thirteen sections with key counts and last-changed timestamps — the admin portal's settings navigation ([ADR-009](decisions/ADR-009-configuration-over-constants.md)). |
+| GET | `/settings` | `settings.read` | global | Filter `?section=bidding`. `PUBLIC` + `INTERNAL` settings with `section`, `valueType`, bilingual description, validation summary and `isCodeManaged`. **`SECRET`-scoped keys are filtered out unconditionally**, before serialisation — not hidden by a DTO field list that a future refactor could drop. |
+| PUT | `/settings/{key}` | `settings.manage` | global | Update one setting. Value is validated against `valueType` and a per-key Zod schema **including cross-field rules** (e.g. `bidding.bid_validity_hours ≤ bidding.max_window_hours` — see the catalogue). `409 SETTINGS_KEY_IMMUTABLE` for code-managed keys. Audited `NOTICE` with before/after. **Never rewrites history** — values that affect money or commitments are snapshotted where used. |
 | GET | `/settings/{key}/history` | `settings.read` | global | Change history for one key, drawn from `audit_logs`. Commission and VAT changes are the ones auditors ask about. |
 
 ### 8.32 Webhooks, health and docs (5)
@@ -2492,7 +2502,7 @@ Cancel a booking, compute the fee, release the vehicle and assess a refund. Requ
 **Behaviour** — one transaction:
 
 1. Assert the transition against `BOOKING_TRANSITIONS`. Legal from `PENDING_PAYMENT`, `CONFIRMED`, `DRIVER_ASSIGNED`, `READY`. **Not** from `IN_PROGRESS` (use `POST /trips/{id}/cancel`, which is `trips.manage`), nor from any terminal state.
-2. Compute `hoursBeforePickup` and resolve the cancellation fee rule. The applied rule is **snapshotted** into `booking_cancellations.fee_rule_snapshot` — changing the policy later never rewrites this record. Tiers are **OQ-05**; until they are confirmed the seeded rule is a single configurable threshold from `system_settings`.
+2. Compute `hoursBeforePickup` and resolve the `cancellation_policies` charge for the canceller's role (admin-configured; **OQ-05 answered** — production seeds no charge). A global-scope admin may pass `feeOverride { type, value, reason }` instead (`403 CANCELLATION_FEE_OVERRIDE_FORBIDDEN` otherwise). The applied policy or override is **snapshotted** into `booking_cancellations.fee_rule_snapshot` / `fee_override_snapshot` with `fee_source` — changing the policy later never rewrites this record. Previously: until they are confirmed the seeded rule is a single configurable threshold from `system_settings`.
 3. Write `booking_cancellations`; append to `booking_status_history`; set `bookings.status = CANCELLED`, `cancelled_at`.
 4. Set the `vehicle_calendar_entries` row to `RELEASED` — retained for audit, excluded from the exclusion constraint, so the vehicle is immediately bookable again.
 5. If paid and `requestRefund`, create a `refunds` row in `REQUESTED` for `total − fee`. It is **not** processed here; it enters the refund approval flow (§8.18). A refund that moves money on the same request as a cancellation would couple two failure domains.
@@ -3466,7 +3476,7 @@ Two naming notes for the canonical list, not new codes:
 | OQ-02 | Bid expiry and bidding window defaults | `biddingClosesAt` default; `BID_EXPIRED` timing |
 | OQ-03 | Payment gateway selection | `action` payload shape on `POST /payments`; webhook signature scheme |
 | OQ-04 | ZATCA e-invoicing applicability, wave and obligations | **Now shaped into the contract, not deferred** (A-49, [ADR-007](decisions/ADR-007-e-invoicing.md)). §8.19 carries the clearance/reporting split, the e-invoicing DTO block, `409 INVOICE_NOT_CLEARED` on delivery, and four endpoints. This is our *understanding* of the regime used to shape the design so compliance is achievable — **applicability is for UniGate's tax advisor and no compliance is claimed**. If it turns out not to apply, every affected invoice simply resolves `clearanceStatus = NOT_REQUIRED` and the gate never fires; no contract change, no v2 |
-| OQ-05 | Cancellation fee tiers and refund policy | `GET /bookings/{id}/cancellation-quote` and `POST /bookings/{id}/cancel` fee computation |
+| ~~OQ-05~~ | ~~Cancellation fee tiers and refund policy~~ **Answered 2026-09-15** — admin-configured `cancellation_policies` (none / % / fixed, optional notice tiers) plus per-case override and waiver; `POST …/no-show`, `POST …/cancellation/waive-fee` added | `GET /bookings/{id}/cancellation-quote` and `POST /bookings/{id}/cancel` fee computation |
 | OQ-06 | Settlement cycle and minimum payout | `POST /settlements` period semantics |
 | OQ-10 | SMS provider | `POST /auth/otp/request` adapter; §11.3 cost controls |
 | OQ-11 | GPS hardware vendor/protocol | `POST /webhooks/tracking/{provider}` payload contract |

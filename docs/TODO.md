@@ -1,33 +1,52 @@
 # UniGate — Open Implementation Work
 
-**Last updated:** 2026-09-14
+**Last updated:** 2026-09-15
 
 Unresolved work items. Distinct from [assumptions.md](assumptions.md) (business questions for UniGate) and [IMPLEMENTATION_STATUS.md](IMPLEMENTATION_STATUS.md) (progress tracking). This file is for engineering tasks that are known but not yet done.
 
 ---
 
-## Immediate — Phase 2 (Project Foundation)
+## ~~Immediate — Phase 2 (Project Foundation)~~ ✅ complete 2026-09-15
 
-- [ ] `git init`, `.gitignore`, `.gitattributes` (LF normalisation — the team is on Windows), commit convention config
-- [ ] pnpm workspace + Turborepo pipeline; verify `turbo run build` from a clean checkout
-- [ ] `apps/api` — Express 5, TypeScript strict, path aliases, `main.ts` / `worker.ts` split
-- [ ] `apps/web` — Next.js 15 App Router, Tailwind, shadcn/ui init, `[locale]` segment
-- [ ] `packages/{types,validation,ui,config,eslint-config,tsconfig}` — real exports, not placeholders
-- [ ] ESLint boundary rules: no `@prisma/client` outside `apps/api`; no cross-module repository imports; no physical Tailwind direction utilities; no hard-coded role comparisons
-- [ ] `docker-compose.yml` — Postgres 16, Redis 7, MinIO, MailHog; healthchecks; named volumes
-- [ ] Prisma schema (all 76 tables) + first migration
-- [ ] Hand-written SQL migration for: `btree_gist`/`citext`/`pgcrypto`/`pg_trgm` extensions, the `vehicle_calendar_entries` `EXCLUDE` constraint, all partial unique indexes, all `CHECK` constraints, `audit_logs` and `vehicle_location_points` partitioning
-- [ ] **Migration-integrity test** — assert every hand-written constraint exists after `migrate deploy` on a clean database (mitigates risk AR-1)
-- [ ] Seeds: permissions (~110), roles (9), regions, cities, vehicle categories, document types, expense/maintenance categories, ledger accounts, system settings
-- [ ] Env validation with Zod; process refuses to boot on missing/placeholder secrets; `.env.example`
-- [ ] Response envelope, error classes, terminal error middleware, request-ID propagation via `AsyncLocalStorage`
-- [ ] pino logging with the redaction allow-list
-- [ ] `GET /health`, `GET /ready`
-- [ ] OpenAPI generation from Zod (`zod-to-openapi`) served at `/api/v1/docs`
-- [ ] CI: typecheck · lint · test · build on every PR
-- [ ] `README.md` and `docs/development.md` — local setup verified from a clean machine
+All items delivered; residuals moved to Phase 3 below.
+
+- [x] `git init`, `.gitignore`, `.gitattributes` (LF normalisation — the team is on Windows), commit convention config
+- [x] pnpm workspace + Turborepo pipeline; verify `turbo run build` from a clean checkout
+- [x] `apps/api` — Express 5, TypeScript strict, path aliases, `main.ts` / `worker.ts` split
+- [x] `apps/web` — Next.js 15 App Router, Tailwind, shadcn/ui init, `[locale]` segment
+- [x] `packages/{types,validation,ui,config,eslint-config,tsconfig}` — real exports, not placeholders
+- [x] ESLint boundary rules: no `@prisma/client` outside `apps/api`; no cross-module repository imports; no physical Tailwind direction utilities; no hard-coded role comparisons
+- [x] `docker-compose.yml` — Postgres 16, Redis 7, MinIO, MailHog; healthchecks; named volumes
+- [x] Prisma schema (all 76 tables) + first migration
+- [x] Hand-written SQL migration for: `btree_gist`/`citext`/`pgcrypto`/`pg_trgm` extensions, the `vehicle_calendar_entries` `EXCLUDE` constraint, all partial unique indexes, all `CHECK` constraints, `audit_logs` and `vehicle_location_points` partitioning
+- [x] **Migration-integrity test** — assert every hand-written constraint exists after `migrate deploy` on a clean database (mitigates risk AR-1)
+- [x] Seeds: permissions (~110), roles (9), regions, cities, vehicle categories, document types, expense/maintenance categories, ledger accounts, system settings
+- [x] Env validation with Zod; process refuses to boot on missing/placeholder secrets; `.env.example`
+- [x] Response envelope, error classes, terminal error middleware, request-ID propagation via `AsyncLocalStorage`
+- [x] pino logging with the redaction allow-list
+- [x] `GET /health`, `GET /ready`
+- [x] OpenAPI generation from Zod (`zod-to-openapi`) served at `/api/v1/docs`
+- [x] CI: typecheck · lint · test · build on every PR
+- [x] `README.md` and `docs/development.md` — local setup verified from a clean machine
 
 ---
+
+## Phase 3 — Authentication & RBAC — COMPLETE 2026-09-15
+
+- [x] Auth middleware producing `ActorScope`; `requirePermission()`; `PUT /settings/{key}` gated on `settings.manage` + step-up
+- [x] Idempotency middleware on `POST /users` (first state-moving endpoint)
+- [x] Outbox relay + BullMQ worker + partition-maintenance and purge jobs in `worker.ts`
+- [x] Authorization matrix test (exit criterion) — 9 roles × IAM surface
+- [x] Registration/OTP/login/refresh/logout, password forgot/reset/change, step-up, sessions, admin users/roles/permissions, first-admin CLI, OpenAPI
+- [ ] `unigate_app` runtime role used by the API in staging/production — **moved to Phase 16** (deployment configuration: `DATABASE_URL` as the app role, migrations as owner)
+
+## Immediate — Phase 4 (User profiles & documents)
+
+- [ ] Web login / OTP / password-reset screens (shadcn) against the Phase 3 API — first portal surface
+- [ ] Customer / owner / driver profile endpoints on `profiles` with `ActorScope` (PARTY scope for company staff)
+- [ ] Document upload: presigned PUT to the quarantine bucket, type/size validation, scan hook (A-25), promotion to the documents bucket
+- [ ] Owner onboarding + `owner_vertical_approvals`; driver approval + `driver_vertical_eligibility`
+- [ ] Extend the authorization matrix with every new repository
 
 ## Deferred design work
 
@@ -59,7 +78,7 @@ Unresolved work items. Distinct from [assumptions.md](assumptions.md) (business 
 
 These are exit criteria, not nice-to-haves. Each is tied to the phase that must not close without it.
 
-- [ ] **Phase 3** — authorization matrix test: every role × every resource, cross-tenant access returns 404
+- [x] **Phase 3** — authorization matrix test: every role × every IAM resource, cross-tenant access returns 404 (extends per phase)
 - [ ] **Phase 5** — vehicle calendar overlap tests against real PostgreSQL (Testcontainers)
 - [ ] **Phase 7** — N-way concurrent bid acceptance: exactly one 201, rest 409, no orphan bookings
 - [ ] **Phase 9** — webhook idempotency: duplicate delivery, out-of-order delivery, invalid signature

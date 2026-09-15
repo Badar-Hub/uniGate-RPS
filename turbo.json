@@ -1,0 +1,77 @@
+{
+  "$schema": "https://turbo.build/schema.json",
+  "globalDependencies": [
+    ".env"
+  ],
+  "globalEnv": [
+    "NODE_ENV",
+    "CI"
+  ],
+  "tasks": {
+    "build": {
+      "dependsOn": [
+        "^build"
+      ],
+      "outputs": [
+        "dist/**",
+        ".next/**",
+        "!.next/cache/**"
+      ]
+    },
+    "typecheck": {
+      "dependsOn": [
+        "^build"
+      ],
+      "outputs": []
+    },
+    "lint": {
+      "dependsOn": [
+        "^build"
+      ],
+      "outputs": []
+    },
+    "test": {
+      "dependsOn": [
+        "^build"
+      ],
+      "outputs": [
+        "coverage/**"
+      ],
+      "env": [
+        "DATABASE_URL",
+        "TEST_DATABASE_URL",
+        "REDIS_URL",
+        "APP_URL",
+        "API_URL",
+        "CORS_ORIGINS",
+        "STORAGE_ENDPOINT",
+        "STORAGE_BUCKET",
+        "STORAGE_QUARANTINE_BUCKET",
+        "STORAGE_ACCESS_KEY",
+        "STORAGE_SECRET_KEY",
+        "STORAGE_REGION",
+        "STORAGE_FORCE_PATH_STYLE",
+        "JWT_SECRET",
+        "JWT_REFRESH_SECRET",
+        "ENCRYPTION_KEY",
+        "ENCRYPTION_KEY_ID",
+        "BLIND_INDEX_PEPPER",
+        "OTP_PEPPER",
+        "OTP_PROVIDER",
+        "OTP_ALLOWED_COUNTRY_CODES",
+        "PAYMENT_PROVIDER",
+        "EMAIL_PROVIDER",
+        "LOG_LEVEL",
+        "ACCESS_TOKEN_TTL_SECONDS",
+        "REFRESH_TOKEN_TTL_SECONDS"
+      ]
+    },
+    "dev": {
+      "cache": false,
+      "persistent": true
+    },
+    "db:generate": {
+      "cache": false
+    }
+  }
+}

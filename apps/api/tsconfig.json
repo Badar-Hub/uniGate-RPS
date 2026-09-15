@@ -1,0 +1,11 @@
+{
+  "extends": "@unigate/tsconfig/node.json",
+  "compilerOptions": {
+    "rootDir": ".",
+    "outDir": "dist",
+    "baseUrl": ".",
+    "paths": { "@/*": ["src/*"] },
+    "noEmit": true
+  },
+  "include": ["src", "test", "prisma/seed", "vitest.config.ts"]
+}

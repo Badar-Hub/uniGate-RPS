@@ -40,7 +40,7 @@ Neither of these blocks build work, but both affect what UniGate earns and what 
 
 **Why it matters.** This is UniGate's revenue line and it determines what every vehicle owner is paid. We freeze the commission calculation onto each booking permanently, so that changing the rate later never rewrites historical earnings. That protection also means bookings taken under a placeholder rate keep it — they cannot be corrected afterwards without a data migration and restated owner statements.
 
-**Our working assumption.** 10% of the amount excluding VAT, applied globally, with the ability to override per owner and per vehicle category.
+**Answered 2026-09-15.** UniGate does not want a fixed rate baked in. Commission is an **admin decision**: the admin sets standing rules (no commission, a percentage, or a fixed amount — globally, per vehicle category or per owner), and can also **decide per trip, at the time of booking**, whether to charge and how much. We have designed exactly that. Two consequences worth knowing: (1) the live system will charge **nothing** until an admin sets a rule — we have put this on the go-live checklist; (2) because owners bid a total price knowing the commission that will come out of it, an admin may *raise* the commission on a trip only before the first bid arrives; lowering or waiving is always allowed. The one figure we still default is the **basis** — commission on the amount *excluding* VAT — which the admin can change per rule.
 
 ---
 
@@ -50,7 +50,7 @@ Neither of these blocks build work, but both affect what UniGate earns and what 
 
 **Why it matters.** This is a contractual point rather than a technical one, and we would rather raise it than assume. It affects timeline, cost and what "complete" means at the end of this engagement.
 
-**Our position.** We are building web first, and we are deliberately keeping the API independent of the web application so that mobile apps can be built against it later without rework. We are **not** building mobile applications in this engagement unless you tell us otherwise.
+**Answered 2026-09-15.** Web application first; Android and iOS follow in a later phase once everything is fully functional through the web portal. We are keeping the API independent of the web application so the mobile phase needs no server-side rework. **One request:** because the RFP (§5.2) still lists mobile as a deliverable, please have the statement of work reflect this phasing so that acceptance of the web phase is unambiguous.
 
 ---
 
@@ -79,6 +79,8 @@ These do not block current work but have long lead times, so late answers become
 
 **Our working assumption.** Monthly in arrears, 30-day terms, credit limits set by an administrator, and an award blocked if it would exceed the limit.
 
+**OQ-21 answered 2026-09-15.** The credit limit is the only gate: a customer over their limit cannot book; a customer with unpaid — even overdue — invoices *can* book while they still have credit left. We have designed exactly that, with one consequence we want you to see: because the limit is the only protection, we count against it both unpaid invoices **and** trips already confirmed but not yet invoiced — otherwise a monthly-billed customer could book a whole month against last month's bill. Overdue accounts are reported (ageing) and can be suspended manually by an admin, but nothing happens automatically. **OQ-19 — part answered 2026-09-15.** Credit limits are approved by an admin only, and the payment term is agreed the moment a trip is confirmed — so we record the term on each trip and count the trip against the limit from that moment, invoiced or not. **Two defaults still needed:** the billing cycle (monthly in arrears?) and the standard term (net-30?).
+
 ---
 
 ### 5. Filling the balance of a partly-fulfilled order (OQ-22, OQ-23)
@@ -87,7 +89,7 @@ These do not block current work but have long lead times, so late answers become
 
 **Why it matters.** Your description ("we should be able to take this order and dispatch") suggests your operations team may fill the balance directly. That is a reasonable way to work, but it means UniGate is committing the customer to additional vehicles and additional cost without a fresh approval — so it should be an explicit policy rather than a side effect. Later waves are separately priced and may cost more than the first.
 
-**Our working assumption.** The balance stays open until the customer closes it, with a reminder after 7 days; the customer approves each additional vehicle, and an administrator may approve on their behalf with an audit record.
+**Answered 2026-09-15 — settings.** Per your direction that nothing is hard-coded, both are admin settings: the open-balance deadline (seeded *open until the customer closes it*, reminder after 7 days) and whether later waves need the customer's approval (seeded *yes*). Switching the second one off lets your operations team dispatch against the balance directly — it is a visible toggle precisely because it changes who is committing the customer to extra vehicles.
 
 ---
 
@@ -98,6 +100,8 @@ These do not block current work but have long lead times, so late answers become
 **Why it matters.** Merchant onboarding in Saudi Arabia typically takes several weeks and is outside our control, so this sits on the critical path. Not every provider offers STC Pay and Apple Pay. We have built the payment system so that connecting a provider is roughly one to two weeks of work once chosen — but we cannot start until it is.
 
 **Current state.** A simulated gateway is used for development and testing. No real payment integration exists, and we have not pretended otherwise.
+
+**Update 2026-09-15.** UniGate has told us the provider will be chosen when the payment integration phase is reached. That is workable — the simulated gateway carries every earlier phase — with one caveat: the deferral does not shorten the provider's onboarding time. **Agreed 2026-09-15:** the provider will be chosen **no later than the start of the Bookings phase (Phase 8)**, so that merchant onboarding and sandbox access run in parallel with it rather than after it. We will put the calendar date against this the day the build schedule is set.
 
 ---
 
@@ -117,7 +121,7 @@ These do not block current work but have long lead times, so late answers become
 
 **Why it matters.** This decides money taken from customers and withheld from owners, and it is the single most common source of disputes on platforms of this kind. It is also the policy customers will read most closely.
 
-**Our working assumption.** We snapshot whichever rule was in force onto each cancellation, so tiers can be introduced at any time without invalidating past cancellations. **No tiers are currently set.**
+**Answered 2026-09-15.** Whether a cancellation or a no-show is charged — and how much — is an **admin decision**, not a fixed policy. The admin configures standing rules (no charge, a percentage or a fixed amount; optionally stepped by hours of notice; separately for customers and for owners), and can also override or waive the charge on any individual case with a recorded reason. Customers see the exact charge before they confirm a cancellation. The live system charges **nothing** until an admin sets a rule — on the go-live checklist. One default is ours and worth a glance: when a customer is charged for cancelling, the money goes to the owner whose vehicle sat idle (adjustable); when an owner cancels or fails to show, the customer is refunded in full and any charge is deducted from the owner's next settlement.
 
 ---
 
@@ -127,7 +131,7 @@ These do not block current work but have long lead times, so late answers become
 
 **Why it matters.** Payment timing is the most common reason small operators leave a platform, so it is a commercial decision as much as a technical one. It also determines how much money UniGate holds at any time.
 
-**Our working assumption.** Weekly, Sunday cut-off, three days after trip completion, no minimum.
+**Answered 2026-09-15 — settings.** Cycle, cut-off day, hold period, minimum payout and payout method are all admin settings, seeded weekly / Sunday / 3 days / no minimum / bank transfer. Change them in the portal at any time; the change applies to future settlements only.
 
 ---
 
@@ -146,22 +150,22 @@ These do not block current work but have long lead times, so late answers become
 ### 11. Bidding window (OQ-02)
 
 How long do owners have to bid, and how long does a submitted quote stay valid?
-*Assumed: bidding closes 2 hours before pickup or 24 hours after the request, whichever is sooner; quotes valid 24 hours.*
+**Answered 2026-09-15 — settings**, seeded: bidding closes 2 hours before pickup or 24 hours after the request, whichever is sooner; quotes valid 24 hours.
 
 ### 12. Approval process (OQ-07)
 
 Who approves new owners, drivers and vehicles? What documents are mandatory? Is there a turnaround commitment? Does a renewed document require re-approval?
-*Assumed: manual admin approval, no stated turnaround, renewed documents are re-verified but do not trigger full re-approval.*
+**Answered 2026-09-15 — settings.** Admin approval; mandatory documents are configured per document type; the turnaround target and whether a renewed document re-opens approval are settings, seeded *no target* and *re-verify the document only*.
 
 ### 13. SMS provider (OQ-10)
 
 Which provider will send verification codes, and is a sender ID registered with the CITC?
-*Note: customers cannot register without SMS verification, so this gates public launch. Registration has lead time.*
+**Answered 2026-09-15: none yet.** This becomes an **action for UniGate**: choose a Saudi SMS provider (Unifonic, Taqnyat and Msegat are the usual candidates — we can advise) and register a sender ID with CST. It takes weeks and customers cannot register without it, so it should start now, well before the authentication phase reaches staging.
 
 ### 14. GPS hardware (OQ-11)
 
 Will vehicles use dedicated tracking devices, or is the driver's phone sufficient at launch? If devices, which vendor?
-*Assumed: driver's phone at launch. Hardware can be added later without redesign.*
+**Answered 2026-09-15:** no trackers are fitted; the driver's phone is used at launch. Hardware can be added later without redesign.
 
 ### 15. Transport licensing (OQ-13)
 
@@ -171,7 +175,7 @@ Does the platform, or do the vehicle owners, require Transport General Authority
 ### 16. Drivers and vehicles (OQ-18)
 
 Can a driver join independently with their own vehicle, or only as part of a registered owner's fleet?
-*Assumed: only owners bid; an owner who drives their own vehicle is supported.*
+**Answered 2026-09-15 — settings.** Two toggles, seeded *only owners bid* and *a driver need not be named until dispatch*. An owner who drives their own vehicle is supported regardless.
 
 ### 17. SPO commissions (OQ-09)
 
@@ -184,13 +188,27 @@ The RFP mentions Sales Promotion Officers once, in passing, with no rules. What 
 How long should we keep audit logs, GPS location history, identity documents after an account closes, and financial records?
 *Assumed: audit 24 months, location history 12 months, documents 12 months after closure, financial records 10 years. Commercial record-keeping law and data protection law pull in opposite directions here, so this needs legal input.*
 
+### 18. How UniGate trades — recorded 2026-09-15
+
+You described it precisely: the client contracts UniGate for a service (say, 40 vehicles Riyadh → Jeddah); UniGate supplies from its own fleet and hires the rest from other companies; **UniGate invoices the client for the whole service**, and the companies you hired invoice UniGate, which reclaims that VAT. We have adopted this as the platform's operating model (ADR-008), and it has simplified several things: your own vehicles are modelled as your fleet (no commission, no settlement), the client's invoice describes the service rather than listing vehicles, and vehicle-level detail goes in a separate statement. **And you settled the marketplace case the same way (2026-09-15): one model.** Whether a trip is fulfilled from your fleet, a subcontractor you found, or a company that won the bid on the portal, **UniGate sells the service and issues the customer's invoice**; the company invoices UniGate. You chose this over letting the winning company invoice the customer directly because — as you put it — that lets them deal with each other next time without UniGate. We have made that protection structural: the customer pays you and holds your invoice, the company is paid by you, and **a registered company's payout is held until its tax invoice to UniGate is on file** — no chasing, no lawyers. Blacklisting stays for repeat offenders. Contact masking before award and a non-circumvention term on both sides are the second line.
+
+**One request for your tax adviser remains**, and it is narrow: confirm that ZATCA reads it the same way when the vehicle is supplied by a VAT-registered owner who bid for the trip on the platform and whose driver the client can see.
+
+### 18a. Passenger and goods — one platform, two modules, passenger first
+
+**Agreed 2026-09-15.** Passenger transport and goods transport share a core — accounts, owners, drivers, documents, vehicles, bidding, bookings, payments, invoicing, settlements, tracking — and differ in the request form, the trip flow, the required licences and documents, and the regulatory paperwork (Bayan is freight-only). We are building them as **two separate modules on one shared core**, with vehicles registered once but each vehicle type belonging to one vertical, and owners approved separately for each vertical they operate in. **Passenger is built first**; goods follows as its own phase once the core is proven and the freight-specific questions (TGA freight licensing, Bayan) are answered. Both are in the data model from day one, so goods is an addition later, not a rebuild. **Please have the statement of work reflect this phasing** — the RFP names both, and this is sequencing, not removal.
+
+### 18b. What exactly does a corporate customer buy? (OQ-26)
+
+**Clarified 2026-09-15:** UniGate hires vehicles *for a trip*, with a driver — a transport service from A to B — and does not offer leasing. That matters for tax: Saudi VAT rules block a business from reclaiming VAT on the *lease* of a road vehicle, but not on a transport service. We have therefore written the design so that every tax invoice describes a **journey** (route, date, vehicle class with driver), never a vehicle-day or "hire of vehicle", and the marketing name "Vehicle Hiring" stays off tax documents and contracts. **One thing remains for your tax adviser:** to confirm ZATCA will read the product the same way, given how it is marketed.
+
 ### 19. Scale and service levels (OQ-15)
 
 How many users, vehicles and bookings do you expect in year one? What uptime is expected? Are there seasonal peaks — Hajj, Umrah, school terms?
 
 **Why it matters.** The RFP sets no performance or availability targets. Every such figure in our design is our own proposal, and cannot be treated as an agreed service level until you confirm it. It also drives hosting cost.
 
-*Assumed: 10,000 users, 2,000 vehicles, 500 bookings a day, 200 vehicles tracked at once, 99.5% uptime.*
+**Answered 2026-09-15:** UniGate is starting from zero, so these figures stand as the **agreed year-one estimates** — 10,000 users, 2,000 vehicles, 500 bookings a day, 200 vehicles tracked at once, 99.5% uptime, with Hajj/Umrah peaks planned at three times baseline. We will revisit them against real data after the first quarter, and suggest the support terms reference them as estimates until then.
 
 ---
 
