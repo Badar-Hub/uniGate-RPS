@@ -2007,23 +2007,26 @@ model CancellationPolicy {
 // ═════════════════════════════════════════════════════════════════════════════
 
 model Trip {
-  id               String        @id @db.Uuid
-  tripNumber       String        @unique(map: "uq_trips_number") @map("trip_number") @db.VarChar(24)
-  bookingId        String        @unique(map: "uq_trips_booking") @map("booking_id") @db.Uuid
-  vehicleId        String        @map("vehicle_id") @db.Uuid
-  driverProfileId  String?       @map("driver_profile_id") @db.Uuid
-  transportType    TransportType @map("transport_type")
-  status           TripStatus    @default(BOOKED)
-  actualStartAt    DateTime?     @map("actual_start_at") @db.Timestamptz
-  actualEndAt      DateTime?     @map("actual_end_at") @db.Timestamptz
-  startOdometerKm  Int?          @map("start_odometer_km")
-  endOdometerKm    Int?          @map("end_odometer_km")
-  actualDistanceKm Decimal?      @map("actual_distance_km") @db.Decimal(10, 2)
-  driverNotes      String?       @map("driver_notes")
-  customerNotes    String?       @map("customer_notes")
-  delayMinutes     Int?          @map("delay_minutes")
-  createdAt        DateTime      @default(now()) @map("created_at") @db.Timestamptz
-  updatedAt        DateTime      @updatedAt @map("updated_at") @db.Timestamptz
+  id                      String        @id @db.Uuid
+  tripNumber              String        @unique(map: "uq_trips_number") @map("trip_number") @db.VarChar(24)
+  bookingId               String        @unique(map: "uq_trips_booking") @map("booking_id") @db.Uuid
+  vehicleId               String        @map("vehicle_id") @db.Uuid
+  driverProfileId         String?       @map("driver_profile_id") @db.Uuid
+  transportType           TransportType @map("transport_type")
+  status                  TripStatus    @default(BOOKED)
+  actualStartAt           DateTime?     @map("actual_start_at") @db.Timestamptz
+  actualEndAt             DateTime?     @map("actual_end_at") @db.Timestamptz
+  startOdometerKm         Int?          @map("start_odometer_km")
+  endOdometerKm           Int?          @map("end_odometer_km")
+  actualDistanceKm        Decimal?      @map("actual_distance_km") @db.Decimal(10, 2)
+  driverNotes             String?       @map("driver_notes")
+  customerNotes           String?       @map("customer_notes")
+  delayMinutes            Int?          @map("delay_minutes")
+  /// Regulatory document reference (goods: TGA Bayan — OQ-29); type from the vertical plugin.
+  regulatoryReference     String?       @map("regulatory_reference") @db.VarChar(64)
+  regulatoryReferenceType String?       @map("regulatory_reference_type") @db.VarChar(24)
+  createdAt               DateTime      @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt               DateTime      @updatedAt @map("updated_at") @db.Timestamptz
 
   booking          Booking             @relation(fields: [bookingId], references: [id])
   vehicle          Vehicle             @relation(fields: [vehicleId], references: [id])

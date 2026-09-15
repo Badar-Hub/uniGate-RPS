@@ -39,6 +39,12 @@ export interface VerticalPlugin {
   readonly demand: VerticalDemandPlugin;
   /** Trip execution (Phase 10). */
   readonly trips: VerticalTripPlugin;
+  /** Regulatory hooks (Phase 11b). */
+  readonly regulatory: VerticalRegulatoryPlugin;
+  /** Drivers must hold an APPROVED `driver_vertical_eligibility` row for this vertical before they are nominated or assigned. */
+  readonly driverEligibilityRequired: boolean;
+  /** Invoice wording and VAT category (Phase 11b). */
+  readonly invoice: VerticalInvoicePlugin;
 }
 
 // ── Phase 6: demand ──────────────────────────────────────────────────────────
@@ -112,4 +118,53 @@ export interface VerticalTripPlugin {
   readonly proofRequiredOn: readonly TripStatusCode[];
   /** Statuses in which the vehicle is moving with the customer's load/passengers (for the customer's phone-visibility rule). */
   readonly activeStatuses: readonly TripStatusCode[];
+}
+
+// ── Phase 11b: regulatory + invoice ──────────────────────────────────────────
+
+/** What the core knows about a trip when it asks the vertical whether dispatch may proceed. */
+export interface TripRegulatoryShape {
+  tripNumber: string;
+  status: TripStatusCode;
+  regulatoryReference: string | null;
+  regulatoryReferenceType: string | null;
+}
+
+export interface RegulatoryVerdict {
+  ok: boolean;
+  /** An error code from the contract when `ok` is false. */
+  code?: 'TRIP_REGULATORY_DOCUMENT_REQUIRED';
+  message?: string;
+  details?: Record<string, unknown>;
+}
+
+/**
+ * Regulatory documents differ per vertical (goods: TGA's Bayan transport document — OQ-29;
+ * passenger: none at MVP). The trips module asks before the trip leaves (DRIVER_EN_ROUTE);
+ * whether the document is enforced is a setting the vertical reads, never a code constant.
+ */
+export interface VerticalRegulatoryPlugin {
+  /** Reference types this vertical accepts on `PATCH /trips/{id}` (`regulatoryReferenceType`). */
+  readonly referenceTypes: readonly string[];
+  beforeDispatch(trip: TripRegulatoryShape): Promise<RegulatoryVerdict>;
+}
+
+export interface InvoiceLineShape {
+  bookingNumber: string;
+  requestNumber: string;
+  vehicleDescription: string;
+  pickupAddressLine: string;
+  dropoffAddressLine: string;
+  scheduledStartAt: Date;
+  vehicleCount: number;
+}
+
+/**
+ * Invoice wording and the VAT category per line (database.md §12.6 `vat_category`: S standard,
+ * Z zero-rated, E exempt, O out of scope). Zero-rating of cross-border goods transport (OQ-27) is
+ * a decision for the advisor; until then every vertical answers 'S'.
+ */
+export interface VerticalInvoicePlugin {
+  lineDescription(line: InvoiceLineShape, granularity: 'ORDER' | 'BOOKING'): { en: string; ar: string };
+  vatCategory(line: InvoiceLineShape): 'S' | 'Z' | 'E' | 'O';
 }

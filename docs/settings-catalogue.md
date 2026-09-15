@@ -58,6 +58,7 @@ Where a value varies by scope (global → category → customer/owner → per ca
 | `dispatch.driver_assignment_deadline_hours_before_pickup` | decimal | `1` | 0–48 | INTERNAL | no — reminder/escalation job | — |
 | `dispatch.ready_check_required` | bool | `true` | — | INTERNAL | no | — |
 | `dispatch.no_show_grace_minutes` | int | `30` | 0–240 | INTERNAL | **yes** → `booking_cancellations.fee_rule_snapshot` on a `NO_SHOW` | OQ-05 |
+| `dispatch.goods_transport_document_required` | bool | `false` | — | INTERNAL | no — read at DRIVER_EN_ROUTE | OQ-29 |
 
 ## 4. `settlement`
 

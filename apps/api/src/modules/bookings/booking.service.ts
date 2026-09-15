@@ -275,10 +275,10 @@ export async function assignDriver(scope: ActorScope, id: string, driverProfileI
   if (!b) throw new NotFoundError();
   if (scope.kind !== 'GLOBAL' && scope.actor.ownerProfileId !== b.ownerProfileId) throw new NotFoundError();
   assertTransition(b, 'DRIVER_ASSIGNED');
-  const check = await driverNominationCheck(scope, driverProfileId, b.ownerProfileId, b.scheduledStartAt);
+  const check = await driverNominationCheck(scope, driverProfileId, b.ownerProfileId, b.scheduledStartAt, b.transportType);
   if (!check.ok) {
     if (check.code === 'NOT_FOUND') throw new NotFoundError('NOT_FOUND', 'Driver not found', { driverProfileId });
-    throw new BusinessRuleError(check.code, check.code === 'DRIVER_NOT_APPROVED' ? 'The driver is not approved' : 'The driver’s licence has expired', { driverProfileId });
+    throw new BusinessRuleError(check.code, check.code === 'DRIVER_NOT_APPROVED' ? (check.vertical ? `The driver is not approved for ${check.vertical} transport` : 'The driver is not approved') : 'The driver’s licence has expired', { driverProfileId, ...(check.vertical ? { vertical: check.vertical } : {}) });
   }
   if (!(await isDriverAssignedToVehicle(b.vehicleId, driverProfileId))) throw new BusinessRuleError('DRIVER_NOT_ASSIGNED_TO_VEHICLE', 'The driver is not assigned to this vehicle', { vehicleId: b.vehicleId, driverProfileId });
   const conflicts = await repo.driverConflicts(scope, driverProfileId, b.scheduledStartAt, b.scheduledEndAt, b.id);

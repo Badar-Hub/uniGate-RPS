@@ -21,7 +21,7 @@ const trip = z
     driver: z.object({ id: z.string().uuid(), fullNameEn: z.string(), phoneE164: z.string().nullable(), ratingAvg: z.string() }).nullable(),
     customerProfileId: z.string().uuid(), ownerProfileId: z.string().uuid(), pickup: location, dropoff: location, scheduledStartAt: z.string().datetime(), scheduledEndAt: z.string().datetime(),
     actualStartAt: z.string().datetime().nullable(), actualEndAt: z.string().datetime().nullable(), startOdometerKm: z.number().int().nullable(), endOdometerKm: z.number().int().nullable(), actualDistanceKm: money.nullable(),
-    driverNotes: z.string().nullable(), customerNotes: z.string().nullable(), delayMinutes: z.number().int().nullable(), position: position.nullable(), trackingSessionId: z.string().uuid().nullable(), createdAt: z.string().datetime(), updatedAt: z.string().datetime(),
+    driverNotes: z.string().nullable(), customerNotes: z.string().nullable(), delayMinutes: z.number().int().nullable(), regulatoryReference: z.string().nullable(), regulatoryReferenceType: z.string().nullable(), position: position.nullable(), trackingSessionId: z.string().uuid().nullable(), createdAt: z.string().datetime(), updatedAt: z.string().datetime(),
   })
   .openapi('Trip');
 const statusResult = z.object({ id: z.string().uuid(), tripNumber: z.string(), status: z.string(), previousStatus: z.string(), transportType: z.string(), occurredAt: z.string().datetime(), recordedAt: z.string().datetime(), allowedNextStatuses: z.array(z.string()), booking: z.object({ id: z.string().uuid(), status: z.string() }) }).openapi('TripStatusResult');

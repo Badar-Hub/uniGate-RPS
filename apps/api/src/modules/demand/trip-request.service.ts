@@ -12,7 +12,7 @@ import { logger } from '@/logging/logger.js';
 import { dispatchableCandidates, type DispatchableCandidate } from '@/modules/fleet/vehicle.service.js';
 import { writeAudit } from '@/modules/platform/audit.service.js';
 import { getSettingValue } from '@/modules/reference/settings.service.js';
-import { verticalFor } from '@/verticals/registry.js';
+import { isVerticalEnabled, verticalFor } from '@/verticals/registry.js';
 import { ownerBidOnRequest, ownerHasAcceptedBid, rejectLiveBidsOnRequest } from '@/modules/bidding/bid.service.js';
 import { biddingOpen, toInvitationDto, toTripRequestDto } from './demand.mapper.js';
 import * as repo from './trip-request.repository.js';
@@ -61,8 +61,8 @@ async function defaultBiddingClosesAt(pickupAt: Date, now = new Date()): Promise
   return new Date(Math.min(byPickup, byWindow));
 }
 
-function assertVerticalEnabled(type: TransportType): void {
-  if (!verticalFor(type).enabled) throw new NotImplementedError('VERTICAL_NOT_ENABLED', `${type} requests are not enabled on this platform yet`);
+async function assertVerticalEnabled(type: TransportType): Promise<void> {
+  if (!(await isVerticalEnabled(type))) throw new NotImplementedError('VERTICAL_NOT_ENABLED', `${type} requests are not enabled on this platform yet`);
 }
 
 async function loadCategory(id: string, transportType: TransportType) {
@@ -97,7 +97,7 @@ function occupancyWindow(pickupAt: Date, returnAt: Date | null, durationMinutes:
 
 /** POST /trip-requests — create (and optionally publish) with the vertical's detail block. */
 export async function createTripRequest(scope: ActorScope, body: z.infer<typeof createTripRequestBody>): Promise<{ dto: TripRequestDto; degraded: string[] }> {
-  assertVerticalEnabled(body.transportType);
+  await assertVerticalEnabled(body.transportType);
   const customerProfileId = scope.kind === 'GLOBAL' ? (body.customerProfileId ?? scope.actor.customerProfileId) : scope.actor.customerProfileId;
   if (!customerProfileId) throw new BusinessRuleError('VALIDATION_FAILED', 'A customer profile is required', { fieldErrors: { customerProfileId: ['required'] }, formErrors: [] });
   const customer = await prisma().customerProfile.findFirst({ where: { id: customerProfileId }, select: { id: true, acquiredBySpoId: true, user: { select: { phoneVerifiedAt: true, status: true } } } });
@@ -221,13 +221,20 @@ export async function matchVehicles(r: repo.TripRequestRow): Promise<Match[]> {
   return out.sort((a, b) => b.score - a.score);
 }
 
+/** Does this vehicle satisfy the request's detail block? The vertical decides (bids re-check what the matcher checked at publish). */
+export function vehicleMatchesRequest(r: repo.TripRequestRow, vehicle: { id: string; categoryId: string; passengerCapacity: number | null; payloadCapacityKg: string | null; hasRefrigeration: boolean; hasTailLift: boolean }): { ok: boolean; reasons: string[] } {
+  const plugin = verticalFor(r.transportType);
+  const verdict = plugin.demand.matchVehicle(r[plugin.demand.detailKey], vehicle);
+  return { ok: verdict.ok, reasons: verdict.reasons };
+}
+
 /** DRAFT → PUBLISHED: runs the matcher, writes invitations, emits the outbox event — one transaction. */
 export async function publishTripRequest(scope: ActorScope, id: string): Promise<TripRequestDto> {
   const r = await repo.findTripRequest(scope, id);
   if (!r) throw new NotFoundError();
   if (isRedactedFor(scope, r)) throw new NotFoundError();
   if (r.status !== 'DRAFT') throw new BusinessRuleError('TRIP_REQUEST_INVALID_TRANSITION', `Only a draft can be published (current: ${r.status})`, { status: r.status });
-  assertVerticalEnabled(r.transportType);
+  await assertVerticalEnabled(r.transportType);
   if (r.biddingClosesAt <= new Date()) throw new BusinessRuleError('VALIDATION_FAILED', 'The bidding deadline has already passed; move pickupAt or biddingClosesAt', { fieldErrors: { biddingClosesAt: ['in the past'] }, formErrors: [] });
   const matches = await matchVehicles(r);
   await prisma().$transaction(async (tx) => {

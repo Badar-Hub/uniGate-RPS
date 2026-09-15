@@ -10,6 +10,7 @@ import { publishEvent } from '@/events/outbox.js';
 import { mandatoryDocumentsSatisfied } from '@/modules/documents/documents.service.js';
 import { revokeSessionsOf } from '@/modules/iam/admin.service.js';
 import { writeAudit } from '@/modules/platform/audit.service.js';
+import { verticalFor } from '@/verticals/registry.js';
 import * as repo from './driver.repository.js';
 import { toAssignmentDto, toDriverDto } from './profiles.mapper.js';
 
@@ -179,12 +180,20 @@ export async function deactivateDriver(scope: ActorScope, id: string): Promise<v
 // ── cross-module facts (Phase 7) ──────────────────────────────────────────────
 
 /** Can this driver be nominated on a bid by this owner? (api.md §6.4: DRIVER_NOT_APPROVED / DRIVER_LICENSE_EXPIRED) */
-export async function driverNominationCheck(_scope: AnyScope, driverProfileId: string, ownerProfileId: string, at = new Date()): Promise<{ ok: true } | { ok: false; code: 'NOT_FOUND' | 'DRIVER_NOT_APPROVED' | 'DRIVER_LICENSE_EXPIRED' }> {
-  const d = await prisma().driverProfile.findFirst({ where: { id: driverProfileId, ownerProfileId }, select: { approvalStatus: true, licenseExpiryDate: true } });
+export async function driverNominationCheck(_scope: AnyScope, driverProfileId: string, ownerProfileId: string, at = new Date(), transportType: TransportType | null = null): Promise<{ ok: true } | { ok: false; code: 'NOT_FOUND' | 'DRIVER_NOT_APPROVED' | 'DRIVER_LICENSE_EXPIRED'; vertical?: TransportType }> {
+  const d = await prisma().driverProfile.findFirst({ where: { id: driverProfileId, ownerProfileId }, select: { approvalStatus: true, licenseExpiryDate: true, verticalEligibility: { select: { transportType: true, status: true } } } });
   if (!d) return { ok: false, code: 'NOT_FOUND' };
   if (d.approvalStatus !== 'APPROVED') return { ok: false, code: 'DRIVER_NOT_APPROVED' };
   if (d.licenseExpiryDate && d.licenseExpiryDate < at) return { ok: false, code: 'DRIVER_LICENSE_EXPIRED' };
+  // Per-vertical eligibility (ADR-010): the vertical decides whether generic approval suffices.
+  if (transportType && verticalFor(transportType).driverEligibilityRequired && !approvedFor(d.verticalEligibility, transportType)) return { ok: false, code: 'DRIVER_NOT_APPROVED', vertical: transportType };
   return { ok: true };
+}
+
+/** Eligibility rows are keyed by vertical; the comparison is a data lookup, not a behavioural branch. */
+function approvedFor(rows: { transportType: TransportType; status: string }[], vertical: TransportType): boolean {
+  const approved = new Set(rows.filter((e) => e.status === 'APPROVED').map((e): string => e.transportType));
+  return approved.has(vertical);
 }
 
 /** The trip lifecycle owns AVAILABLE ↔ ON_TRIP; OFF_DUTY is the driver's own choice and is not overridden on completion. */

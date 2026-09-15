@@ -164,6 +164,7 @@ export const TRIP_ERROR_CODES = [
   'TRIP_ODOMETER_REQUIRED',
   'TRACKING_SESSION_NOT_ACTIVE',
   'TRACKING_STALE_POINT',
+  'TRIP_REGULATORY_DOCUMENT_REQUIRED',
 ] as const;
 export type TripErrorCode = (typeof TRIP_ERROR_CODES)[number];
 

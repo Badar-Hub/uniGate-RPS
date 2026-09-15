@@ -81,5 +81,25 @@ export const passengerPlugin: VerticalPlugin = {
     odometerRequiredOn: ['TRIP_STARTED', 'COMPLETED'],
     proofRequiredOn: [],
     activeStatuses: ['DRIVER_EN_ROUTE', 'ARRIVED_AT_PICKUP', 'TRIP_STARTED', 'IN_PROGRESS', 'ARRIVED_AT_DESTINATION', 'EXCEPTION'],
-  }
+  },
+  // Generic driver approval suffices at MVP; per-vertical eligibility for passenger transport is an onboarding question (OQ-13).
+  driverEligibilityRequired: false,
+  regulatory: {
+    // No per-trip regulatory document for passenger transport at MVP (TGA licensing is an onboarding matter — OQ-13).
+    referenceTypes: [],
+    beforeDispatch() {
+      return Promise.resolve({ ok: true });
+    },
+  },
+  invoice: {
+    lineDescription(l, granularity) {
+      const when = l.scheduledStartAt.toISOString().slice(0, 10);
+      return granularity === 'ORDER'
+        ? { en: `Passenger transport — order ${l.requestNumber}, ${l.vehicleCount} vehicle${l.vehicleCount > 1 ? 's' : ''}, ${l.pickupAddressLine} → ${l.dropoffAddressLine} (${when})`, ar: `نقل ركاب — طلب ${l.requestNumber}، ${l.vehicleCount} مركبة، ${l.pickupAddressLine} ← ${l.dropoffAddressLine} (${when})` }
+        : { en: `Passenger transport — booking ${l.bookingNumber}, ${l.vehicleDescription}, ${l.pickupAddressLine} → ${l.dropoffAddressLine} (${when})`, ar: `نقل ركاب — حجز ${l.bookingNumber}، ${l.vehicleDescription}، ${l.pickupAddressLine} ← ${l.dropoffAddressLine} (${when})` };
+    },
+    vatCategory() {
+      return 'S';
+    },
+  },
 };

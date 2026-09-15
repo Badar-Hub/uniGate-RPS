@@ -36,6 +36,9 @@ const OCCURRED_FUTURE_MS = 15 * 60_000;
 function plugin(t: Pick<repo.TripRow, 'transportType'>) {
   return verticalFor(t.transportType).trips;
 }
+function regulatory(t: Pick<repo.TripRow, 'transportType'>) {
+  return verticalFor(t.transportType).regulatory;
+}
 export function allowedNext(t: Pick<repo.TripRow, 'transportType' | 'status'>): string[] {
   return [...plugin(t).transitions[t.status]];
 }
@@ -159,6 +162,12 @@ export async function transitionTrip(scope: ActorScope, id: string, body: z.infe
       throw new BusinessRuleError('BOOKING_INVALID_TRANSITION', 'The owner has not marked the booking READY (dispatch.ready_check_required)', { bookingStatus: t.booking.status });
     }
 
+    if (target === 'DRIVER_EN_ROUTE') {
+      // The vertical's regulatory gate (goods: the Bayan transport document — OQ-29); ops may still override through trips.manage.
+      const verdict = await regulatory(t).beforeDispatch({ tripNumber: t.tripNumber, status: t.status, regulatoryReference: t.regulatoryReference, regulatoryReferenceType: t.regulatoryReferenceType });
+      if (!verdict.ok && scope.kind !== 'GLOBAL') throw new BusinessRuleError(verdict.code ?? 'TRIP_REGULATORY_DOCUMENT_REQUIRED', verdict.message ?? 'A regulatory document is required before dispatch', verdict.details);
+    }
+
     const data: Prisma.TripUpdateInput = { status: target };
     const effects: string[] = [];
     if (target === 'DRIVER_EN_ROUTE') {
@@ -208,9 +217,14 @@ export async function patchTrip(scope: ActorScope, id: string, body: z.infer<typ
   const t = await repo.findTrip(scope, id);
   if (!t) throw new NotFoundError();
   if (scope.kind !== 'GLOBAL' && (scope.actor.driverProfileId === null || t.driverProfileId !== scope.actor.driverProfileId)) throw new NotFoundError();
+  if (body.regulatoryReferenceType) {
+    const accepted = regulatory(t).referenceTypes;
+    const list = accepted.length ? accepted.join(', ') : '—';
+    if (!accepted.includes(body.regulatoryReferenceType)) throw new BusinessRuleError('VALIDATION_FAILED', `A ${t.transportType.toLowerCase()} trip accepts regulatory reference types: ${list}`, { fieldErrors: { regulatoryReferenceType: [`one of: ${list}`] }, formErrors: [] });
+  }
   await prisma().$transaction(async (tx) => {
-    await tx.trip.update({ where: { id }, data: { ...(body.driverNotes !== undefined ? { driverNotes: body.driverNotes } : {}), ...(body.customerNotes !== undefined ? { customerNotes: body.customerNotes } : {}), ...(body.startOdometerKm !== undefined ? { startOdometerKm: body.startOdometerKm } : {}), ...(body.endOdometerKm !== undefined ? { endOdometerKm: body.endOdometerKm } : {}) } });
-    await writeAudit({ ...audit(scope), action: 'trip.updated', entityType: 'trip', entityId: id, beforeValue: { driverNotes: t.driverNotes, customerNotes: t.customerNotes, startOdometerKm: t.startOdometerKm, endOdometerKm: t.endOdometerKm }, afterValue: { ...body }, changedFields: Object.keys(body) }, tx);
+    await tx.trip.update({ where: { id }, data: { ...(body.driverNotes !== undefined ? { driverNotes: body.driverNotes } : {}), ...(body.customerNotes !== undefined ? { customerNotes: body.customerNotes } : {}), ...(body.startOdometerKm !== undefined ? { startOdometerKm: body.startOdometerKm } : {}), ...(body.endOdometerKm !== undefined ? { endOdometerKm: body.endOdometerKm } : {}), ...(body.regulatoryReference !== undefined ? { regulatoryReference: body.regulatoryReference, regulatoryReferenceType: body.regulatoryReferenceType ?? null } : {}) } });
+    await writeAudit({ ...audit(scope), action: 'trip.updated', entityType: 'trip', entityId: id, beforeValue: { driverNotes: t.driverNotes, customerNotes: t.customerNotes, startOdometerKm: t.startOdometerKm, endOdometerKm: t.endOdometerKm, regulatoryReference: t.regulatoryReference }, afterValue: { ...body }, changedFields: Object.keys(body) }, tx);
   });
   return getTrip(scope, id);
 }

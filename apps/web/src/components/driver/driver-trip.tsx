@@ -32,6 +32,8 @@ export function DriverTrip({ id }: { id: string }) {
   const [notice, setNotice] = useState<string | null>(null);
   const [pending, setPending] = useState<string | null>(null);
   const [odometer, setOdometer] = useState('');
+  const [proof, setProof] = useState({ recipientName: '', recipientIdLast4: '', notes: '' });
+  const [bayan, setBayan] = useState('');
   const [note, setNote] = useState('');
   const [busy, setBusy] = useState(false);
   const [track, setTrack] = useState<TrackerState>(tracker().snapshot);
@@ -73,7 +75,27 @@ export function DriverTrip({ id }: { id: string }) {
       ...(note.trim() ? { note: note.trim() } : {}),
       ...(ODOMETER_STATUSES.includes(status) && odometer.trim() ? { odometerKm: Number(odometer) } : {}),
     };
-    const res = await api<TripStatusResultDto>(`/trips/${id}/status`, { method: 'POST', body, headers: { 'Idempotency-Key': idempotencyKey() } });
+    // Goods: DELIVERED needs a DELIVERY_CONFIRMATION proof — recorded first, then referenced on the transition.
+    let proofId: string | undefined;
+    if (needsProof) {
+      const p = await api<{ id: string }>(`/trips/${id}/proofs`, { method: 'POST', body: { proofType: 'DELIVERY_CONFIRMATION', recipientName: proof.recipientName, ...(proof.recipientIdLast4 ? { recipientIdLast4: proof.recipientIdLast4 } : {}), ...(proof.notes.trim() ? { notes: proof.notes.trim() } : {}), ...(pos ? { latitude: pos.latitude, longitude: pos.longitude } : {}) } });
+      if (!p.ok) {
+        setBusy(false);
+        setError(p.error);
+        return;
+      }
+      proofId = p.data.id;
+    }
+    // Goods: the transport-document (Bayan) reference travels on the trip before the driver leaves.
+    if (needsBayan && bayan.trim()) {
+      const b = await api<TripDto>(`/trips/${id}`, { method: 'PATCH', body: { regulatoryReference: bayan.trim(), regulatoryReferenceType: 'BAYAN' } });
+      if (!b.ok) {
+        setBusy(false);
+        setError(b.error);
+        return;
+      }
+    }
+    const res = await api<TripStatusResultDto>(`/trips/${id}/status`, { method: 'POST', body: { ...body, ...(proofId ? { proofId } : {}) }, headers: { 'Idempotency-Key': idempotencyKey() } });
     setBusy(false);
     if (!res.ok) {
       setError(res.error);
@@ -82,6 +104,8 @@ export function DriverTrip({ id }: { id: string }) {
     setPending(null);
     setOdometer('');
     setNote('');
+    setProof({ recipientName: '', recipientIdLast4: '', notes: '' });
+    setBayan('');
     setNotice(t('updated', { status: t(`status.${res.data.status}` as 'status.BOOKED') }));
     await load();
   }
@@ -99,6 +123,8 @@ export function DriverTrip({ id }: { id: string }) {
   const terminal = trip.status === 'COMPLETED' || trip.status === 'CANCELLED';
   const nextStatuses = trip.allowedNextStatuses.filter((s) => s !== 'CANCELLED');
   const needsOdometer = pending !== null && ODOMETER_STATUSES.includes(pending);
+  const needsProof = pending === 'DELIVERED';
+  const needsBayan = pending === 'DRIVER_EN_ROUTE' && trip.transportType === 'GOODS' && !trip.regulatoryReference;
   const lastAgo = track.last ? Math.max(0, Math.round((now - new Date(track.last.recordedAt).getTime()) / 1000)) : null;
 
   return (
@@ -204,12 +230,37 @@ export function DriverTrip({ id }: { id: string }) {
                 <p className="text-xs text-muted-foreground">{t('odometerHint', { km: trip.startOdometerKm ?? '—' })}</p>
               </div>
             )}
+            {needsProof && (
+              <div className="space-y-2 rounded-md border p-3">
+                <div className="text-sm font-medium">{t('proof.title')}</div>
+                <div className="space-y-1">
+                  <Label htmlFor="pod-name">{t('proof.recipient')}</Label>
+                  <Input id="pod-name" value={proof.recipientName} onChange={(e) => { setProof({ ...proof, recipientName: e.target.value }); }} />
+                </div>
+                <div className="space-y-1">
+                  <Label htmlFor="pod-id">{t('proof.idLast4')}</Label>
+                  <Input id="pod-id" inputMode="numeric" dir="ltr" maxLength={4} value={proof.recipientIdLast4} onChange={(e) => { setProof({ ...proof, recipientIdLast4: e.target.value.replace(/[^\d]/g, '').slice(0, 4) }); }} />
+                </div>
+                <div className="space-y-1">
+                  <Label htmlFor="pod-notes">{t('proof.notes')}</Label>
+                  <Input id="pod-notes" value={proof.notes} onChange={(e) => { setProof({ ...proof, notes: e.target.value }); }} />
+                </div>
+                <p className="text-xs text-muted-foreground">{t('proof.hint')}</p>
+              </div>
+            )}
+            {needsBayan && (
+              <div className="space-y-1">
+                <Label htmlFor="bayan">{t('bayanPrompt')}</Label>
+                <Input id="bayan" dir="ltr" value={bayan} onChange={(e) => { setBayan(e.target.value); }} />
+                <p className="text-xs text-muted-foreground">{t('bayanHint')}</p>
+              </div>
+            )}
             <div className="space-y-1">
               <Label htmlFor="note">{t('noteLabel')}</Label>
               <Input id="note" value={note} onChange={(e) => { setNote(e.target.value); }} />
             </div>
             <div className="flex gap-2">
-              <Button className="flex-1" size="lg" disabled={busy || (needsOdometer && !odometer)} onClick={() => void move(pending)}>
+              <Button className="flex-1" size="lg" disabled={busy || (needsOdometer && !odometer) || (needsProof && proof.recipientName.trim().length < 2)} onClick={() => void move(pending)}>
                 {busy && <Loader2 className="animate-spin" />}
                 {t('confirm')}
               </Button>

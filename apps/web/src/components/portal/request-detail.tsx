@@ -87,6 +87,7 @@ export function RequestDetail({ id, created }: { id: string; created?: string | 
     );
   }
   const p = r.passengerDetails;
+  const g = r.goodsDetails;
 
   return (
     <div className="space-y-6">
@@ -155,6 +156,27 @@ export function RequestDetail({ id, created }: { id: string; created?: string | 
               {p.requiresWheelchairAccess && <Badge variant="outline">{t('form.wheelchair')}</Badge>}
               {p.requiresFemaleDriver && <Badge variant="outline">{t('form.femaleDriver')}</Badge>}
               {p.childSeatsRequired > 0 && <Badge variant="outline">{t('form.childSeats')}: {p.childSeatsRequired}</Badge>}
+            </CardContent>
+          </Card>
+        )}
+        {g && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base">{t('form.goods.title')}</CardTitle>
+              <CardDescription>{t(`form.goods.cargoTypes.${g.cargoType}` as 'form.goods.cargoTypes.GENERAL')} · {g.cargoDescription}</CardDescription>
+            </CardHeader>
+            <CardContent className="flex flex-wrap gap-2 text-sm">
+              <Badge variant="secondary" dir="ltr">{g.cargoWeightKg} kg</Badge>
+              {g.cargoVolumeM3 && <Badge variant="outline" dir="ltr">{g.cargoVolumeM3} m³</Badge>}
+              {g.packageCount !== null && <Badge variant="outline">{t('form.goods.packages')}: {g.packageCount}</Badge>}
+              {g.requiresRefrigeration && <Badge variant="outline" dir="ltr">❄ {g.requiredTemperatureMinC}–{g.requiredTemperatureMaxC} °C</Badge>}
+              {g.requiresTailLift && <Badge variant="outline">{t('form.goods.tailLift')}</Badge>}
+              {g.requiresCrane && <Badge variant="outline">{t('form.goods.crane')}</Badge>}
+              {g.requiresInsurance && <Badge variant="outline">{t('form.goods.insurance')}{g.declaredValueAmount ? ` · ${g.declaredValueAmount}` : ''}</Badge>}
+              <Badge variant="outline">{t('form.goods.loading')}: {t(`form.goods.responsibility.${g.loadingResponsibility}` as 'form.goods.responsibility.CUSTOMER')}</Badge>
+              <Badge variant="outline">{t('form.goods.unloading')}: {t(`form.goods.responsibility.${g.unloadingResponsibility}` as 'form.goods.responsibility.CUSTOMER')}</Badge>
+              {g.loadingInstructions && <p className="basis-full text-muted-foreground">{g.loadingInstructions}</p>}
+              {(g.shipperContactName ?? g.consigneeContactName) && <p className="basis-full text-muted-foreground" dir="ltr">{[g.shipperContactName, g.shipperContactPhone].filter(Boolean).join(' ')} → {[g.consigneeContactName, g.consigneeContactPhone].filter(Boolean).join(' ')}</p>}
             </CardContent>
           </Card>
         )}

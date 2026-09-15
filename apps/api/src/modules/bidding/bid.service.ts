@@ -7,7 +7,7 @@ import { newId } from '@/common/ids.js';
 import { type Decimal, money, round2, round4, vatOn } from '@/common/money.js';
 import { isUniqueViolation, prisma } from '@/database/prisma.js';
 import { publishEvent } from '@/events/outbox.js';
-import { biddingOpen, requestRowForBidding } from '@/modules/demand/trip-request.service.js';
+import { biddingOpen, requestRowForBidding, vehicleMatchesRequest } from '@/modules/demand/trip-request.service.js';
 import { describeCommission, resolveCommission, type CommissionOverride } from '@/modules/finance/commission.service.js';
 import { vehicleForAward } from '@/modules/fleet/vehicle.service.js';
 import { writeAudit } from '@/modules/platform/audit.service.js';
@@ -134,6 +134,8 @@ export async function submitBid(scope: ActorScope, body: z.infer<typeof createBi
   const v = await vehicleForAward(body.vehicleId, r.pickupAt);
   if (v?.ownerProfileId !== ownerProfileId) throw new NotFoundError('NOT_FOUND', 'Vehicle not found', { vehicleId: body.vehicleId });
   if (v.vehicleCategoryId !== r.vehicleCategoryId) throw new BusinessRuleError('BID_NOT_ELIGIBLE', `Vehicle category ${v.categoryCode} does not match the request`, { vehicleId: v.id, categoryCode: v.categoryCode });
+  const fit = vehicleMatchesRequest(r, v.candidate);
+  if (!fit.ok) throw new BusinessRuleError('BID_NOT_ELIGIBLE', `Vehicle ${v.plateNumberEn} does not satisfy the request (${fit.reasons.join(', ')})`, { vehicleId: v.id, reasons: fit.reasons });
   if (!v.dispatch.ok) {
     if (v.dispatch.reasons.includes('OWNER_NOT_APPROVED')) throw new BusinessRuleError('OWNER_NOT_APPROVED', 'The owner profile is not approved', { reasons: v.dispatch.reasons });
     throw new BusinessRuleError('VEHICLE_NOT_DISPATCHABLE', 'The vehicle cannot be dispatched', { reasons: v.dispatch.reasons });
@@ -141,7 +143,7 @@ export async function submitBid(scope: ActorScope, body: z.infer<typeof createBi
 
   const requiresDriver = await getSettingValue<boolean>('bidding.bid_requires_driver_nomination', false);
   if (requiresDriver && !body.driverProfileId) throw new BusinessRuleError('VALIDATION_FAILED', 'A driver must be nominated on the bid', { fieldErrors: { driverProfileId: ['required'] }, formErrors: [] });
-  if (body.driverProfileId) await assertDriver(scope, body.driverProfileId, ownerProfileId, now);
+  if (body.driverProfileId) await assertDriver(scope, body.driverProfileId, ownerProfileId, now, r.transportType);
 
   // Same vehicle twice is a 409 before the per-owner limit is a 422 — the partial unique index would say the same, later.
   if (await repo.hasLiveBidForVehicle(scope, r.id, v.id)) throw new ConflictError('BID_DUPLICATE_VEHICLE', 'This vehicle already has a live bid on this request', { vehicleId: v.id, tripRequestId: r.id });
@@ -172,11 +174,11 @@ export async function submitBid(scope: ActorScope, body: z.infer<typeof createBi
   return getBid(scope, id);
 }
 
-async function assertDriver(scope: AnyScope, driverProfileId: string, ownerProfileId: string, at: Date): Promise<void> {
-  const check = await driverNominationCheck(scope, driverProfileId, ownerProfileId, at);
+async function assertDriver(scope: AnyScope, driverProfileId: string, ownerProfileId: string, at: Date, transportType: 'PASSENGER' | 'GOODS'): Promise<void> {
+  const check = await driverNominationCheck(scope, driverProfileId, ownerProfileId, at, transportType);
   if (check.ok) return;
   if (check.code === 'NOT_FOUND') throw new NotFoundError('NOT_FOUND', 'Driver not found', { driverProfileId });
-  throw new BusinessRuleError(check.code, check.code === 'DRIVER_NOT_APPROVED' ? 'The nominated driver is not approved' : 'The nominated driver’s licence has expired', { driverProfileId });
+  throw new BusinessRuleError(check.code, check.code === 'DRIVER_NOT_APPROVED' ? (check.vertical ? `The nominated driver is not approved for ${check.vertical} transport` : 'The nominated driver is not approved') : 'The nominated driver’s licence has expired', { driverProfileId, ...(check.vertical ? { vertical: check.vertical } : {}) });
 }
 
 /** PATCH /bids/{id}: version++, totals recomputed, status stays SUBMITTED; refused after the deadline (V4). */
@@ -188,7 +190,7 @@ export async function reviseBid(scope: ActorScope, id: string, body: z.infer<typ
   const r = await requestRowForBidding(systemScope, b.tripRequestId);
   if (!r) throw new NotFoundError();
   const deadline = assertRequestOpenForBids(r, now);
-  if (body.driverProfileId) await assertDriver(scope, body.driverProfileId, b.ownerProfileId, now);
+  if (body.driverProfileId) await assertDriver(scope, body.driverProfileId, b.ownerProfileId, now, r.transportType);
   const extras = body.extrasBreakdown ?? (Array.isArray(b.extrasBreakdown) ? (b.extrasBreakdown as { amount: string }[]) : []);
   const totals = await computeTotals(body.baseAmount ?? b.baseAmount.toFixed(2), extras);
   const validityHours = await getSettingValue<number>('bidding.bid_validity_hours', 24);

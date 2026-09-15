@@ -1,7 +1,7 @@
 # UniGate — Implementation Status
 
 **Last updated:** 2026-09-15
-**Current phase:** **Phase 11 complete** (2026-09-15, e-invoicing on the mock provider — designed, not claimed) → Phase 11b (Goods vertical) or Phase 12 (Maintenance) ready to start
+**Current phase:** **Phase 11b complete** (2026-09-15 — the goods vertical is built and switched off by setting until OQ-13 / OQ-29 are settled) → Phase 12 (Maintenance) ready to start
 **Overall:** Foundation built and verified end to end: monorepo, typed packages, API core, full Prisma schema (82 tables) with hand-written constraints, seeds, migration-integrity test, web scaffold (shadcn/ui, ar/en RTL), CI. `pnpm ci` is green (20/20 tasks). See [development.md](development.md).
 
 > **Schema-blocking questions resolved 2026-09-14.**
@@ -34,7 +34,7 @@ Status values: `NOT_STARTED` · `IN_PROGRESS` · `BLOCKED` · `COMPLETE`
 | 9 | Payments | **COMPLETE** 2026-09-15 | See *Phase 9 exit* below. `MockGateway` behind the `PaymentGateway` port; the real adapter is a later swap (OQ-03) |
 | 10 | Trip execution & tracking | **COMPLETE** 2026-09-15 | See *Phase 10 exit* below. ~~Hardware GPS pending OQ-11~~ none fitted — the driver app (PWA) is the GPS source at launch: [driver-app.md](driver-app.md) |
 | 11 | Finance | **COMPLETE** 2026-09-15 | See *Phase 11 exit* below. Settlements, invoices (clearance flow behind the `EInvoicingProvider` port — no compliance claimed, OQ-04), expenses, commission admin, ledger reads. Supplier invoicing (OQ-25/OQ-30) and SPO (OQ-09) carried forward |
-| 11b | **Goods vertical** | `NOT_STARTED` | New phase per [ADR-010](decisions/ADR-010-vertical-modules-over-a-shared-core.md): goods request/validation, goods trip state machine, freight checklist, Bayan hook, zero-rating decision, goods portal sections. **Gated on OQ-13 (freight) and OQ-29 only** |
+| 11b | **Goods vertical** | **COMPLETE** 2026-09-15 | See *Phase 11b exit* below. Built behind `platform.verticals_enabled` (seed PASSENGER only); the Bayan gate and zero-rating are hooks awaiting OQ-29 / OQ-27; TGA licensing OQ-13 |
 | 12 | Maintenance | `NOT_STARTED` | |
 | 13 | Admin & reporting | `NOT_STARTED` | Per-vertical admin sections; `platform.verticals_enabled` toggle |
 | 14 | Hardening | `NOT_STARTED` | ~~Performance targets pending OQ-15~~ estimates agreed 2026-09-15 |
@@ -255,6 +255,25 @@ Verified on 2026-09-15 with `pnpm turbo run typecheck lint test build --force` (
 
 ---
 
+## Phase 11b exit — what was verified
+
+Verified on 2026-09-15 with `pnpm turbo run typecheck lint test build --force` (20/20 tasks), 139 tests (125 API incl. 2 goods flows; 14 package), `openapi:check` up to date.
+
+| Area | Delivered | Proof |
+|---|---|---|
+| The switch | The goods module is **capable** (`goodsPlugin.enabled = true`) and the deployment switches it on with `platform.verticals_enabled` (seed `['PASSENGER']`) — `isVerticalEnabled()` in the registry is plugin **and** setting; goods requests answer `501 VERTICAL_NOT_ENABLED` until UniGate flips the setting after OQ-13 / OQ-29. Registered goods vehicles, trips under way and reads are never gated | goods test "is a switch…", demand test |
+| Requests | `goodsDetails` validated by the plugin (refrigeration needs a temperature range; detail block must match the vertical); matching by payload / refrigeration / tail lift; **bids re-run the plugin match** — a dry truck on chilled cargo is `422 BID_NOT_ELIGIBLE · REFRIGERATION_REQUIRED` even though the category matches (closed a gap: the matcher checked it at publish, the bid path did not) | goods test |
+| Driver eligibility per vertical | `VerticalPlugin.driverEligibilityRequired` — goods requires an APPROVED `driver_vertical_eligibility` row (`422 DRIVER_NOT_APPROVED · vertical: GOODS`) on nomination and assignment; passenger keeps generic approval at MVP (OQ-13) | goods test |
+| Freight lifecycle | DRIVER_EN_ROUTE → ARRIVED_AT_PICKUP → LOADING → LOADED (odometer, booking IN_PROGRESS) → IN_TRANSIT → ARRIVED_AT_DESTINATION → UNLOADING → DELIVERED (odometer + `DELIVERY_CONFIRMATION` proof, `422 TRIP_PROOF_REQUIRED` without) → COMPLETED; passenger states refused; LOADED cannot be skipped | goods test |
+| Transport document (Bayan, OQ-29) | `VerticalPlugin.regulatory.beforeDispatch` — `trips.regulatory_reference/_type` (new columns, CHECK both-or-neither), `PATCH /trips/{id}` accepts a type the vertical lists (`BAYAN`, `OTHER`), and DRIVER_EN_ROUTE is refused with `422 TRIP_REGULATORY_DOCUMENT_REQUIRED` while `dispatch.goods_transport_document_required` is on (seed **off** — no TGA API is known; ops override through `trips.manage`) | goods test |
+| Invoice wording + VAT category | `VerticalPlugin.invoice.lineDescription` ("Freight transport — …" / "Passenger transport — …") and `vatCategory` (both 'S'; zero-rating of cross-border freight is the advisor's call — OQ-27) — the invoice builder no longer phrases a line itself | goods test |
+| Freight checklist | Category extras from the plugin (`VEHICLE_REFRIGERATION_CERT`, `VEHICLE_HAZMAT_PERMIT`) already applied by the fleet checklist | fleet tests |
+| Web | Request form: vertical toggle (shown only when the deployment lists GOODS) and the cargo section (type, weight, volume, packages, refrigeration range, tail lift/crane, loading/unloading responsibility, insurance & declared value, shipper/consignee); request detail cargo card; driver app: **proof-of-delivery capture** before DELIVERED (recipient, ID last 4, notes, position) and the Bayan reference prompt before departure on goods trips | typecheck/lint |
+
+**Carried forward:** photo/signature capture on the proof (documents upload from the driver screen); the TGA Bayan integration itself (OQ-29 — no public API found; the reference is captured manually); zero-rating (OQ-27); TGA licensing gates for owners/drivers (OQ-13); goods-specific admin sections (Phase 13).
+
+---
+
 ## Module status
 
 | Module | Status | Backend | Frontend | Tests | Notes |
@@ -277,8 +296,8 @@ Verified on 2026-09-15 with `pnpm turbo run typecheck lint test build --force` (
 | `reporting` | NOT_STARTED | — | — | — | Async exports. Phase 13. |
 | `admin` | NOT_STARTED | — | — | — | Phase 13. |
 | `platform` | IN_PROGRESS | audit writer (`writeAudit`, redacted, request-id correlated); `outbox_events` and `idempotency_keys` tables | — | unit (redact) + db (append-only trigger) | Outbox relay and idempotency middleware land in Phase 3 with the first money-moving endpoint. |
-| `passenger` | IN_PROGRESS | `plugin.ts`: capacity rules, checklist extras, **request detail ownership, validation and vehicle matching** | — | fleet + demand tests | Trip map, invoice descriptor, VAT decision land in Phases 10–11. |
-| `goods` | IN_PROGRESS (seam only) | `plugin.ts` with `enabled: false` — goods vehicles can be registered ahead of the vertical | — | — | Phase 11b. |
+| `passenger` | **DONE** | `plugin.ts`: capacity rules, checklist extras, request detail + matching, trip map, regulatory (none), invoice wording + VAT category | — | fleet, demand, trips, goods tests | — |
+| `goods` | **DONE (Phase 11b)** | `plugin.ts`: cargo validation + matching, freight map with proof of delivery, refrigeration/hazmat checklist extras, Bayan dispatch gate (setting), per-vertical driver eligibility, freight invoice wording | ✅ request form, detail, driver proof capture | db (goods 2) | Switched on per deployment by `platform.verticals_enabled`. |
 
 ---
 

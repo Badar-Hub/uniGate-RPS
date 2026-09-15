@@ -41,9 +41,13 @@ export const patchTripBody = z
     customerNotes: safeText(2000).nullable().optional(),
     startOdometerKm: z.number().int().min(0).max(9_999_999).optional(),
     endOdometerKm: z.number().int().min(0).max(9_999_999).optional(),
+    /** Regulatory document reference (goods: TGA Bayan); type must be one the vertical accepts. Both or neither. */
+    regulatoryReference: safeText(64).nullable().optional(),
+    regulatoryReferenceType: z.string().regex(/^[A-Z_]{2,24}$/).nullable().optional(),
   })
   .strict()
-  .refine((b) => Object.keys(b).length > 0, 'at least one field is required');
+  .refine((b) => Object.keys(b).length > 0, 'at least one field is required')
+  .refine((b) => (b.regulatoryReference === undefined) === (b.regulatoryReferenceType === undefined) && Boolean(b.regulatoryReference) === Boolean(b.regulatoryReferenceType), { path: ['regulatoryReferenceType'], message: 'regulatoryReference and regulatoryReferenceType travel together (both set, or both null)' });
 
 export const cancelTripBody = z.object({ reason: safeText(1000).pipe(z.string().min(3)) }).strict();
 

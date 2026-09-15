@@ -123,9 +123,14 @@ All items delivered; residuals moved to Phase 3 below.
 - [ ] Supplier invoices / self-billing (OQ-25 / OQ-30) and the `SUPPLIER_INVOICE_MISSING` settlement hold
 - [ ] SPO commission roll-up (OQ-09); GATEWAY_PAYOUT rail (decision with the gateway, OQ-03)
 
+## Phase 11b — Goods vertical — COMPLETE 2026-09-15 (switched off by setting)
+
+- [x] Goods requests, matching and bid-time re-check; per-vertical driver eligibility; freight state machine with proof of delivery; Bayan dispatch gate behind `dispatch.goods_transport_document_required`; freight invoice wording; portal + driver-app sections
+- [ ] Switch on: set `platform.verticals_enabled = [PASSENGER, GOODS]` once OQ-13 (TGA licensing) and OQ-29 (Bayan process) are answered
+- [ ] Proof photo/signature capture from the driver screen; Bayan integration if TGA exposes an interface; zero-rating rule (OQ-27)
+
 ## Immediate — next phase (UniGate's call)
 
-- [ ] **Phase 11b — Goods vertical** (per ADR-010): goods request validation, goods trip plugin already carries the LOADING/LOADED/DELIVERED map, freight checklist, proof capture in the driver app, zero-rating decision; gated on OQ-13 / OQ-29
 - [ ] **Phase 12 — Maintenance**: `/maintenance` records and schedules, vehicle downtime on the calendar, reminders
 - [ ] Phase 13 — Admin & reporting: refunds admin screen, disputes / no-show, customer statements, dashboards
 

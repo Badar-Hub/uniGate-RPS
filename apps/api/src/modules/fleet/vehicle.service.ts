@@ -400,6 +400,8 @@ export interface VehicleForAward {
   plateNumberEn: string;
   description: string;
   dispatch: Dispatchability;
+  /** What the vertical plugin matches a request's detail block against (payload, refrigeration, …). */
+  candidate: { id: string; categoryId: string; passengerCapacity: number | null; payloadCapacityKg: string | null; hasRefrigeration: boolean; hasTailLift: boolean };
 }
 
 /** The vehicle as the bidding/award path sees it: identity + the dispatchability verdict re-run now. Unscoped read (the bid already names the vehicle). */
@@ -407,7 +409,10 @@ export async function vehicleForAward(id: string, at?: Date): Promise<VehicleFor
   const v = await repo.findVehicle(systemScope('bidding.vehicle'), id);
   if (!v) return null;
   const description = [v.make?.name, v.model?.name, String(v.modelYear), '—', v.category.nameEn].filter(Boolean).join(' ');
-  return { id: v.id, ownerProfileId: v.ownerProfileId, vehicleCategoryId: v.vehicleCategoryId, categoryCode: v.category.code, plateNumberEn: v.plateNumberEn, description, dispatch: await dispatchableNow(v, at) };
+  return {
+    id: v.id, ownerProfileId: v.ownerProfileId, vehicleCategoryId: v.vehicleCategoryId, categoryCode: v.category.code, plateNumberEn: v.plateNumberEn, description, dispatch: await dispatchableNow(v, at),
+    candidate: { id: v.id, categoryId: v.vehicleCategoryId, passengerCapacity: v.passengerCapacity, payloadCapacityKg: v.payloadCapacityKg?.toString() ?? null, hasRefrigeration: v.hasRefrigeration, hasTailLift: v.hasTailLift },
+  };
 }
 
 /** Is the driver currently assigned to this vehicle (an open vehicle_driver_assignments row)? */

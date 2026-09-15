@@ -38,6 +38,9 @@ export function RequestForm() {
   const [saved, setSaved] = useState<SavedLocationDto[]>([]);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<ApiError | null>(null);
+  const [verticals, setVerticals] = useState<string[]>(['PASSENGER']);
+  const [transportType, setTransportType] = useState<'PASSENGER' | 'GOODS'>('PASSENGER');
+  const [goods, setGoods] = useState({ cargoType: 'GENERAL', cargoDescription: '', cargoWeightKg: '', cargoVolumeM3: '', packageCount: '', requiresRefrigeration: false, tempMin: '2', tempMax: '8', requiresTailLift: false, requiresCrane: false, loadingResponsibility: 'CUSTOMER', unloadingResponsibility: 'CUSTOMER', loadingInstructions: '', declaredValue: '', requiresInsurance: false, shipperName: '', shipperPhone: '', consigneeName: '', consigneePhone: '' });
   const [form, setForm] = useState({
     vehicleCategoryId: '', vehiclesRequired: '1', allowPartialFulfilment: 'no', tripDirection: 'ONE_WAY', pickupAddress: '', pickupCityId: '', dropoffAddress: '', dropoffCityId: '',
     pickupAt: '', returnAt: '', passengerCount: '1', luggageCount: '0', tripPurpose: 'AIRPORT_TRANSFER', wheelchair: false, femaleDriver: false, childSeats: '0', budget: '', instructions: '',
@@ -48,9 +51,19 @@ export function RequestForm() {
   };
 
   useEffect(() => {
-    void api<VehicleCategoryDto[]>('/vehicle-categories', { query: { transportType: 'PASSENGER' } }).then((r) => {
+    // The verticals a deployment accepts new requests for (platform.verticals_enabled — ADR-009/ADR-010).
+    void api<{ key: string; value: unknown }[]>('/settings/public').then((r) => {
+      const v = r.ok ? r.data.find((s) => s.key === 'platform.verticals_enabled')?.value : undefined;
+      if (Array.isArray(v)) setVerticals(v.map(String));
+    });
+  }, []);
+  useEffect(() => {
+    setForm((f) => ({ ...f, vehicleCategoryId: '' }));
+    void api<VehicleCategoryDto[]>('/vehicle-categories', { query: { transportType } }).then((r) => {
       if (r.ok) setCategories(r.data);
     });
+  }, [transportType]);
+  useEffect(() => {
     void api<CityDto[]>('/reference/cities').then((r) => {
       if (r.ok) setCities(r.data);
     });
@@ -72,8 +85,16 @@ export function RequestForm() {
     const dc = cities.find((c) => c.id === form.dropoffCityId);
     const sp = saved.find((s) => s.addressLine === form.pickupAddress && s.cityId === form.pickupCityId);
     const sd = saved.find((s) => s.addressLine === form.dropoffAddress && s.cityId === form.dropoffCityId);
+    const goodsDetails = {
+      cargoType: goods.cargoType, cargoDescription: goods.cargoDescription, cargoWeightKg: Number(goods.cargoWeightKg || 0).toFixed(2),
+      ...(goods.cargoVolumeM3 ? { cargoVolumeM3: Number(goods.cargoVolumeM3).toFixed(2) } : {}), ...(goods.packageCount ? { packageCount: Number(goods.packageCount) } : {}),
+      requiresRefrigeration: goods.requiresRefrigeration, ...(goods.requiresRefrigeration ? { requiredTemperatureMinC: Number(goods.tempMin), requiredTemperatureMaxC: Number(goods.tempMax) } : {}),
+      requiresTailLift: goods.requiresTailLift, requiresCrane: goods.requiresCrane, loadingResponsibility: goods.loadingResponsibility, unloadingResponsibility: goods.unloadingResponsibility,
+      ...(goods.loadingInstructions.trim() ? { loadingInstructions: goods.loadingInstructions.trim() } : {}), ...(goods.declaredValue ? { declaredValueAmount: Number(goods.declaredValue).toFixed(2) } : {}), requiresInsurance: goods.requiresInsurance,
+      ...(goods.shipperName ? { shipperContactName: goods.shipperName } : {}), ...(goods.shipperPhone ? { shipperContactPhone: goods.shipperPhone } : {}), ...(goods.consigneeName ? { consigneeContactName: goods.consigneeName } : {}), ...(goods.consigneePhone ? { consigneeContactPhone: goods.consigneePhone } : {}),
+    };
     const body = {
-      transportType: 'PASSENGER',
+      transportType,
       vehicleCategoryId: form.vehicleCategoryId,
       vehiclesRequired: Number(form.vehiclesRequired),
       ...(Number(form.vehiclesRequired) > 1 ? { allowPartialFulfilment: form.allowPartialFulfilment === 'yes' } : {}),
@@ -84,10 +105,9 @@ export function RequestForm() {
       ...(form.tripDirection === 'ROUND_TRIP' && form.returnAt ? { returnAt: new Date(form.returnAt).toISOString() } : {}),
       ...(form.budget ? { budgetAmount: Number(form.budget).toFixed(2) } : {}),
       ...(form.instructions.trim() ? { specialInstructions: form.instructions.trim() } : {}),
-      passengerDetails: {
-        passengerCount: Number(form.passengerCount), luggageCount: Number(form.luggageCount), tripPurpose: form.tripPurpose,
-        requiresWheelchairAccess: form.wheelchair, requiresFemaleDriver: form.femaleDriver, childSeatsRequired: Number(form.childSeats),
-      },
+      ...(transportType === 'PASSENGER'
+        ? { passengerDetails: { passengerCount: Number(form.passengerCount), luggageCount: Number(form.luggageCount), tripPurpose: form.tripPurpose, requiresWheelchairAccess: form.wheelchair, requiresFemaleDriver: form.femaleDriver, childSeatsRequired: Number(form.childSeats) } }
+        : { goodsDetails }),
       publish,
     };
     const res = await api<TripRequestDto>('/trip-requests', { method: 'POST', body, headers: { 'Idempotency-Key': idempotencyKey() } });
@@ -119,6 +139,17 @@ export function RequestForm() {
               <AlertCircle className="size-4" />
               <AlertDescription>{errorMessage(tc, error)}</AlertDescription>
             </Alert>
+          )}
+          {verticals.includes('GOODS') && (
+            <Field id="transportType" label={t('transportType')} className="md:col-span-2">
+              <div className="flex gap-2" role="radiogroup" id="transportType">
+                {(['PASSENGER', 'GOODS'] as const).map((v) => (
+                  <Button key={v} type="button" size="sm" variant={transportType === v ? 'default' : 'outline'} onClick={() => { setTransportType(v); }}>
+                    {t(`vertical.${v}`)}
+                  </Button>
+                ))}
+              </div>
+            </Field>
           )}
           <Field id="vehicleCategoryId" label={t('category')} error={fe['vehicleCategoryId']}>
             <Select value={form.vehicleCategoryId} onValueChange={set('vehicleCategoryId')}>
@@ -234,6 +265,73 @@ export function RequestForm() {
               <Input id="returnAt" type="datetime-local" value={form.returnAt} onChange={(e) => { set('returnAt')(e.target.value); }} required dir="ltr" />
             </Field>
           )}
+          {transportType === 'GOODS' && (
+            <>
+              <Field id="cargoType" label={t('goods.cargoType')} error={fe['goodsDetails']}>
+                <select id="cargoType" className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm" value={goods.cargoType} onChange={(e) => { setGoods({ ...goods, cargoType: e.target.value }); }}>
+                  {['GENERAL', 'FRAGILE', 'PERISHABLE', 'HAZARDOUS', 'LIVESTOCK', 'VEHICLE', 'BULK', 'CONTAINER', 'OTHER'].map((c) => (
+                    <option key={c} value={c}>{t(`goods.cargoTypes.${c}` as 'goods.cargoTypes.GENERAL')}</option>
+                  ))}
+                </select>
+              </Field>
+              <Field id="cargoWeightKg" label={t('goods.weight')}>
+                <Input id="cargoWeightKg" type="number" min={1} step="0.01" required value={goods.cargoWeightKg} onChange={(e) => { setGoods({ ...goods, cargoWeightKg: e.target.value }); }} dir="ltr" />
+              </Field>
+              <Field id="cargoDescription" label={t('goods.description')} className="md:col-span-2">
+                <Input id="cargoDescription" required value={goods.cargoDescription} onChange={(e) => { setGoods({ ...goods, cargoDescription: e.target.value }); }} />
+              </Field>
+              <Field id="cargoVolumeM3" label={t('goods.volume')}>
+                <Input id="cargoVolumeM3" type="number" min={0} step="0.01" value={goods.cargoVolumeM3} onChange={(e) => { setGoods({ ...goods, cargoVolumeM3: e.target.value }); }} dir="ltr" />
+              </Field>
+              <Field id="packageCount" label={t('goods.packages')}>
+                <Input id="packageCount" type="number" min={0} value={goods.packageCount} onChange={(e) => { setGoods({ ...goods, packageCount: e.target.value }); }} dir="ltr" />
+              </Field>
+              <Field id="loadingResponsibility" label={t('goods.loading')}>
+                <select id="loadingResponsibility" className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm" value={goods.loadingResponsibility} onChange={(e) => { setGoods({ ...goods, loadingResponsibility: e.target.value }); }}>
+                  {['CUSTOMER', 'DRIVER', 'THIRD_PARTY'].map((c) => <option key={c} value={c}>{t(`goods.responsibility.${c}` as 'goods.responsibility.CUSTOMER')}</option>)}
+                </select>
+              </Field>
+              <Field id="unloadingResponsibility" label={t('goods.unloading')}>
+                <select id="unloadingResponsibility" className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm" value={goods.unloadingResponsibility} onChange={(e) => { setGoods({ ...goods, unloadingResponsibility: e.target.value }); }}>
+                  {['CUSTOMER', 'DRIVER', 'THIRD_PARTY'].map((c) => <option key={c} value={c}>{t(`goods.responsibility.${c}` as 'goods.responsibility.CUSTOMER')}</option>)}
+                </select>
+              </Field>
+              <div className="flex flex-col gap-2 md:col-span-2">
+                <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={goods.requiresRefrigeration} onChange={(e) => { setGoods({ ...goods, requiresRefrigeration: e.target.checked }); }} />{t('goods.refrigeration')}</label>
+                {goods.requiresRefrigeration && (
+                  <div className="flex items-center gap-2 text-sm">
+                    <Input aria-label={t('goods.tempMin')} type="number" className="w-24" value={goods.tempMin} onChange={(e) => { setGoods({ ...goods, tempMin: e.target.value }); }} dir="ltr" />
+                    <span>–</span>
+                    <Input aria-label={t('goods.tempMax')} type="number" className="w-24" value={goods.tempMax} onChange={(e) => { setGoods({ ...goods, tempMax: e.target.value }); }} dir="ltr" />
+                    <span className="text-muted-foreground">°C</span>
+                  </div>
+                )}
+                <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={goods.requiresTailLift} onChange={(e) => { setGoods({ ...goods, requiresTailLift: e.target.checked }); }} />{t('goods.tailLift')}</label>
+                <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={goods.requiresCrane} onChange={(e) => { setGoods({ ...goods, requiresCrane: e.target.checked }); }} />{t('goods.crane')}</label>
+                <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={goods.requiresInsurance} onChange={(e) => { setGoods({ ...goods, requiresInsurance: e.target.checked }); }} />{t('goods.insurance')}</label>
+              </div>
+              <Field id="declaredValue" label={t('goods.declaredValue')}>
+                <Input id="declaredValue" type="number" min={0} step="0.01" value={goods.declaredValue} onChange={(e) => { setGoods({ ...goods, declaredValue: e.target.value }); }} dir="ltr" />
+              </Field>
+              <Field id="loadingInstructions" label={t('goods.loadingInstructions')}>
+                <Input id="loadingInstructions" value={goods.loadingInstructions} onChange={(e) => { setGoods({ ...goods, loadingInstructions: e.target.value }); }} />
+              </Field>
+              <Field id="shipperName" label={t('goods.shipper')}>
+                <Input id="shipperName" value={goods.shipperName} onChange={(e) => { setGoods({ ...goods, shipperName: e.target.value }); }} />
+              </Field>
+              <Field id="shipperPhone" label={t('goods.shipperPhone')}>
+                <Input id="shipperPhone" type="tel" placeholder="+9665XXXXXXXX" value={goods.shipperPhone} onChange={(e) => { setGoods({ ...goods, shipperPhone: e.target.value }); }} dir="ltr" />
+              </Field>
+              <Field id="consigneeName" label={t('goods.consignee')}>
+                <Input id="consigneeName" value={goods.consigneeName} onChange={(e) => { setGoods({ ...goods, consigneeName: e.target.value }); }} />
+              </Field>
+              <Field id="consigneePhone" label={t('goods.consigneePhone')}>
+                <Input id="consigneePhone" type="tel" placeholder="+9665XXXXXXXX" value={goods.consigneePhone} onChange={(e) => { setGoods({ ...goods, consigneePhone: e.target.value }); }} dir="ltr" />
+              </Field>
+            </>
+          )}
+          {transportType === 'PASSENGER' && (
+          <>
           <Field id="passengerCount" label={t('passengers')} error={fe['passengerDetails']}>
             <Input id="passengerCount" type="number" min={1} max={500} value={form.passengerCount} onChange={(e) => { set('passengerCount')(e.target.value); }} required dir="ltr" />
           </Field>
@@ -243,9 +341,12 @@ export function RequestForm() {
           <Field id="childSeats" label={t('childSeats')}>
             <Input id="childSeats" type="number" min={0} max={20} value={form.childSeats} onChange={(e) => { set('childSeats')(e.target.value); }} dir="ltr" />
           </Field>
+          </>
+          )}
           <Field id="budget" label={t('budget')} error={fe['budgetAmount']}>
             <Input id="budget" type="number" min={0} step="0.01" value={form.budget} onChange={(e) => { set('budget')(e.target.value); }} dir="ltr" />
           </Field>
+          {transportType === 'PASSENGER' && (
           <div className="flex flex-col gap-2 md:col-span-2">
             <label className="flex items-center gap-2 text-sm">
               <input type="checkbox" checked={form.wheelchair} onChange={(e) => { setForm((f) => ({ ...f, wheelchair: e.target.checked })); }} />
@@ -256,6 +357,7 @@ export function RequestForm() {
               {t('femaleDriver')}
             </label>
           </div>
+          )}
           <Field id="instructions" label={t('instructions')} className="md:col-span-2">
             <Input id="instructions" value={form.instructions} onChange={(e) => { set('instructions')(e.target.value); }} />
           </Field>

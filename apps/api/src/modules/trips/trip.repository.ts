@@ -11,7 +11,7 @@ import { prisma } from '@/database/prisma.js';
 
 export const tripSelect = {
   id: true, tripNumber: true, bookingId: true, vehicleId: true, driverProfileId: true, transportType: true, status: true, actualStartAt: true, actualEndAt: true, startOdometerKm: true, endOdometerKm: true,
-  actualDistanceKm: true, driverNotes: true, customerNotes: true, delayMinutes: true, createdAt: true, updatedAt: true,
+  actualDistanceKm: true, driverNotes: true, customerNotes: true, delayMinutes: true, regulatoryReference: true, regulatoryReferenceType: true, createdAt: true, updatedAt: true,
   booking: {
     select: {
       bookingNumber: true, status: true, customerProfileId: true, ownerProfileId: true, tripRequestId: true, scheduledStartAt: true, scheduledEndAt: true,

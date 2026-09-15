@@ -15,6 +15,7 @@ import { creditExposureOf } from '@/modules/bookings/booking.service.js';
 import { writeAudit } from '@/modules/platform/audit.service.js';
 import { invoiceBuyerOf, type InvoiceBuyer } from '@/modules/profiles/customer.service.js';
 import { getSettingValue } from '@/modules/reference/settings.service.js';
+import { verticalFor } from '@/verticals/registry.js';
 import { toInvoiceDto, toInvoiceLineDto } from './finance.mapper.js';
 import { postLedger } from './ledger.service.js';
 import * as repo from './invoice.repository.js';
@@ -101,16 +102,22 @@ interface LineDraft {
   vatRate: Decimal;
   vatAmount: Decimal;
   totalAmount: Decimal;
+  vatCategory: 'S' | 'Z' | 'E' | 'O';
+}
+
+/** Wording and VAT category come from the vertical that carried the load (ADR-010); the core never phrases a line itself. */
+function describe(b: repo.BillableBooking, group: repo.BillableBooking[], granularity: 'ORDER' | 'BOOKING'): { text: { en: string; ar: string }; vatCategory: 'S' | 'Z' | 'E' | 'O' } {
+  const v = verticalFor(b.transportType).invoice;
+  const shape = { bookingNumber: b.bookingNumber, requestNumber: b.requestNumber, vehicleDescription: b.vehicleDescriptionSnapshot, pickupAddressLine: b.pickupAddressLine, dropoffAddressLine: b.dropoffAddressLine, scheduledStartAt: b.scheduledStartAt, vehicleCount: group.length };
+  return { text: v.lineDescription(shape, granularity), vatCategory: v.vatCategory(shape) };
 }
 
 function linesFor(bookings: repo.BillableBooking[], granularity: 'ORDER' | 'BOOKING'): LineDraft[] {
   if (granularity === 'BOOKING') {
-    return bookings.map((b) => ({
-      lineType: 'BOOKING', tripRequestId: null, bookingId: b.id, bookingIds: [b.id],
-      descriptionEn: `Booking ${b.bookingNumber} — ${b.vehicleDescriptionSnapshot}, ${b.pickupAddressLine} → ${b.dropoffAddressLine} (${dateOnly(b.scheduledStartAt)})`,
-      descriptionAr: `حجز ${b.bookingNumber} — ${b.vehicleDescriptionSnapshot}، ${b.pickupAddressLine} ← ${b.dropoffAddressLine} (${dateOnly(b.scheduledStartAt)})`,
-      netAmount: b.totalAmount.sub(b.vatAmount), vatRate: b.vatRate, vatAmount: b.vatAmount, totalAmount: b.totalAmount,
-    }));
+    return bookings.map((b) => {
+      const d = describe(b, [b], 'BOOKING');
+      return { lineType: 'BOOKING' as const, tripRequestId: null, bookingId: b.id, bookingIds: [b.id], descriptionEn: d.text.en, descriptionAr: d.text.ar, netAmount: b.totalAmount.sub(b.vatAmount), vatRate: b.vatRate, vatAmount: b.vatAmount, totalAmount: b.totalAmount, vatCategory: d.vatCategory };
+    });
   }
   const byRequest = new Map<string, repo.BillableBooking[]>();
   for (const b of bookings) byRequest.set(b.tripRequestId, [...(byRequest.get(b.tripRequestId) ?? []), b]);
@@ -119,12 +126,8 @@ function linesFor(bookings: repo.BillableBooking[], granularity: 'ORDER' | 'BOOK
     if (!first) return [];
     const total = group.reduce((a, b) => a.add(b.totalAmount), new Decimal(0));
     const vat = group.reduce((a, b) => a.add(b.vatAmount), new Decimal(0));
-    return [{
-      lineType: 'ORDER' as const, tripRequestId, bookingId: null, bookingIds: group.map((b) => b.id),
-      descriptionEn: `Order ${first.requestNumber} — ${group.length} vehicle${group.length > 1 ? 's' : ''}, ${first.pickupAddressLine} → ${first.dropoffAddressLine} (${dateOnly(first.scheduledStartAt)})`,
-      descriptionAr: `طلب ${first.requestNumber} — ${group.length} مركبة، ${first.pickupAddressLine} ← ${first.dropoffAddressLine} (${dateOnly(first.scheduledStartAt)})`,
-      netAmount: total.sub(vat), vatRate: first.vatRate, vatAmount: vat, totalAmount: total,
-    }];
+    const d = describe(first, group, 'ORDER');
+    return [{ lineType: 'ORDER' as const, tripRequestId, bookingId: null, bookingIds: group.map((b) => b.id), descriptionEn: d.text.en, descriptionAr: d.text.ar, netAmount: total.sub(vat), vatRate: first.vatRate, vatAmount: vat, totalAmount: total, vatCategory: d.vatCategory }];
   });
 }
 
@@ -176,7 +179,7 @@ async function writeInvoice(scope: AnyScope, s: Seller, h: HeaderInput, tx: Pris
   let sort = 0;
   for (const l of h.lines) {
     const lineId = newId();
-    await tx.invoiceLine.create({ data: { id: lineId, invoiceId: id, lineType: l.lineType, tripRequestId: l.tripRequestId, bookingId: l.bookingId, descriptionEn: l.descriptionEn, descriptionAr: l.descriptionAr, quantity: 1, unitAmount: l.netAmount, netAmount: l.netAmount, vatRate: l.vatRate, vatAmount: l.vatAmount, totalAmount: l.totalAmount, vatCategory: 'S', sortOrder: sort++ } });
+    await tx.invoiceLine.create({ data: { id: lineId, invoiceId: id, lineType: l.lineType, tripRequestId: l.tripRequestId, bookingId: l.bookingId, descriptionEn: l.descriptionEn, descriptionAr: l.descriptionAr, quantity: 1, unitAmount: l.netAmount, netAmount: l.netAmount, vatRate: l.vatRate, vatAmount: l.vatAmount, totalAmount: l.totalAmount, vatCategory: l.vatCategory, sortOrder: sort++ } });
     if (l.bookingIds.length) await tx.invoiceLineBooking.createMany({ data: l.bookingIds.map((bookingId) => ({ invoiceLineId: lineId, bookingId })) });
   }
   const row = await repo.findInvoice(scope, id, tx);
@@ -447,7 +450,7 @@ export async function creditNote(scope: ActorScope, id: string, body: z.infer<ty
       const amount = requested ? round2(money(requested.amount)) : l.totalAmount;
       if (amount.gt(l.totalAmount)) throw new BusinessRuleError('VALIDATION_FAILED', `Credit for line ${l.id} exceeds its total`, { invoiceLineId: l.id, lineTotal: l.totalAmount.toFixed(2) });
       const vat = round2(amount.sub(amount.div(new Decimal(1).add(l.vatRate))));
-      drafts.push({ lineType: 'DISCOUNT', tripRequestId: null, bookingId: null, bookingIds: [], descriptionEn: `Credit against ${src.invoiceNumber}: ${l.descriptionEn}`, descriptionAr: `إشعار دائن مقابل ${src.invoiceNumber}: ${l.descriptionAr}`, netAmount: amount.sub(vat), vatRate: l.vatRate, vatAmount: vat, totalAmount: amount });
+      drafts.push({ lineType: 'DISCOUNT', tripRequestId: null, bookingId: null, bookingIds: [], descriptionEn: `Credit against ${src.invoiceNumber}: ${l.descriptionEn}`, descriptionAr: `إشعار دائن مقابل ${src.invoiceNumber}: ${l.descriptionAr}`, netAmount: amount.sub(vat), vatRate: l.vatRate, vatAmount: vat, totalAmount: amount, vatCategory: l.vatCategory as 'S' | 'Z' | 'E' | 'O' });
     }
     if (body.lines && drafts.length !== body.lines.length) throw new BusinessRuleError('VALIDATION_FAILED', 'A referenced line does not belong to the invoice');
     const total = round2(drafts.reduce((a, l) => a.add(l.totalAmount), new Decimal(0)));
@@ -480,7 +483,7 @@ export async function debitNote(scope: ActorScope, id: string, body: z.infer<typ
     const drafts: LineDraft[] = body.lines.map((l) => {
       const net = round2(money(l.netAmount));
       const vat = vatOn(net, vatRate);
-      return { lineType: l.lineType, tripRequestId: null, bookingId: null, bookingIds: [], descriptionEn: l.descriptionEn, descriptionAr: l.descriptionAr, netAmount: net, vatRate, vatAmount: vat, totalAmount: net.add(vat) };
+      return { lineType: l.lineType, tripRequestId: null, bookingId: null, bookingIds: [], descriptionEn: l.descriptionEn, descriptionAr: l.descriptionAr, netAmount: net, vatRate, vatAmount: vat, totalAmount: net.add(vat), vatCategory: 'S' as const };
     });
     const total = drafts.reduce((a, l) => a.add(l.totalAmount), new Decimal(0));
     const buyer = await invoiceBuyerOf(scope, src.issuedToCustomerProfileId, tx);

@@ -63,6 +63,7 @@ export const SETTINGS: readonly SettingDefinition[] = [
   def({ key: 'dispatch.driver_assignment_deadline_hours_before_pickup', section: 'dispatch', valueType: 'DECIMAL', scope: 'INTERNAL', schema: dec(0, 48), seed: 1, descriptionEn: 'Escalate if no driver is assigned this many hours before pickup', descriptionAr: 'التصعيد إذا لم يُعيَّن سائق قبل الانطلاق بهذا العدد من الساعات' }),
   def({ key: 'dispatch.ready_check_required', section: 'dispatch', valueType: 'BOOLEAN', scope: 'INTERNAL', schema: bool, seed: true, descriptionEn: 'Require the pre-dispatch READY check', descriptionAr: 'اشتراط فحص الجاهزية قبل الإرسال' }),
   def({ key: 'dispatch.no_show_grace_minutes', section: 'dispatch', valueType: 'INTEGER', scope: 'INTERNAL', schema: int(0, 240), seed: 30, snapshotted: true, descriptionEn: 'Grace period before a no-show may be recorded', descriptionAr: 'فترة السماح قبل تسجيل عدم الحضور' }),
+  def({ key: 'dispatch.goods_transport_document_required', section: 'dispatch', valueType: 'BOOLEAN', scope: 'INTERNAL', schema: bool, seed: false, descriptionEn: 'Goods trips need a transport document (TGA Bayan) reference on the trip before the driver may leave (OQ-29)', descriptionAr: 'تتطلب رحلات البضائع مرجع وثيقة النقل (بيان) قبل انطلاق السائق' }),
 
   // ── settlement ─────────────────────────────────────────────────────────────
   def({ key: 'settlement.cycle', section: 'settlement', valueType: 'ENUM', scope: 'INTERNAL', schema: z.enum(['WEEKLY', 'BIWEEKLY', 'MONTHLY']), seed: 'WEEKLY', snapshotted: true, descriptionEn: 'Owner settlement cycle', descriptionAr: 'دورة تسوية المالكين' }),
@@ -142,7 +143,7 @@ export const SETTINGS: readonly SettingDefinition[] = [
   def({ key: 'platform.support_email', section: 'platform', valueType: 'STRING', scope: 'PUBLIC', schema: z.string().email().or(z.literal('')), seed: '', descriptionEn: 'Support email shown to users', descriptionAr: 'بريد الدعم المعروض للمستخدمين' }),
   def({ key: 'platform.terms_version', section: 'platform', valueType: 'STRING', scope: 'PUBLIC', schema: z.string().max(20), seed: '', descriptionEn: 'Terms version; bumping forces re-acceptance', descriptionAr: 'إصدار الشروط؛ التغيير يفرض إعادة القبول' }),
   def({ key: 'platform.max_sessions_per_user', section: 'platform', valueType: 'INTEGER', scope: 'INTERNAL', schema: int(1, 50), seed: 10, descriptionEn: 'Concurrent sessions per user; the oldest is revoked on overflow', descriptionAr: 'عدد الجلسات المتزامنة لكل مستخدم؛ تُلغى الأقدم عند التجاوز' }),
-  def({ key: 'platform.verticals_enabled', section: 'platform', valueType: 'STRING_ARRAY', scope: 'PUBLIC', schema: z.array(z.enum(['PASSENGER', 'GOODS'])).min(1), seed: ['PASSENGER'], descriptionEn: 'Enabled verticals (GOODS refused until Phase 11b ships)', descriptionAr: 'القطاعات المفعّلة' }),
+  def({ key: 'platform.verticals_enabled', section: 'platform', valueType: 'STRING_ARRAY', scope: 'PUBLIC', schema: z.array(z.enum(['PASSENGER', 'GOODS'])).min(1), seed: ['PASSENGER'], descriptionEn: 'Enabled verticals — new requests are accepted only for listed verticals (goods: switch on after OQ-13 / OQ-29 are settled)', descriptionAr: 'القطاعات المفعّلة' }),
 ];
 
 export const SETTINGS_BY_KEY: ReadonlyMap<string, SettingDefinition> = new Map(SETTINGS.map((s) => [s.key, s]));

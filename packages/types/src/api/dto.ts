@@ -1021,6 +1021,9 @@ export interface TripDto extends TimestampedDto {
   driverNotes: string | null;
   customerNotes: string | null;
   delayMinutes: number | null;
+  /** Regulatory document reference (goods: TGA Bayan — OQ-29). */
+  regulatoryReference: string | null;
+  regulatoryReferenceType: string | null;
   /** Last known position (from the live mirror), when the caller may track this trip. */
   position: TrackingPositionDto | null;
   trackingSessionId: string | null;

@@ -33,6 +33,8 @@ export function toTripDto(t: TripRow, allowedNextStatuses: string[], position: T
     driverNotes: t.driverNotes,
     customerNotes: t.customerNotes,
     delayMinutes: t.delayMinutes,
+    regulatoryReference: t.regulatoryReference,
+    regulatoryReferenceType: t.regulatoryReferenceType,
     position,
     trackingSessionId: t.trackingSessions[0]?.id ?? null,
     createdAt: t.createdAt.toISOString(),

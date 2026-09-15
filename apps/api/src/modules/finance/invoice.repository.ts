@@ -122,6 +122,7 @@ export interface BillableBooking {
   pickupAddressLine: string;
   dropoffAddressLine: string;
   vehicleDescriptionSnapshot: string;
+  transportType: 'PASSENGER' | 'GOODS';
   totalAmount: Prisma.Decimal;
   vatRate: Prisma.Decimal;
   vatAmount: Prisma.Decimal;
@@ -132,7 +133,7 @@ export interface BillableBooking {
 }
 
 const billableSelect = {
-  id: true, bookingNumber: true, tripRequestId: true, customerProfileId: true, ownerProfileId: true, completedAt: true, scheduledStartAt: true, pickupAddressLine: true, dropoffAddressLine: true, vehicleDescriptionSnapshot: true, totalAmount: true, vatRate: true, vatAmount: true, currency: true, creditTermsDaysSnapshot: true, billingMode: true, status: true,
+  id: true, bookingNumber: true, tripRequestId: true, customerProfileId: true, ownerProfileId: true, completedAt: true, scheduledStartAt: true, pickupAddressLine: true, dropoffAddressLine: true, vehicleDescriptionSnapshot: true, transportType: true, totalAmount: true, vatRate: true, vatAmount: true, currency: true, creditTermsDaysSnapshot: true, billingMode: true, status: true,
   tripRequest: { select: { requestNumber: true } },
   ownerProfile: { select: { isPlatformFleet: true } },
   financialSnapshot: { select: { ownerNetAmount: true, commissionAmount: true, commissionVatAmount: true, paymentFeeAmount: true } },
@@ -143,7 +144,7 @@ type BillableRaw = Prisma.BookingGetPayload<{ select: typeof billableSelect }>;
 function toBillable(b: BillableRaw): BillableBooking {
   return {
     id: b.id, bookingNumber: b.bookingNumber, tripRequestId: b.tripRequestId, requestNumber: b.tripRequest.requestNumber, customerProfileId: b.customerProfileId, ownerProfileId: b.ownerProfileId, completedAt: b.completedAt, scheduledStartAt: b.scheduledStartAt,
-    pickupAddressLine: b.pickupAddressLine, dropoffAddressLine: b.dropoffAddressLine, vehicleDescriptionSnapshot: b.vehicleDescriptionSnapshot, totalAmount: b.totalAmount, vatRate: b.vatRate, vatAmount: b.vatAmount, currency: b.currency, creditTermsDaysSnapshot: b.creditTermsDaysSnapshot, ownerIsPlatformFleet: b.ownerProfile.isPlatformFleet,
+    pickupAddressLine: b.pickupAddressLine, dropoffAddressLine: b.dropoffAddressLine, vehicleDescriptionSnapshot: b.vehicleDescriptionSnapshot, transportType: b.transportType, totalAmount: b.totalAmount, vatRate: b.vatRate, vatAmount: b.vatAmount, currency: b.currency, creditTermsDaysSnapshot: b.creditTermsDaysSnapshot, ownerIsPlatformFleet: b.ownerProfile.isPlatformFleet,
     split: b.financialSnapshot,
   };
 }

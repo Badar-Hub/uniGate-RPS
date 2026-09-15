@@ -1,5 +1,6 @@
 import { goodsDetails, type GoodsDetailsInput } from '@unigate/validation';
 import { money } from '@/common/money.js';
+import { getSettingValue } from '@/modules/reference/settings.service.js';
 import type { CapacityValidation, CategoryShape, MatchVerdict, RequestValidation, VehicleCandidate, VehicleCapacityInput, VerticalPlugin } from '@/verticals/plugin.js';
 
 function goodsData(d: GoodsDetailsInput) {
@@ -15,14 +16,14 @@ function goodsData(d: GoodsDetailsInput) {
 }
 
 /**
- * Goods vertical (ADR-010, Phase 11b). The plugin exists so the seam is real from day one;
- * `enabled: false` makes every goods-specific endpoint answer 501 VERTICAL_NOT_ENABLED.
- * Vehicle registration for goods categories is allowed (fleets are registered ahead of the
- * vertical launching); dispatch into goods requests is not.
+ * Goods vertical (ADR-010, Phase 11b): cargo request validation and matching, the freight
+ * state machine with proof of delivery, the freight document checklist, the transport-document
+ * (Bayan, OQ-29) dispatch gate, and freight invoice wording. Whether goods requests are accepted
+ * on a deployment is `platform.verticals_enabled` (ADR-009), not a code constant.
  */
 export const goodsPlugin: VerticalPlugin = {
   type: 'GOODS',
-  enabled: false,
+  enabled: true,
   validateVehicleCapacity(category: CategoryShape, input: VehicleCapacityInput): CapacityValidation {
     const fieldErrors: Record<string, string[]> = {};
     const kg = input.payloadCapacityKg;
@@ -94,5 +95,30 @@ export const goodsPlugin: VerticalPlugin = {
     odometerRequiredOn: ['LOADED', 'DELIVERED'],
     proofRequiredOn: ['DELIVERED'],
     activeStatuses: ['DRIVER_EN_ROUTE', 'ARRIVED_AT_PICKUP', 'LOADING', 'LOADED', 'IN_TRANSIT', 'ARRIVED_AT_DESTINATION', 'UNLOADING', 'EXCEPTION'],
-  }
+  },
+  // A goods driver needs the professional driver card (OQ-29): eligibility is approved per vertical.
+  driverEligibilityRequired: true,
+  regulatory: {
+    // TGA's Bayan transport document (وثيقة النقل) is compulsory for road goods carriers (OQ-29). No public
+    // API is known, so the reference is captured by ops/driver on the trip; whether dispatch is blocked
+    // without it is `dispatch.goods_transport_document_required` — off until UniGate confirms the process.
+    referenceTypes: ['BAYAN', 'OTHER'],
+    async beforeDispatch(trip) {
+      const required = await getSettingValue<boolean>('dispatch.goods_transport_document_required', false);
+      if (!required || trip.regulatoryReference) return { ok: true };
+      return { ok: false, code: 'TRIP_REGULATORY_DOCUMENT_REQUIRED', message: `Trip ${trip.tripNumber} needs its transport document (Bayan) reference before the driver leaves`, details: { tripNumber: trip.tripNumber, referenceTypes: ['BAYAN', 'OTHER'] } };
+    },
+  },
+  invoice: {
+    lineDescription(l, granularity) {
+      const when = l.scheduledStartAt.toISOString().slice(0, 10);
+      return granularity === 'ORDER'
+        ? { en: `Freight transport — order ${l.requestNumber}, ${l.vehicleCount} vehicle${l.vehicleCount > 1 ? 's' : ''}, ${l.pickupAddressLine} → ${l.dropoffAddressLine} (${when})`, ar: `نقل بضائع — طلب ${l.requestNumber}، ${l.vehicleCount} مركبة، ${l.pickupAddressLine} ← ${l.dropoffAddressLine} (${when})` }
+        : { en: `Freight transport — booking ${l.bookingNumber}, ${l.vehicleDescription}, ${l.pickupAddressLine} → ${l.dropoffAddressLine} (${when})`, ar: `نقل بضائع — حجز ${l.bookingNumber}، ${l.vehicleDescription}، ${l.pickupAddressLine} ← ${l.dropoffAddressLine} (${when})` };
+    },
+    // OQ-27: zero-rating (category Z) for cross-border goods transport needs the advisor's evidence rules; domestic freight is standard-rated.
+    vatCategory() {
+      return 'S';
+    },
+  },
 };
