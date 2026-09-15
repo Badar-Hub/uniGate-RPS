@@ -154,6 +154,8 @@ Provider *choice* and credentials are environment configuration (ADR-009 §8). B
 | `notifications.sms_sender_id` | string | `""` (unset — **CITC registration, OQ-10**) | ≤ 11 chars | INTERNAL | no |
 | `notifications.default_locale` | enum `ar` \| `en` | `ar` | — | PUBLIC | no |
 | `notifications.quiet_hours` | `{ from, to }` \| null | `null` | HH:mm | INTERNAL | no — non-urgent only |
+| `notifications.maintenance_reminder_days_before` | int | `7` | 0–90 | INTERNAL | no — read by the reminder job | BRIEF-§21 |
+| `notifications.maintenance_reminder_km_before` | int | `500` | 0–10000 | INTERNAL | no — read by the reminder job | BRIEF-§21 |
 
 ## 12. `retention`
 

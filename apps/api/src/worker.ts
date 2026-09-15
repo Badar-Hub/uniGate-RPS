@@ -15,6 +15,7 @@ import { reconcilePendingPayments } from '@/modules/payments/payment.service.js'
 import { startPaymentsWorker } from '@/modules/payments/payments.jobs.js';
 import { processPendingWebhooks } from '@/modules/payments/webhook.service.js';
 import { markOverdueInvoices, retryPendingClearances } from '@/modules/finance/invoice.service.js';
+import { maintenanceReminders } from '@/modules/maintenance/maintenance.service.js';
 
 /**
  * Worker entrypoint — same image as the API, different process. Runs the outbox relay, the
@@ -109,10 +110,21 @@ async function main(): Promise<void> {
         log.error({ err }, 'finance jobs failed');
       });
   };
+  // Fleet maintenance: one reminder event per schedule inside the horizon, daily.
+  const runFleetMaintenance = () => {
+    maintenanceReminders()
+      .then((n) => {
+        if (n) log.info({ due: n }, 'maintenance reminders published');
+      })
+      .catch((err: unknown) => {
+        log.error({ err }, 'maintenance reminders failed');
+      });
+  };
   runMaintenance();
   runPurge();
   runPayments();
   runFinance();
+  runFleetMaintenance();
   runDocuments();
   runDemand();
   const t1 = setInterval(runMaintenance, 60 * 60_000);
@@ -121,6 +133,7 @@ async function main(): Promise<void> {
   const t4 = setInterval(runDemand, 5 * 60_000);
   const t5 = setInterval(runPayments, 5 * 60_000);
   const t6 = setInterval(runFinance, 15 * 60_000);
+  const t7 = setInterval(runFleetMaintenance, 24 * 60 * 60_000);
   log.info('worker started: outbox relay, event consumer, maintenance');
 
   const shutdown = async (signal: string) => {
@@ -131,6 +144,7 @@ async function main(): Promise<void> {
     clearInterval(t4);
     clearInterval(t5);
     clearInterval(t6);
+    clearInterval(t7);
     stopRelay();
     await eventWorker.close();
     await paymentsWorker.close();

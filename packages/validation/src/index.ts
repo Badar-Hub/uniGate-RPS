@@ -12,3 +12,4 @@ export * from './bookings.js';
 export * from './payments.js';
 export * from './trips.js';
 export * from './finance.js';
+export * from './maintenance.js';

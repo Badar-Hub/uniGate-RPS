@@ -327,6 +327,21 @@ describeDb('authorization matrix', () => {
       call: (t) => bearer(request(h.app).post('/api/v1/expenses'), t).send({}),
       expect: { SUPER_ADMIN: 422, ADMIN: 422, OPS_MANAGER: 403, FINANCE_OFFICER: 422, SUPPORT_AGENT: 403, CUSTOMER: 403, VEHICLE_OWNER: 422, DRIVER: 403, SPO: 403 },
     },
+    {
+      name: 'GET /maintenance/records (maintenance.read — owners see their own)',
+      call: (t) => bearer(request(h.app).get('/api/v1/maintenance/records'), t),
+      expect: { SUPER_ADMIN: 200, ADMIN: 200, OPS_MANAGER: 200, FINANCE_OFFICER: 403, SUPPORT_AGENT: 403, CUSTOMER: 403, VEHICLE_OWNER: 200, DRIVER: 403, SPO: 403 },
+    },
+    {
+      name: 'POST /maintenance/records (maintenance.create; empty body → 422)',
+      call: (t) => bearer(request(h.app).post('/api/v1/maintenance/records'), t).send({}),
+      expect: { SUPER_ADMIN: 422, ADMIN: 422, OPS_MANAGER: 422, FINANCE_OFFICER: 403, SUPPORT_AGENT: 403, CUSTOMER: 403, VEHICLE_OWNER: 422, DRIVER: 403, SPO: 403 },
+    },
+    {
+      name: 'DELETE /maintenance/records/{id} (maintenance.delete + read_any — staff only; unknown id → 404)',
+      call: (t) => bearer(request(h.app).delete('/api/v1/maintenance/records/00000000-0000-4000-8000-000000000000'), t),
+      expect: { SUPER_ADMIN: 404, ADMIN: 404, OPS_MANAGER: 404, FINANCE_OFFICER: 403, SUPPORT_AGENT: 403, CUSTOMER: 403, VEHICLE_OWNER: 403, DRIVER: 403, SPO: 403 },
+    },
   ];
 
   for (const row of MATRIX) {

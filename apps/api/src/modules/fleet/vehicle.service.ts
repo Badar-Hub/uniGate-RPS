@@ -444,7 +444,7 @@ export async function isDriverAssignedToVehicle(vehicleId: string, driverProfile
 // ── trip integration (Phase 10) ──────────────────────────────────────────────
 
 /** System-driven operational status (database.md §7.1): the trip lifecycle owns IDLE ↔ ON_TRIP. */
-export async function setOperationalStatus(vehicleId: string, status: 'IDLE' | 'RESERVED' | 'ON_TRIP', tx: Prisma.TransactionClient): Promise<void> {
+export async function setOperationalStatus(vehicleId: string, status: 'IDLE' | 'RESERVED' | 'ON_TRIP' | 'UNDER_MAINTENANCE', tx: Prisma.TransactionClient): Promise<void> {
   await tx.vehicle.update({ where: { id: vehicleId }, data: { operationalStatus: status } });
 }
 

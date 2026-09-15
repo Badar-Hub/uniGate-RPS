@@ -1,7 +1,7 @@
 # UniGate — Implementation Status
 
 **Last updated:** 2026-09-15
-**Current phase:** **Phase 11b complete** + vendor onboarding & access (A-58) delivered 2026-09-15 → Phase 12 (Maintenance) ready to start
+**Current phase:** **Phase 12 complete** (Maintenance) 2026-09-15 → Phase 13 (Admin & reporting) ready to start
 **Overall:** Foundation built and verified end to end: monorepo, typed packages, API core, full Prisma schema (82 tables) with hand-written constraints, seeds, migration-integrity test, web scaffold (shadcn/ui, ar/en RTL), CI. `pnpm ci` is green (20/20 tasks). See [development.md](development.md).
 
 > **Schema-blocking questions resolved 2026-09-14.**
@@ -35,7 +35,7 @@ Status values: `NOT_STARTED` · `IN_PROGRESS` · `BLOCKED` · `COMPLETE`
 | 10 | Trip execution & tracking | **COMPLETE** 2026-09-15 | See *Phase 10 exit* below. ~~Hardware GPS pending OQ-11~~ none fitted — the driver app (PWA) is the GPS source at launch: [driver-app.md](driver-app.md) |
 | 11 | Finance | **COMPLETE** 2026-09-15 | See *Phase 11 exit* below. Settlements, invoices (clearance flow behind the `EInvoicingProvider` port — no compliance claimed, OQ-04), expenses, commission admin, ledger reads. Supplier invoicing (OQ-25/OQ-30) and SPO (OQ-09) carried forward |
 | 11b | **Goods vertical** | **COMPLETE** 2026-09-15 | See *Phase 11b exit* below. Built behind `platform.verticals_enabled` (seed PASSENGER only); the Bayan gate and zero-rating are hooks awaiting OQ-29 / OQ-27; TGA licensing OQ-13 |
-| 12 | Maintenance | `NOT_STARTED` | |
+| 12 | Maintenance | **COMPLETE** 2026-09-15 | See *Phase 12 exit* below. Records hold the vehicle on its calendar (EXCLUDE), completion feeds odometer / schedule / expenses; the reminder job publishes `maintenance.due` (fan-out lands with notifications, Phase 13) |
 | 13 | Admin & reporting | `NOT_STARTED` | Per-vertical admin sections; `platform.verticals_enabled` toggle |
 | 14 | Hardening | `NOT_STARTED` | ~~Performance targets pending OQ-15~~ estimates agreed 2026-09-15 |
 | 15 | Testing | `NOT_STARTED` | |
@@ -284,7 +284,22 @@ Verified on 2026-09-15 with `pnpm turbo run typecheck lint test build --force` (
 | Per-vendor access | `user_permission_overrides` (GRANT/DENY) resolved on top of roles in `permission.service`; `GET/PUT /users/{id}/permissions` (permissions.assign + step-up ROLE_CHANGE, no self-modification, only what the admin holds — `PERMISSION_NOT_HELD`), SECURITY audit, pv bump → effective on the next request | vendors test |
 | Web | `/admin/vendors` (add vendor with the activation link shown once and copy button; list with onboarding state, links to the review queue and to access); `/admin/vendors/{userId}/access` (module × read/create/update/delete matrix + other actions, diff preview, note, step-up dialog); register form hides the vendor option when self-registration is off | typecheck/lint |
 
-**Carried forward:** delivery of the activation link by email/SMS lands with notifications (Phase 12/13) — until then the admin hands it over; a per-vendor role template ("vendor tier") is a possible refinement of the overrides if UniGate wants presets.
+**Carried forward:** delivery of the activation link by email/SMS lands with notifications (Phase 13) — until then the admin hands it over; a per-vendor role template ("vendor tier") is a possible refinement of the overrides if UniGate wants presets.
+
+---
+
+## Phase 12 exit — what was verified (2026-09-15)
+
+| Area | Delivered | Proof |
+|---|---|---|
+| Records | `/maintenance/records` CRUD + `start` / `complete` / `cancel`; a PLANNED / IN_PROGRESS record inserts a `MAINTENANCE` calendar entry **in the same transaction** — the EXCLUDE constraint decides: an owner block over the window → `409 VEHICLE_CALENDAR_CONFLICT`, a record over a reservation/block → `409 MAINTENANCE_CALENDAR_CONFLICT` with the blocking entries named; moving the window re-holds (can 409, the old hold survives) | maintenance test 1 |
+| Lifecycle | `start` → IN_PROGRESS and the vehicle `UNDER_MAINTENANCE`; `complete` → hold released, odometer forward (backwards → 422), vehicle `IDLE`, the matching schedule rolled forward from the actual service, cost booked as a **MAINTENANCE expense** of the owner (`recordExpense`, default on); `cancel` releases the hold with a reason; COMPLETED / CANCELLED are final (`MAINTENANCE_INVALID_TRANSITION`); DELETE is PLANNED-only and staff-only (`maintenance.delete` + `read_any`) | maintenance tests 1–2 |
+| Schedules & due | One active schedule per vehicle × service type (409); km and/or day intervals, next-due recomputed on patch; `GET /maintenance/due` by `withinDays` / `withinKm` / `overdueOnly` with `daysUntilDue` / `kmUntilDue`; deactivate drops it from the due list | maintenance test 3 |
+| Scope | Owners see their own vehicles' records/schedules (other owners → 404); `maintenance.read_any` opens GLOBAL for OPS/admins; FINANCE / SUPPORT / CUSTOMER / DRIVER → 403 | matrix (3 rows) |
+| Reminders | Daily `runFleetMaintenance` job → one `maintenance.due` outbox event per schedule inside `notifications.maintenance_reminder_days_before` / `_km_before` (seeds 7 / 500, settings catalogue) | worker wiring |
+| Web | `/maintenance` (owner + ops): due panel with overdue flag, plan a visit (vehicle, service type, kind, window, initial status, cost/VAT, workshop), records table with start / complete (odometer, cost, notes, book-as-expense) / cancel / delete, service schedules (add, interval, next due, deactivate); nav item; en/ar copy incl. the new error codes | typecheck/lint |
+
+**Carried forward:** notification fan-out of `maintenance.due` (Phase 13); workshop invoice upload from the maintenance screen (documents of kind `MAINTENANCE_RECORD` are accepted by `documentIds` on create already); parts catalogue / cost analytics per vehicle (reporting, Phase 13).
 
 ---
 
@@ -304,7 +319,7 @@ Verified on 2026-09-15 with `pnpm turbo run typecheck lint test build --force` (
 | `tracking` | **DONE (Phase 10)** | tracking.repository (mirror, sessions, sampled points), tracking.service (ping/batch, tiered writes, reads, ETA), routes; `src/realtime/{hub,rooms}.ts` Socket.IO namespace | ✅ live map | db (trips 3) | Redis adapter for multi-instance: Phase 16. |
 | `payments` | **DONE (Phase 9, MockGateway)** | payment.repository, payment.service (intent, state machine, capture postings, sync, reconciliation), webhook.service (verify → persist → 200 → job), refund.service (four-eyes, process, pro-rata reversal), jobs, routes, openapi; `integrations/payments` port + mock | ✅ | db (payments 4, matrix) | Real adapter when UniGate names the provider (OQ-03). |
 | `finance` | **DONE (Phase 11)** | commission.service + commission-admin.service (rules CRUD, preview, request override, earnings), cancellation-policy.service, ledger.service (+ reads), settlement.repository/service, invoice.repository/service (builder, clearance flow, corrections, overdue), expense.repository/service, mapper, routes, openapi; `integrations/einvoicing` port + mock | ✅ | db (finance 4, matrix) | Supplier invoices / self-billing, SPO commissions: later. |
-| `maintenance` | NOT_STARTED | — | — | — | Phase 12. |
+| `maintenance` | **DONE (Phase 12)** | maintenance.repository (OWN/GLOBAL through the vehicle relation, calendar hold via raw INSERT, due query), maintenance.service (records + hold in one tx, start/complete/cancel/delete, schedules, due, reminder job), mapper, routes, openapi | ✅ | db (maintenance 3, matrix) | Reminder fan-out with notifications (Phase 13). |
 | `engagement` | NOT_STARTED | — | — | — | Ratings + complaints. Phase 13. |
 | `notifications` | NOT_STARTED | — | — | — | OTP path lands in Phase 3; full system Phase 13. |
 | `reporting` | NOT_STARTED | — | — | — | Async exports. Phase 13. |

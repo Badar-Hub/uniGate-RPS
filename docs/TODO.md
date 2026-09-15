@@ -134,12 +134,19 @@ All items delivered; residuals moved to Phase 3 below.
 - [x] Admin-only vendor creation with activation link; public owner registration behind a setting (off)
 - [x] Document-driven review queue (auto DOCUMENTS_SUBMITTED), approval needs verified documents, fleet registration only after approval, vehicle approval needs verified documents
 - [x] Per-vendor module × CRUD access on top of roles (overrides, step-up, audit) + admin screens
-- [ ] Email/SMS delivery of the activation link (notifications — Phase 12/13)
+- [ ] Email/SMS delivery of the activation link (notifications — Phase 13)
+
+## Phase 12 — Maintenance — COMPLETE 2026-09-15
+
+- [x] `/maintenance` records with the calendar hold (EXCLUDE, both-way 409s), start / complete / cancel / delete, odometer + vehicle status + schedule roll-forward + MAINTENANCE expense on completion
+- [x] Schedules (km / days, one active per vehicle × service type), `/maintenance/due`, daily reminder job → `maintenance.due` events, settings `notifications.maintenance_reminder_days_before` / `_km_before`
+- [x] Web `/maintenance` screen (due panel, plan, start/complete/cancel, schedules) + nav + en/ar
+- [ ] Notification fan-out of `maintenance.due` (Phase 13)
+- [ ] Workshop invoice upload from the maintenance screen (API accepts `documentIds` already)
 
 ## Immediate — next phase (UniGate's call)
 
-- [ ] **Phase 12 — Maintenance**: `/maintenance` records and schedules, vehicle downtime on the calendar, reminders
-- [ ] Phase 13 — Admin & reporting: refunds admin screen, disputes / no-show, customer statements, dashboards
+- [ ] **Phase 13 — Admin & reporting**: refunds admin screen, disputes / no-show, customer statements, dashboards
 
 ## Deferred design work
 

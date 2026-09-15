@@ -2,7 +2,7 @@
 
 import { useEffect, type ReactNode } from 'react';
 import { useTranslations } from 'next-intl';
-import { Building2, CalendarCheck2, CarFront, Smartphone, ClipboardList, FileCheck2, FileText, Gavel, LayoutDashboard, Loader2, LogOut, Percent, Receipt, Sparkles, Truck, UserCircle2, Users, Wallet, WalletCards } from 'lucide-react';
+import { Building2, CalendarCheck2, CarFront, Smartphone, ClipboardList, FileCheck2, FileText, Gavel, LayoutDashboard, Loader2, LogOut, Percent, Receipt, Sparkles, Truck, UserCircle2, Users, Wallet, WalletCards, Wrench } from 'lucide-react';
 import { useSession } from '@/lib/auth/session-provider';
 import { Link, usePathname, useRouter } from '@/lib/i18n/routing';
 import { cn } from '@/lib/utils';
@@ -48,6 +48,7 @@ export function PortalShell({ children }: { children: ReactNode }) {
     { href: '/settlements', label: t('settlements'), icon: Wallet, show: Boolean(me.profiles.owner) || can('settlements.create') },
     { href: '/invoices', label: t('invoices'), icon: Receipt, show: Boolean(me.profiles.customer) || can('invoices.issue') },
     { href: '/expenses', label: t('expenses'), icon: WalletCards, show: Boolean(me.profiles.owner) || can('expenses.read_any') },
+    { href: '/maintenance', label: t('maintenance'), icon: Wrench, show: Boolean(me.profiles.owner) || can('maintenance.read_any') },
     { href: '/admin/commissions', label: t('commissions'), icon: Percent, show: can('commissions.manage') },
     { href: '/admin/vendors', label: t('vendors'), icon: Building2, show: can('owners.create') && can('users.create') },
     { href: '/admin/owners', label: t('adminReview'), icon: FileCheck2, show: can('owners.approve') },

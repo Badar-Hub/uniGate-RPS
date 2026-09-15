@@ -37,6 +37,8 @@
       "DOCUMENT_UPLOAD_INCOMPLETE": "The upload did not complete. Please try again.",
       "DOCUMENT_CHECKSUM_MISMATCH": "The uploaded file was altered in transit. Please try again.",
       "DOCUMENT_SCAN_QUARANTINED": "This file was rejected by the malware scan.",
+      "MAINTENANCE_CALENDAR_CONFLICT": "The maintenance window overlaps a reservation or block on the vehicle.",
+      "MAINTENANCE_INVALID_TRANSITION": "This maintenance record cannot change in its current state.",
       "VEHICLE_CALENDAR_CONFLICT": "Those dates overlap an existing reservation, maintenance window or block.",
       "VEHICLE_PLATE_TAKEN": "A vehicle with this plate is already registered.",
       "VEHICLE_VIN_TAKEN": "A vehicle with this VIN is already registered.",
@@ -207,6 +209,7 @@
       "settlements": "Settlements",
       "invoices": "Invoices",
       "expenses": "Expenses",
+      "maintenance": "Maintenance",
       "commissions": "Commission rules"
     },
     "welcome": "Welcome, {name}",
@@ -651,6 +654,57 @@
         "decline": "Simulate declined card",
         "done": "Outcome delivered. Returning to UniGate…",
         "unknown": "This checkout session is unknown or has already completed."
+      }
+    },
+    "maintenance": {
+      "title": "Maintenance",
+      "subtitle": "Workshop visits hold the vehicle on its calendar; completion moves the odometer, rolls the schedule and books the cost.",
+      "record": "Plan a workshop visit",
+      "vehicle": "Vehicle",
+      "serviceType": "Service",
+      "kind": "Kind",
+      "kinds": { "SCHEDULED": "Scheduled", "UNSCHEDULED": "Unscheduled", "REPAIR": "Repair", "INSPECTION": "Inspection" },
+      "from": "From",
+      "to": "To",
+      "initialStatus": "Starts as",
+      "status": { "PLANNED": "Planned", "IN_PROGRESS": "In workshop", "COMPLETED": "Completed", "CANCELLED": "Cancelled" },
+      "statusLabel": "Status",
+      "cost": "Cost (net)",
+      "vat": "VAT",
+      "total": "Total",
+      "workshop": "Workshop",
+      "description": "Notes",
+      "window": "Window",
+      "save": "Save",
+      "holdHint": "The window is blocked on the vehicle calendar immediately — bookings cannot overlap it. An existing reservation or block over the window is refused.",
+      "start": "Start",
+      "cancel": "Cancel",
+      "cancelReason": "Reason for cancelling",
+      "remove": "Delete",
+      "empty": "No maintenance recorded yet.",
+      "complete": {
+        "title": "Complete — {plate} · {type}",
+        "odometer": "Odometer (km)",
+        "notes": "Notes",
+        "recordExpense": "Book the cost as an expense",
+        "confirm": "Mark completed"
+      },
+      "due": {
+        "title": "Due soon",
+        "overdue": "Overdue",
+        "inDays": "{n, plural, =1 {in 1 day} other {in # days}}",
+        "inKm": "in {n} km"
+      },
+      "schedules": {
+        "title": "Service schedules",
+        "everyKm": "Every (km)",
+        "everyDays": "Every (days)",
+        "add": "Add schedule",
+        "empty": "No schedules — add one to get reminders before a service is due.",
+        "interval": "Interval",
+        "nextDue": "Next due",
+        "km": "{n} km",
+        "days": "{n} days"
       }
     },
     "finance": {

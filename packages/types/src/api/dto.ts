@@ -1437,3 +1437,71 @@ export interface UserPermissionsDto {
   effective: string[];
   catalogue: PermissionCatalogueItemDto[];
 }
+
+// ── maintenance (api.md §8.23) ───────────────────────────────────────────────
+
+export interface MaintenanceRecordDto extends TimestampedDto {
+  id: string;
+  vehicleId: string;
+  vehiclePlate: string;
+  ownerProfileId: string;
+  serviceTypeId: string;
+  serviceTypeCode: string;
+  serviceTypeNameEn: string;
+  serviceTypeNameAr: string;
+  maintenanceKind: string;
+  status: string;
+  scheduledStartAt: string;
+  scheduledEndAt: string;
+  actualStartAt: string | null;
+  actualEndAt: string | null;
+  odometerKm: number | null;
+  costAmount: MoneyString;
+  vatAmount: MoneyString;
+  totalAmount: MoneyString;
+  currency: string;
+  workshopName: string | null;
+  workshopContact: string | null;
+  description: string | null;
+  partsReplaced: { name: string; quantity: number; amount: MoneyString | null }[];
+  nextServiceDate: string | null;
+  nextServiceOdometerKm: number | null;
+  /** The MAINTENANCE calendar entry holding the vehicle while PLANNED / IN_PROGRESS. */
+  calendarEntryId: string | null;
+  documentIds: string[];
+}
+
+export interface MaintenanceScheduleDto extends TimestampedDto {
+  id: string;
+  vehicleId: string;
+  vehiclePlate: string;
+  ownerProfileId: string;
+  serviceTypeId: string;
+  serviceTypeCode: string;
+  serviceTypeNameEn: string;
+  serviceTypeNameAr: string;
+  intervalKm: number | null;
+  intervalDays: number | null;
+  lastServiceAt: string | null;
+  lastServiceOdometerKm: number | null;
+  nextDueAt: string | null;
+  nextDueOdometerKm: number | null;
+  isActive: boolean;
+}
+
+/** A vehicle past or approaching a schedule (the reminder job and the owner dashboard share it). */
+export interface MaintenanceDueDto {
+  scheduleId: string;
+  vehicleId: string;
+  vehiclePlate: string;
+  ownerProfileId: string;
+  serviceTypeCode: string;
+  serviceTypeNameEn: string;
+  serviceTypeNameAr: string;
+  nextDueAt: string | null;
+  nextDueOdometerKm: number | null;
+  currentOdometerKm: number | null;
+  daysUntilDue: number | null;
+  kmUntilDue: number | null;
+  overdue: boolean;
+}

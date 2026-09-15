@@ -11737,6 +11737,535 @@
           "message",
           "meta"
         ]
+      },
+      "MaintenanceRecord": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "vehicleId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "vehiclePlate": {
+            "type": "string"
+          },
+          "ownerProfileId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "serviceTypeId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "serviceTypeCode": {
+            "type": "string"
+          },
+          "serviceTypeNameEn": {
+            "type": "string"
+          },
+          "serviceTypeNameAr": {
+            "type": "string"
+          },
+          "maintenanceKind": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          },
+          "scheduledStartAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "scheduledEndAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "actualStartAt": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "actualEndAt": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "odometerKm": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "costAmount": {
+            "type": "string",
+            "pattern": "^-?\\d+\\.\\d{2}$"
+          },
+          "vatAmount": {
+            "type": "string",
+            "pattern": "^-?\\d+\\.\\d{2}$"
+          },
+          "totalAmount": {
+            "type": "string",
+            "pattern": "^-?\\d+\\.\\d{2}$"
+          },
+          "currency": {
+            "type": "string"
+          },
+          "workshopName": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "workshopContact": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "description": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "partsReplaced": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "string"
+                },
+                "quantity": {
+                  "type": "integer"
+                },
+                "amount": {
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "pattern": "^-?\\d+\\.\\d{2}$"
+                }
+              },
+              "required": [
+                "name",
+                "quantity",
+                "amount"
+              ]
+            }
+          },
+          "nextServiceDate": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "nextServiceOdometerKm": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "calendarEntryId": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid"
+          },
+          "documentIds": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "vehicleId",
+          "vehiclePlate",
+          "ownerProfileId",
+          "serviceTypeId",
+          "serviceTypeCode",
+          "serviceTypeNameEn",
+          "serviceTypeNameAr",
+          "maintenanceKind",
+          "status",
+          "scheduledStartAt",
+          "scheduledEndAt",
+          "actualStartAt",
+          "actualEndAt",
+          "odometerKm",
+          "costAmount",
+          "vatAmount",
+          "totalAmount",
+          "currency",
+          "workshopName",
+          "workshopContact",
+          "description",
+          "partsReplaced",
+          "nextServiceDate",
+          "nextServiceOdometerKm",
+          "calendarEntryId",
+          "documentIds",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
+      "MaintenanceRecordListEnvelope": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "enum": [
+              true
+            ]
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MaintenanceRecord"
+            }
+          },
+          "message": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "meta": {
+            "type": "object",
+            "additionalProperties": {}
+          }
+        },
+        "required": [
+          "success",
+          "data",
+          "message",
+          "meta"
+        ]
+      },
+      "MaintenanceRecordEnvelope": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "enum": [
+              true
+            ]
+          },
+          "data": {
+            "$ref": "#/components/schemas/MaintenanceRecord"
+          },
+          "message": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "meta": {
+            "type": "object",
+            "additionalProperties": {}
+          }
+        },
+        "required": [
+          "success",
+          "data",
+          "message",
+          "meta"
+        ]
+      },
+      "MaintenanceSchedule": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "vehicleId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "vehiclePlate": {
+            "type": "string"
+          },
+          "ownerProfileId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "serviceTypeId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "serviceTypeCode": {
+            "type": "string"
+          },
+          "serviceTypeNameEn": {
+            "type": "string"
+          },
+          "serviceTypeNameAr": {
+            "type": "string"
+          },
+          "intervalKm": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "intervalDays": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "lastServiceAt": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "lastServiceOdometerKm": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "nextDueAt": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "nextDueOdometerKm": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "isActive": {
+            "type": "boolean"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "vehicleId",
+          "vehiclePlate",
+          "ownerProfileId",
+          "serviceTypeId",
+          "serviceTypeCode",
+          "serviceTypeNameEn",
+          "serviceTypeNameAr",
+          "intervalKm",
+          "intervalDays",
+          "lastServiceAt",
+          "lastServiceOdometerKm",
+          "nextDueAt",
+          "nextDueOdometerKm",
+          "isActive",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
+      "MaintenanceScheduleListEnvelope": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "enum": [
+              true
+            ]
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MaintenanceSchedule"
+            }
+          },
+          "message": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "meta": {
+            "type": "object",
+            "additionalProperties": {}
+          }
+        },
+        "required": [
+          "success",
+          "data",
+          "message",
+          "meta"
+        ]
+      },
+      "MaintenanceScheduleEnvelope": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "enum": [
+              true
+            ]
+          },
+          "data": {
+            "$ref": "#/components/schemas/MaintenanceSchedule"
+          },
+          "message": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "meta": {
+            "type": "object",
+            "additionalProperties": {}
+          }
+        },
+        "required": [
+          "success",
+          "data",
+          "message",
+          "meta"
+        ]
+      },
+      "MaintenanceDue": {
+        "type": "object",
+        "properties": {
+          "scheduleId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "vehicleId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "vehiclePlate": {
+            "type": "string"
+          },
+          "ownerProfileId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "serviceTypeCode": {
+            "type": "string"
+          },
+          "serviceTypeNameEn": {
+            "type": "string"
+          },
+          "serviceTypeNameAr": {
+            "type": "string"
+          },
+          "nextDueAt": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "nextDueOdometerKm": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "currentOdometerKm": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "daysUntilDue": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "kmUntilDue": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "overdue": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "scheduleId",
+          "vehicleId",
+          "vehiclePlate",
+          "ownerProfileId",
+          "serviceTypeCode",
+          "serviceTypeNameEn",
+          "serviceTypeNameAr",
+          "nextDueAt",
+          "nextDueOdometerKm",
+          "currentOdometerKm",
+          "daysUntilDue",
+          "kmUntilDue",
+          "overdue"
+        ]
+      },
+      "MaintenanceDueEnvelope": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "enum": [
+              true
+            ]
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MaintenanceDue"
+            }
+          },
+          "message": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "meta": {
+            "type": "object",
+            "additionalProperties": {}
+          }
+        },
+        "required": [
+          "success",
+          "data",
+          "message",
+          "meta"
+        ]
       }
     },
     "parameters": {}
@@ -29641,6 +30170,1213 @@
                   "type": "object",
                   "properties": {},
                   "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/maintenance/records": {
+      "get": {
+        "tags": [
+          "maintenance"
+        ],
+        "summary": "Maintenance records — own vehicles (owner) or all (maintenance.read_any)",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "default": 1
+            },
+            "required": false,
+            "name": "page",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 20
+            },
+            "required": false,
+            "name": "pageSize",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": false,
+            "name": "vehicleId",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": false,
+            "name": "ownerProfileId",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "SCHEDULED",
+                "UNSCHEDULED",
+                "REPAIR",
+                "INSPECTION"
+              ]
+            },
+            "required": false,
+            "name": "maintenanceKind",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "PLANNED",
+                "IN_PROGRESS",
+                "COMPLETED",
+                "CANCELLED"
+              ]
+            },
+            "required": false,
+            "name": "status",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": false,
+            "name": "serviceTypeId",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "date-time",
+              "description": "ISO-8601 UTC timestamp, e.g. 2026-09-14T11:02:44.817Z"
+            },
+            "required": false,
+            "description": "ISO-8601 UTC timestamp, e.g. 2026-09-14T11:02:44.817Z",
+            "name": "dateFrom",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "date-time",
+              "description": "ISO-8601 UTC timestamp, e.g. 2026-09-14T11:02:44.817Z"
+            },
+            "required": false,
+            "description": "ISO-8601 UTC timestamp, e.g. 2026-09-14T11:02:44.817Z",
+            "name": "dateTo",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "maxLength": 160
+            },
+            "required": false,
+            "name": "workshopName",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK — paginated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MaintenanceRecordListEnvelope"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "maintenance"
+        ],
+        "summary": "Create a record; PLANNED / IN_PROGRESS also holds a MAINTENANCE entry on the vehicle calendar in the same transaction (unbookable structurally)",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "vehicleId": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "maintenanceServiceTypeId": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "maintenanceKind": {
+                    "type": "string",
+                    "enum": [
+                      "SCHEDULED",
+                      "UNSCHEDULED",
+                      "REPAIR",
+                      "INSPECTION"
+                    ]
+                  },
+                  "status": {
+                    "type": "string",
+                    "enum": [
+                      "PLANNED",
+                      "IN_PROGRESS"
+                    ],
+                    "default": "PLANNED"
+                  },
+                  "scheduledStartAt": {
+                    "type": "string",
+                    "format": "date-time",
+                    "description": "ISO-8601 UTC timestamp, e.g. 2026-09-14T11:02:44.817Z"
+                  },
+                  "scheduledEndAt": {
+                    "type": "string",
+                    "format": "date-time",
+                    "description": "ISO-8601 UTC timestamp, e.g. 2026-09-14T11:02:44.817Z"
+                  },
+                  "odometerKm": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 9999999
+                  },
+                  "costAmount": {
+                    "type": "string",
+                    "pattern": "^\\d{1,12}\\.\\d{2}$",
+                    "default": "0.00"
+                  },
+                  "vatAmount": {
+                    "type": "string",
+                    "pattern": "^\\d{1,12}\\.\\d{2}$",
+                    "default": "0.00"
+                  },
+                  "workshopName": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 160
+                  },
+                  "workshopContact": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 160
+                  },
+                  "description": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 2000
+                  },
+                  "partsReplaced": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "name": {
+                          "type": "string",
+                          "maxLength": 120
+                        },
+                        "quantity": {
+                          "type": "integer",
+                          "minimum": 1,
+                          "maximum": 1000,
+                          "default": 1
+                        },
+                        "amount": {
+                          "type": [
+                            "string",
+                            "null"
+                          ],
+                          "pattern": "^\\d{1,12}\\.\\d{2}$"
+                        }
+                      },
+                      "required": [
+                        "name"
+                      ],
+                      "additionalProperties": false
+                    },
+                    "maxItems": 100,
+                    "default": []
+                  },
+                  "nextServiceDate": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                  },
+                  "nextServiceOdometerKm": {
+                    "type": [
+                      "integer",
+                      "null"
+                    ],
+                    "minimum": 0,
+                    "maximum": 9999999
+                  },
+                  "documentIds": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "maxItems": 20,
+                    "default": []
+                  }
+                },
+                "required": [
+                  "vehicleId",
+                  "maintenanceServiceTypeId",
+                  "maintenanceKind",
+                  "scheduledStartAt",
+                  "scheduledEndAt"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MaintenanceRecordEnvelope"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "MAINTENANCE_CALENDAR_CONFLICT — details.conflicts names the blocking booking / block",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {},
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "VALIDATION_FAILED",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {},
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/maintenance/records/{id}": {
+      "get": {
+        "tags": [
+          "maintenance"
+        ],
+        "summary": "Record + linked documents + calendar entry",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MaintenanceRecordEnvelope"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "NOT_FOUND",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {},
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "maintenance"
+        ],
+        "summary": "Costs, workshop, parts, thresholds; a moved window re-attempts the calendar hold (can 409)",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "maintenanceServiceTypeId": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "maintenanceKind": {
+                    "type": "string",
+                    "enum": [
+                      "SCHEDULED",
+                      "UNSCHEDULED",
+                      "REPAIR",
+                      "INSPECTION"
+                    ]
+                  },
+                  "scheduledStartAt": {
+                    "type": "string",
+                    "format": "date-time",
+                    "description": "ISO-8601 UTC timestamp, e.g. 2026-09-14T11:02:44.817Z"
+                  },
+                  "scheduledEndAt": {
+                    "type": "string",
+                    "format": "date-time",
+                    "description": "ISO-8601 UTC timestamp, e.g. 2026-09-14T11:02:44.817Z"
+                  },
+                  "odometerKm": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 9999999
+                  },
+                  "costAmount": {
+                    "type": "string",
+                    "pattern": "^\\d{1,12}\\.\\d{2}$",
+                    "default": "0.00"
+                  },
+                  "vatAmount": {
+                    "type": "string",
+                    "pattern": "^\\d{1,12}\\.\\d{2}$",
+                    "default": "0.00"
+                  },
+                  "workshopName": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 160
+                  },
+                  "workshopContact": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 160
+                  },
+                  "description": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 2000
+                  },
+                  "partsReplaced": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "name": {
+                          "type": "string",
+                          "maxLength": 120
+                        },
+                        "quantity": {
+                          "type": "integer",
+                          "minimum": 1,
+                          "maximum": 1000,
+                          "default": 1
+                        },
+                        "amount": {
+                          "type": [
+                            "string",
+                            "null"
+                          ],
+                          "pattern": "^\\d{1,12}\\.\\d{2}$"
+                        }
+                      },
+                      "required": [
+                        "name"
+                      ],
+                      "additionalProperties": false
+                    },
+                    "maxItems": 100,
+                    "default": []
+                  },
+                  "nextServiceDate": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                  },
+                  "nextServiceOdometerKm": {
+                    "type": [
+                      "integer",
+                      "null"
+                    ],
+                    "minimum": 0,
+                    "maximum": 9999999
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MaintenanceRecordEnvelope"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "MAINTENANCE_CALENDAR_CONFLICT",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {},
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "MAINTENANCE_INVALID_TRANSITION",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {},
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "maintenance"
+        ],
+        "summary": "Delete a PLANNED record created in error (maintenance.delete + read_any — staff)",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Deleted"
+          },
+          "422": {
+            "description": "MAINTENANCE_INVALID_TRANSITION",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {},
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/maintenance/records/{id}/start": {
+      "post": {
+        "tags": [
+          "maintenance"
+        ],
+        "summary": "PLANNED → IN_PROGRESS; the vehicle goes UNDER_MAINTENANCE",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MaintenanceRecordEnvelope"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "MAINTENANCE_INVALID_TRANSITION",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {},
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/maintenance/records/{id}/complete": {
+      "post": {
+        "tags": [
+          "maintenance"
+        ],
+        "summary": "→ COMPLETED: actual end, odometer forward, calendar hold released, vehicle IDLE, matching schedule rolled forward, cost booked as a MAINTENANCE expense",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "actualEndAt": {
+                    "type": "string",
+                    "format": "date-time",
+                    "description": "ISO-8601 UTC timestamp, e.g. 2026-09-14T11:02:44.817Z"
+                  },
+                  "odometerKm": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 9999999
+                  },
+                  "costAmount": {
+                    "type": "string",
+                    "pattern": "^\\d{1,12}\\.\\d{2}$"
+                  },
+                  "vatAmount": {
+                    "type": "string",
+                    "pattern": "^\\d{1,12}\\.\\d{2}$"
+                  },
+                  "partsReplaced": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "name": {
+                          "type": "string",
+                          "maxLength": 120
+                        },
+                        "quantity": {
+                          "type": "integer",
+                          "minimum": 1,
+                          "maximum": 1000,
+                          "default": 1
+                        },
+                        "amount": {
+                          "type": [
+                            "string",
+                            "null"
+                          ],
+                          "pattern": "^\\d{1,12}\\.\\d{2}$"
+                        }
+                      },
+                      "required": [
+                        "name"
+                      ],
+                      "additionalProperties": false
+                    },
+                    "maxItems": 100
+                  },
+                  "nextServiceDate": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                  },
+                  "nextServiceOdometerKm": {
+                    "type": [
+                      "integer",
+                      "null"
+                    ],
+                    "minimum": 0,
+                    "maximum": 9999999
+                  },
+                  "recordExpense": {
+                    "type": "boolean",
+                    "default": true
+                  },
+                  "notes": {
+                    "type": "string",
+                    "maxLength": 1000
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MaintenanceRecordEnvelope"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "MAINTENANCE_INVALID_TRANSITION / VALIDATION_FAILED (odometer backwards)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {},
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/maintenance/records/{id}/cancel": {
+      "post": {
+        "tags": [
+          "maintenance"
+        ],
+        "summary": "→ CANCELLED with a reason; releases the hold",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "reason": {
+                    "type": "string",
+                    "maxLength": 500
+                  }
+                },
+                "required": [
+                  "reason"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MaintenanceRecordEnvelope"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "MAINTENANCE_INVALID_TRANSITION",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {},
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/maintenance/schedules": {
+      "get": {
+        "tags": [
+          "maintenance"
+        ],
+        "summary": "Interval definitions per vehicle",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "default": 1
+            },
+            "required": false,
+            "name": "page",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 20
+            },
+            "required": false,
+            "name": "pageSize",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": false,
+            "name": "vehicleId",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": false,
+            "name": "ownerProfileId",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "true",
+                "false"
+              ]
+            },
+            "required": false,
+            "name": "isActive",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK — paginated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MaintenanceScheduleListEnvelope"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "maintenance"
+        ],
+        "summary": "Create a schedule (km and/or days); the clock starts at the last service or now",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "vehicleId": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "maintenanceServiceTypeId": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "intervalKm": {
+                    "type": [
+                      "integer",
+                      "null"
+                    ],
+                    "minimum": 100,
+                    "maximum": 1000000
+                  },
+                  "intervalDays": {
+                    "type": [
+                      "integer",
+                      "null"
+                    ],
+                    "minimum": 1,
+                    "maximum": 3650
+                  },
+                  "lastServiceAt": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "format": "date-time",
+                    "description": "ISO-8601 UTC timestamp, e.g. 2026-09-14T11:02:44.817Z"
+                  },
+                  "lastServiceOdometerKm": {
+                    "type": [
+                      "integer",
+                      "null"
+                    ],
+                    "minimum": 0,
+                    "maximum": 9999999
+                  },
+                  "isActive": {
+                    "type": "boolean",
+                    "default": true
+                  }
+                },
+                "required": [
+                  "vehicleId",
+                  "maintenanceServiceTypeId"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MaintenanceScheduleEnvelope"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "CONFLICT — one active schedule per vehicle × service type",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {},
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/maintenance/schedules/{id}": {
+      "patch": {
+        "tags": [
+          "maintenance"
+        ],
+        "summary": "Edit intervals / last service; next-due recomputed",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "maintenanceServiceTypeId": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "intervalKm": {
+                    "type": [
+                      "integer",
+                      "null"
+                    ],
+                    "minimum": 100,
+                    "maximum": 1000000
+                  },
+                  "intervalDays": {
+                    "type": [
+                      "integer",
+                      "null"
+                    ],
+                    "minimum": 1,
+                    "maximum": 3650
+                  },
+                  "lastServiceAt": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "format": "date-time",
+                    "description": "ISO-8601 UTC timestamp, e.g. 2026-09-14T11:02:44.817Z"
+                  },
+                  "lastServiceOdometerKm": {
+                    "type": [
+                      "integer",
+                      "null"
+                    ],
+                    "minimum": 0,
+                    "maximum": 9999999
+                  },
+                  "isActive": {
+                    "type": "boolean",
+                    "default": true
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MaintenanceScheduleEnvelope"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "maintenance"
+        ],
+        "summary": "Deactivate a schedule",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Deactivated"
+          }
+        }
+      }
+    },
+    "/maintenance/due": {
+      "get": {
+        "tags": [
+          "maintenance"
+        ],
+        "summary": "Vehicles past or approaching next_due_at / next_due_odometer_km — the reminder job and the owner dashboard share it",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": false,
+            "name": "ownerProfileId",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": false,
+            "name": "vehicleId",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": [
+                "integer",
+                "null"
+              ],
+              "minimum": 0,
+              "maximum": 365,
+              "default": 30
+            },
+            "required": false,
+            "name": "withinDays",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": [
+                "integer",
+                "null"
+              ],
+              "minimum": 0,
+              "maximum": 100000,
+              "default": 1000
+            },
+            "required": false,
+            "name": "withinKm",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "true",
+                "false"
+              ]
+            },
+            "required": false,
+            "name": "overdueOnly",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MaintenanceDueEnvelope"
                 }
               }
             }

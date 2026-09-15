@@ -201,3 +201,11 @@ export const FINANCE_ERROR_CODES = [
   'EXPENSE_IMMUTABLE',
 ] as const;
 export type FinanceErrorCode = (typeof FINANCE_ERROR_CODES)[number];
+
+/** maintenance codes (api.md §8.23). */
+export const MAINTENANCE_ERROR_CODES = [
+  'VEHICLE_CALENDAR_CONFLICT',
+  'MAINTENANCE_CALENDAR_CONFLICT',
+  'MAINTENANCE_INVALID_TRANSITION',
+] as const;
+export type MaintenanceErrorCode = (typeof MAINTENANCE_ERROR_CODES)[number];

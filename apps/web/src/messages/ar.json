@@ -37,6 +37,8 @@
       "DOCUMENT_UPLOAD_INCOMPLETE": "لم يكتمل الرفع. يرجى المحاولة مرة أخرى.",
       "DOCUMENT_CHECKSUM_MISMATCH": "تغيّر الملف أثناء الرفع. يرجى المحاولة مرة أخرى.",
       "DOCUMENT_SCAN_QUARANTINED": "رفض فحص البرمجيات الخبيثة هذا الملف.",
+      "MAINTENANCE_CALENDAR_CONFLICT": "تتداخل فترة الصيانة مع حجز أو حجب على المركبة.",
+      "MAINTENANCE_INVALID_TRANSITION": "لا يمكن تغيير سجل الصيانة هذا في حالته الحالية.",
       "VEHICLE_CALENDAR_CONFLICT": "تتداخل هذه التواريخ مع حجز أو صيانة أو حجب موجود.",
       "VEHICLE_PLATE_TAKEN": "توجد مركبة مسجلة بهذه اللوحة.",
       "VEHICLE_VIN_TAKEN": "توجد مركبة مسجلة برقم الهيكل هذا.",
@@ -207,6 +209,7 @@
       "settlements": "التسويات",
       "invoices": "الفواتير",
       "expenses": "المصروفات",
+      "maintenance": "الصيانة",
       "commissions": "قواعد العمولة"
     },
     "welcome": "مرحبًا، {name}",
@@ -651,6 +654,57 @@
         "decline": "محاكاة بطاقة مرفوضة",
         "done": "تم إرسال النتيجة. جارٍ العودة إلى يونيجيت…",
         "unknown": "جلسة الدفع هذه غير معروفة أو اكتملت بالفعل."
+      }
+    },
+    "maintenance": {
+      "title": "الصيانة",
+      "subtitle": "زيارات الورشة تحجز المركبة في تقويمها؛ الإكمال يحدّث العداد ويرحّل الجدول ويقيّد التكلفة.",
+      "record": "تخطيط زيارة ورشة",
+      "vehicle": "المركبة",
+      "serviceType": "الخدمة",
+      "kind": "النوع",
+      "kinds": { "SCHEDULED": "مجدولة", "UNSCHEDULED": "غير مجدولة", "REPAIR": "إصلاح", "INSPECTION": "فحص" },
+      "from": "من",
+      "to": "إلى",
+      "initialStatus": "تبدأ كـ",
+      "status": { "PLANNED": "مخطط", "IN_PROGRESS": "في الورشة", "COMPLETED": "مكتملة", "CANCELLED": "ملغاة" },
+      "statusLabel": "الحالة",
+      "cost": "التكلفة (صافي)",
+      "vat": "الضريبة",
+      "total": "الإجمالي",
+      "workshop": "الورشة",
+      "description": "ملاحظات",
+      "window": "الفترة",
+      "save": "حفظ",
+      "holdHint": "تُحجب الفترة في تقويم المركبة فوراً — لا يمكن للحجوزات التداخل معها. يُرفض الحجز أو الحجب الموجود خلال الفترة.",
+      "start": "بدء",
+      "cancel": "إلغاء",
+      "cancelReason": "سبب الإلغاء",
+      "remove": "حذف",
+      "empty": "لا توجد صيانة مسجلة بعد.",
+      "complete": {
+        "title": "إكمال — {plate} · {type}",
+        "odometer": "العداد (كم)",
+        "notes": "ملاحظات",
+        "recordExpense": "تقييد التكلفة كمصروف",
+        "confirm": "تحديد كمكتملة"
+      },
+      "due": {
+        "title": "مستحقة قريباً",
+        "overdue": "متأخرة",
+        "inDays": "{n, plural, =1 {خلال يوم} other {خلال # يوم}}",
+        "inKm": "خلال {n} كم"
+      },
+      "schedules": {
+        "title": "جداول الخدمة",
+        "everyKm": "كل (كم)",
+        "everyDays": "كل (يوم)",
+        "add": "إضافة جدول",
+        "empty": "لا توجد جداول — أضف جدولاً لتصلك تذكيرات قبل استحقاق الخدمة.",
+        "interval": "الفاصل",
+        "nextDue": "الاستحقاق التالي",
+        "km": "{n} كم",
+        "days": "{n} يوم"
       }
     },
     "finance": {

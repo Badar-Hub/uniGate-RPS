@@ -14,3 +14,4 @@ import '@/modules/bookings/bookings.openapi.js';
 import '@/modules/payments/payments.openapi.js';
 import '@/modules/trips/trips.openapi.js';
 import '@/modules/finance/finance.openapi.js';
+import '@/modules/maintenance/maintenance.openapi.js';
