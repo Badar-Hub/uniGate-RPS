@@ -473,10 +473,11 @@
         "assign": "Assign driver",
         "primary": "Primary",
         "unassign": "Unassign",
-        "noDrivers": "No approved drivers to assign.",
+        "noDrivers": "No approved drivers belong to this vehicle's owner. Drivers are employed by one owner and can only be assigned to that owner's vehicles.",
         "assignmentHistory": "Assignment history",
         "window": "Window",
-        "rejectedReason": "Rejection reason"
+        "rejectedReason": "Rejection reason",
+        "registerDriver": "Register a driver for this owner →"
       },
       "status": {
         "DRAFT": "Draft",

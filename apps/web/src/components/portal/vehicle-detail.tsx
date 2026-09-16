@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState, type SyntheticEvent } from 'react';
 import { useLocale, useTranslations } from 'next-intl';
+import { Link } from '@/lib/i18n/routing';
 import { AlertCircle, CheckCircle2, Loader2 } from 'lucide-react';
 import type { CalendarEntryDto, DriverDto, VehicleAssignmentDto, VehicleDto } from '@unigate/types';
 import { api, type ApiError } from '@/lib/api-client';
@@ -508,7 +509,12 @@ function DriversPanel({
               </Alert>
             )}
             {assignable.length === 0 ? (
-              <p className="text-sm text-muted-foreground">{t('noDrivers')}</p>
+              <p className="text-sm text-muted-foreground">
+                {t('noDrivers')}{' '}
+                <Link href="/drivers" className="underline">
+                  {t('registerDriver')}
+                </Link>
+              </p>
             ) : (
               <>
                 <Select value={pick} onValueChange={setPick}>
