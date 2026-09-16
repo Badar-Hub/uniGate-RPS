@@ -20,6 +20,8 @@ Vehicle Hiring & Management Platform (passenger + goods transport), Kingdom of S
 | 7 | [IMPLEMENTATION_STATUS.md](IMPLEMENTATION_STATUS.md) | Progress by phase and module |
 | 8 | [TODO.md](TODO.md) | Outstanding engineering work |
 | 9 | [uat-checklist.md](uat-checklist.md) | Hands-on test script for every module on a running dev stack |
+| 10 | [hardening.md](hardening.md) | Phase 14 record: rate limits, headers/CSP, benchmarks, load test, backup drill, DB roles, dependency audit |
+| 11 | [mobile-app.md](mobile-app.md) | The Expo (React Native) app for customers and vehicle owners: stack, layout, running on a phone against the LAN API, token storage, RTL, milestones |
 
 ## Architecture decision records
 
@@ -32,6 +34,7 @@ Vehicle Hiring & Management Platform (passenger + goods transport), Kingdom of S
 | [ADR-005](decisions/ADR-005-payment-abstraction.md) | Payment gateway abstraction, persist-then-process webhooks |
 | [ADR-006](decisions/ADR-006-tracking-storage.md) | Three-tier location storage with sampled durable history |
 | [ADR-007](decisions/ADR-007-e-invoicing.md) | E-invoicing designed into the issue path, behind a provider abstraction |
+| [ADR-011](decisions/ADR-011-mobile-expo-over-pwa.md) | One Expo / React Native app for customers and vendors; the driver PWA stays until M3 |
 
 ## Source material
 

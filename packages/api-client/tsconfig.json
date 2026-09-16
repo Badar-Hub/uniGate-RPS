@@ -1,0 +1,5 @@
+{
+  "extends": "@unigate/tsconfig/library.json",
+  "compilerOptions": { "rootDir": "src", "outDir": "dist", "lib": ["ES2023", "DOM"] },
+  "include": ["src"]
+}
