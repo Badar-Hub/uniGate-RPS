@@ -2,6 +2,7 @@ import type { OtpChannel, OtpPurpose } from '@unigate/types';
 import { config } from '@/config/index.js';
 import { logger } from '@/logging/logger.js';
 import { maskEmail, maskPhone } from '@/common/redact.js';
+import { emailProvider } from '@/integrations/notifications/index.js';
 
 /**
  * OtpProvider (architecture.md §5.4). Provider CHOICE is deployment configuration
@@ -21,12 +22,17 @@ export interface OtpProvider {
  */
 export class ConsoleOtpProvider implements OtpProvider {
   readonly code = 'console';
-  async send(input: { channel: OtpChannel; destination: string; code: string; purpose: OtpPurpose }): Promise<void> {
+  async send(input: { channel: OtpChannel; destination: string; code: string; purpose: OtpPurpose; locale: 'ar' | 'en' }): Promise<void> {
     if (config().isProduction) throw new Error('ConsoleOtpProvider cannot run in production');
     const masked = input.channel === 'SMS' ? maskPhone(input.destination) : maskEmail(input.destination);
     console.warn(`\n  ┌─ OTP (${input.purpose}) → ${masked}\n  │  ${input.code}\n  └─ dev only\n`);
     logger().info({ purpose: input.purpose, channel: input.channel }, 'otp dispatched via console provider');
-    await Promise.resolve();
+    // Dev convenience: mirror every code into the catch-all mailbox (MailHog) so testers never need the log.
+    try {
+      await emailProvider().send({ to: 'otp-mirror@unigate.local', subject: `[dev] OTP ${input.purpose} for ${masked}: ${input.code}`, text: `One-time code for ${masked} (${input.purpose}): ${input.code}\n\nThis mirror exists only with the console OTP provider and never runs in production.`, locale: input.locale });
+    } catch (err) {
+      logger().warn({ err }, 'otp mailbox mirror failed (the console output above still applies)');
+    }
   }
 }
 

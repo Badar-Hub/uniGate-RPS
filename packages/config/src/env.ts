@@ -82,7 +82,7 @@ export const envSchema = z
     /** Notification channels (FR-NOTIFICATIONS-01). Provider CHOICE is env; behaviour is settings. 'console' variants are dev-only. */
     EMAIL_PROVIDER: z.enum(['console', 'mailhog', 'smtp', 'ses']).default('mailhog'),
     EMAIL_FROM: z.string().default('UniGate <no-reply@unigate.local>'),
-    SMTP_HOST: z.string().default('localhost'),
+    SMTP_HOST: z.string().default('127.0.0.1'),
     SMTP_PORT: z.coerce.number().int().positive().default(1025),
     SMTP_USER: z.string().optional(),
     SMTP_PASSWORD: optionalSecret,

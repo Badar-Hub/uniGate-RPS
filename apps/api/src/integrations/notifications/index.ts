@@ -29,7 +29,8 @@ class SmtpEmailProvider implements EmailProvider {
   constructor(code: 'mailhog' | 'smtp') {
     this.code = code;
     const { smtp } = config().providers;
-    this.transport = createTransport({ host: smtp.host, port: smtp.port, secure: smtp.secure, ...(smtp.user && smtp.password ? { auth: { user: smtp.user, pass: smtp.password } } : {}) });
+    // Short timeouts: a stalled relay must never hold a request or a worker job for minutes.
+    this.transport = createTransport({ host: smtp.host, port: smtp.port, secure: smtp.secure, connectionTimeout: 5000, greetingTimeout: 5000, socketTimeout: 15_000, ...(smtp.user && smtp.password ? { auth: { user: smtp.user, pass: smtp.password } } : {}) });
   }
   async send(m: EmailMessage): Promise<DeliveryResult> {
     const info = await this.transport.sendMail({ from: config().providers.emailFrom, to: m.to, subject: m.subject, text: m.text, ...(m.html ? { html: m.html } : {}) });

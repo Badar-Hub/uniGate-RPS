@@ -7,7 +7,7 @@ A hands-on script for testing every module on a running dev stack. Written for t
 | Need | Where |
 |---|---|
 | Super admin | `SEED_ADMIN_EMAIL` / `SEED_ADMIN_PASSWORD` in the root `.env` — **Password** tab on the sign-in page (the seed admin has no phone, so no OTP login). |
-| One-time codes (OTP) | The dev OTP provider prints codes to the **API process log** (`┌─ OTP (LOGIN) → …`). Keep that terminal visible while registering or signing in with a phone. |
+| One-time codes (OTP, step-up) | With the dev OTP provider every code is **mirrored into MailHog** (subject `[dev] OTP LOGIN for +9665•• … : 123456`) and also printed in the API log (`.logs/api.log`, block `┌─ OTP (LOGIN) → …`). Step-up codes need a verified phone on the account. |
 | Emails (activation links, password reset, notifications) | **MailHog** `http://<host-ip>:8025`. |
 | SMS / push | Printed in the API/worker logs (`┌─ SMS →`); push is `SUPPRESSED` until FCM is configured — that is expected. |
 | Payments | The **MockGateway**: every checkout shows a mock page where you choose SUCCESS / FAIL; webhooks are signed and processed for real. |
