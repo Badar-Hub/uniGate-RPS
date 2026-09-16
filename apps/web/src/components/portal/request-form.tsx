@@ -79,8 +79,13 @@ export function RequestForm() {
   }
 
   async function submit(publish: boolean) {
-    setBusy(true);
     setError(null);
+    // A missing or malformed date must surface as a field error, never as a stuck button.
+    if (!form.pickupAt || Number.isNaN(new Date(form.pickupAt).getTime())) {
+      setError({ status: 422, code: 'VALIDATION_FAILED', message: 'pickupAt is required', details: { fieldErrors: { pickupAt: ['required'] }, formErrors: [] } });
+      return;
+    }
+    setBusy(true);
     const pc = cities.find((c) => c.id === form.pickupCityId);
     const dc = cities.find((c) => c.id === form.dropoffCityId);
     const sp = saved.find((s) => s.addressLine === form.pickupAddress && s.cityId === form.pickupCityId);

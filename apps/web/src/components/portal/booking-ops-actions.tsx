@@ -4,7 +4,7 @@ import { useState, type SyntheticEvent } from 'react';
 import { useTranslations } from 'next-intl';
 import { AlertCircle, Gavel, Loader2, UserX } from 'lucide-react';
 import type { BookingDisputeResultDto, BookingDto, CancelBookingResultDto } from '@unigate/types';
-import { api, type ApiError } from '@/lib/api-client';
+import { api, idempotencyKey, type ApiError } from '@/lib/api-client';
 import { useSession } from '@/lib/auth/session-provider';
 import { errorMessage } from '@/lib/errors';
 import { Alert, AlertDescription } from '@/components/ui/alert';
@@ -58,7 +58,7 @@ export function BookingOpsActions({ booking, onChanged }: { booking: BookingDto;
   };
   const submitNoShow = (e: SyntheticEvent) => {
     e.preventDefault();
-    void run(() => api<CancelBookingResultDto>(`/bookings/${booking.id}/no-show`, { method: 'POST', headers: { 'Idempotency-Key': crypto.randomUUID() }, body: { party: noShow.party, ...(noShow.reasonText ? { reasonText: noShow.reasonText } : {}), ...(noShow.feeValue ? { feeOverride: { type: 'FIXED', value: noShow.feeValue, reason: noShow.feeReason || 'No-show penalty' } } : {}) } }), (d) => t('noShowRecorded', { fee: d.cancellation.cancellationFeeAmount, refund: d.cancellation.refundAmount }));
+    void run(() => api<CancelBookingResultDto>(`/bookings/${booking.id}/no-show`, { method: 'POST', headers: { 'Idempotency-Key': idempotencyKey() }, body: { party: noShow.party, ...(noShow.reasonText ? { reasonText: noShow.reasonText } : {}), ...(noShow.feeValue ? { feeOverride: { type: 'FIXED', value: noShow.feeValue, reason: noShow.feeReason || 'No-show penalty' } } : {}) } }), (d) => t('noShowRecorded', { fee: d.cancellation.cancellationFeeAmount, refund: d.cancellation.refundAmount }));
   };
 
   return (

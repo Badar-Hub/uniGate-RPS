@@ -4,7 +4,7 @@ import { useCallback, useEffect, useState, type SyntheticEvent } from 'react';
 import { useLocale, useTranslations } from 'next-intl';
 import { AlertCircle, Download, FileSpreadsheet, Loader2, RefreshCw } from 'lucide-react';
 import type { ExportDownloadUrlDto, ExportJobDto, ReportColumnDto, ReportDefinitionDto } from '@unigate/types';
-import { api, type ApiError } from '@/lib/api-client';
+import { api, idempotencyKey, type ApiError } from '@/lib/api-client';
 import { useSession } from '@/lib/auth/session-provider';
 import { errorMessage } from '@/lib/errors';
 import { Alert, AlertDescription } from '@/components/ui/alert';
@@ -78,7 +78,7 @@ export function ReportsPage() {
     if (!def) return;
     setBusy(true);
     setError(null);
-    const res = await api<ExportJobDto>(`/reports/${def.code}/export`, { method: 'POST', headers: { 'Idempotency-Key': crypto.randomUUID() }, body: { format: 'CSV', filters: activeFilters() } });
+    const res = await api<ExportJobDto>(`/reports/${def.code}/export`, { method: 'POST', headers: { 'Idempotency-Key': idempotencyKey() }, body: { format: 'CSV', filters: activeFilters() } });
     setBusy(false);
     if (!res.ok) setError(res.error);
     await loadExports();

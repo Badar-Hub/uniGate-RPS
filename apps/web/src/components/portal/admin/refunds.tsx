@@ -4,7 +4,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { useLocale, useTranslations } from 'next-intl';
 import { AlertCircle, Check, Loader2, Play, X } from 'lucide-react';
 import type { RefundDto } from '@unigate/types';
-import { api, type ApiError } from '@/lib/api-client';
+import { api, idempotencyKey, type ApiError } from '@/lib/api-client';
 import { useSession } from '@/lib/auth/session-provider';
 import { errorMessage } from '@/lib/errors';
 import { Alert, AlertDescription } from '@/components/ui/alert';
@@ -41,7 +41,7 @@ export function AdminRefundsPage() {
   async function act(id: string, path: string, body?: Record<string, unknown>) {
     setBusy(id);
     setError(null);
-    const res = await api(`/refunds/${id}/${path}`, { method: 'POST', ...(body ? { body } : {}), headers: { 'Idempotency-Key': crypto.randomUUID() } });
+    const res = await api(`/refunds/${id}/${path}`, { method: 'POST', ...(body ? { body } : {}), headers: { 'Idempotency-Key': idempotencyKey() } });
     setBusy(null);
     if (!res.ok) setError(res.error);
     await load();

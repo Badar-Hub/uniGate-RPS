@@ -4,7 +4,7 @@ import { useCallback, useEffect, useState, type SyntheticEvent } from 'react';
 import { useTranslations } from 'next-intl';
 import { AlertCircle, Loader2, Megaphone, Save } from 'lucide-react';
 import type { NotificationPreviewDto, NotificationSendResultDto, NotificationTemplateDto } from '@unigate/types';
-import { api, type ApiError } from '@/lib/api-client';
+import { api, idempotencyKey, type ApiError } from '@/lib/api-client';
 import { useSession } from '@/lib/auth/session-provider';
 import { errorMessage } from '@/lib/errors';
 import { Alert, AlertDescription } from '@/components/ui/alert';
@@ -97,7 +97,7 @@ export function AdminNotificationsPage() {
       ...(send.roleCodes.trim() ? { roleCodes: send.roleCodes.split(',').map((s) => s.trim().toUpperCase()).filter(Boolean) } : {}),
       ...(send.userIds.trim() ? { userIds: send.userIds.split(',').map((s) => s.trim()).filter(Boolean) } : {}),
     };
-    const res = await api<NotificationSendResultDto>('/notifications/send', { method: 'POST', headers: { 'Idempotency-Key': crypto.randomUUID() }, body: { templateCode: send.templateCode.toUpperCase(), variables, audience, channels: send.channels, urgent: send.urgent } });
+    const res = await api<NotificationSendResultDto>('/notifications/send', { method: 'POST', headers: { 'Idempotency-Key': idempotencyKey() }, body: { templateCode: send.templateCode.toUpperCase(), variables, audience, channels: send.channels, urgent: send.urgent } });
     setBusy(false);
     if (res.ok) setSent(res.data);
     else setError(res.error);

@@ -4,7 +4,7 @@ import { useCallback, useEffect, useState, type SyntheticEvent } from 'react';
 import { useLocale, useTranslations } from 'next-intl';
 import { AlertCircle, Download, History, Loader2 } from 'lucide-react';
 import type { AuditLogDto, ExportJobDto } from '@unigate/types';
-import { api, type ApiError } from '@/lib/api-client';
+import { api, idempotencyKey, type ApiError } from '@/lib/api-client';
 import { useSession } from '@/lib/auth/session-provider';
 import { errorMessage } from '@/lib/errors';
 import { Alert, AlertDescription } from '@/components/ui/alert';
@@ -63,7 +63,7 @@ export function AdminAuditLogsPage() {
       setError({ status: 422, code: 'VALIDATION_FAILED', message: 'date range required' });
       return;
     }
-    const res = await api<ExportJobDto>('/audit-logs/export', { method: 'POST', headers: { 'Idempotency-Key': crypto.randomUUID() }, body: { dateFrom: applied.dateFrom, dateTo: applied.dateTo, ...(applied.action ? { action: applied.action } : {}), ...(applied.entityType ? { entityType: applied.entityType } : {}), ...(applied.severity ? { severity: applied.severity } : {}) } });
+    const res = await api<ExportJobDto>('/audit-logs/export', { method: 'POST', headers: { 'Idempotency-Key': idempotencyKey() }, body: { dateFrom: applied.dateFrom, dateTo: applied.dateTo, ...(applied.action ? { action: applied.action } : {}), ...(applied.entityType ? { entityType: applied.entityType } : {}), ...(applied.severity ? { severity: applied.severity } : {}) } });
     if (res.ok) setExported(res.data);
     else setError(res.error);
   }
