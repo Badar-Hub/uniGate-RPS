@@ -253,6 +253,20 @@ describeDb('profiles & documents', () => {
     const onDuty = await bearer(request(h.app).post(`/api/v1/drivers/${driverId}/availability`), owner).send({ availabilityStatus: 'AVAILABLE' });
     expect(onDuty.body.data.availabilityStatus).toBe('AVAILABLE');
 
+    // already approved for every applied vertical → CONFLICT; adding GOODS later re-opens approval for that vertical only
+    expect((await bearer(request(h.app).post(`/api/v1/drivers/${driverId}/approve`), admin).send({})).status).toBe(409);
+    const widened = await bearer(request(h.app).patch(`/api/v1/drivers/${driverId}`), owner).send({ transportTypes: ['PASSENGER', 'GOODS'] });
+    expect(widened.body.data.verticals).toEqual(expect.arrayContaining([expect.objectContaining({ transportType: 'GOODS', status: 'NOT_APPLIED' })]));
+    const goodsNotReady = await bearer(request(h.app).post(`/api/v1/drivers/${driverId}/approve`), admin).send({});
+    expect(goodsNotReady.status).toBe(422);
+    expect(goodsNotReady.body.error.details.missing).toEqual(['DRIVER_TGA_CARD_GOODS']);
+    const tga = await upload(owner, 'DRIVER_TGA_CARD_GOODS', { kind: 'DRIVER', id: driverId }, PDF, 'application/pdf', { expiryDate: '2030-06-30' });
+    await bearer(request(h.app).post(`/api/v1/documents/${tga.body.data.id}/verify`), admin).send({});
+    const goodsApproved = await bearer(request(h.app).post(`/api/v1/drivers/${driverId}/approve`), admin).send({});
+    expect(goodsApproved.status).toBe(200);
+    const verticals = goodsApproved.body.data.verticals as { transportType: string; status: string }[];
+    expect(verticals.map((v) => `${v.transportType}:${v.status}`)).toEqual(expect.arrayContaining(['GOODS:APPROVED', 'PASSENGER:APPROVED']));
+
     // the driver signs in by OTP on their phone and reads their own record (SELF scope, no drivers.* code)
     await clearThrottles();
     const otp = await request(h.app).post('/api/v1/auth/otp/request').send({ channel: 'SMS', destination: '+966533333333', purpose: 'LOGIN' });

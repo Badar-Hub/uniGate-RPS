@@ -106,11 +106,16 @@ function appliedVerticals(d: repo.DriverRow): TransportType[] {
   return v.length ? v : ['PASSENGER'];
 }
 
-/** Approval requires verified mandatory DRIVER documents and an unexpired licence. */
+/**
+ * Approval requires verified mandatory DRIVER documents and an unexpired licence. An approved
+ * driver may be approved again when a vertical added later (PATCH transportTypes) is still pending:
+ * the documents for every applied vertical are re-checked and the pending ones become APPROVED.
+ */
 export async function approveDriver(scope: ActorScope, id: string, notes?: string): Promise<DriverDto> {
   const d = await repo.findDriver(scope, id);
   if (!d) throw new NotFoundError();
-  if (d.approvalStatus === 'APPROVED') throw new ConflictError('CONFLICT', 'Driver is already approved');
+  const pendingVerticals = d.verticalEligibility.filter((e) => e.status !== 'APPROVED' && e.status !== 'REJECTED');
+  if (d.approvalStatus === 'APPROVED' && pendingVerticals.length === 0) throw new ConflictError('CONFLICT', 'Driver is already approved for every applied vertical');
   if (d.licenseExpiryDate && d.licenseExpiryDate < new Date()) throw new BusinessRuleError('DRIVER_LICENSE_EXPIRED', 'Licence has expired');
   const verticals = appliedVerticals(d);
   const docs = await mandatoryDocumentsSatisfied('DRIVER', id, verticals);

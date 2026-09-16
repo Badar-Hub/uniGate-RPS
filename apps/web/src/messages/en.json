@@ -1585,7 +1585,9 @@
         "emergencyContactPhone": "Emergency contact phone",
         "loginHint": "The driver signs in to the driver app with this mobile number and a one-time code — no password is set here.",
         "submit": "Register driver"
-      }
+      },
+      "verticalAdded": "Vertical added — upload its TGA card, verify it, then approve the driver again.",
+      "addVertical": "Add {vertical}"
     }
   },
   "driver": {

@@ -249,6 +249,7 @@ export function DriversPage() {
       {selected && (
         <DriverDialog
           driver={selected}
+          canEdit={can('drivers.update')}
           canApprove={can('drivers.approve')}
           canVerifyDocs={can('documents.verify')}
           onClose={() => {
@@ -600,11 +601,13 @@ function AddDriverDialog({
 
 function DriverDialog({
   driver: initial,
+  canEdit,
   canApprove,
   canVerifyDocs,
   onClose,
 }: {
   driver: DriverDto;
+  canEdit: boolean;
   canApprove: boolean;
   canVerifyDocs: boolean;
   onClose: () => void;
@@ -673,6 +676,22 @@ function DriverDialog({
   const missing = (error?.details as { missing?: string[] } | undefined)?.missing;
   const applied = driver.verticals.map((v) => v.transportType);
   const pendingDocs = docs.filter((d) => d.verificationStatus === 'PENDING').length;
+  // A vertical added after approval stays NOT_APPLIED until staff approve again (documents re-checked).
+  const pendingVerticals = driver.verticals.filter(
+    (v) => v.status !== 'APPROVED' && v.status !== 'REJECTED',
+  );
+  const needsApproval = driver.approvalStatus !== 'APPROVED' || pendingVerticals.length > 0;
+  const addVertical = (transportType: string) => {
+    void run(
+      'vertical',
+      () =>
+        api<DriverDto>(`/drivers/${driver.id}`, {
+          method: 'PATCH',
+          body: { transportTypes: [...applied, transportType] },
+        }),
+      t('verticalAdded'),
+    );
+  };
 
   return (
     <Dialog
@@ -717,6 +736,42 @@ function DriverDialog({
             <AlertDescription>{notice}</AlertDescription>
           </Alert>
         )}
+
+        <div className="flex flex-wrap items-center gap-2 text-sm">
+          <span className="text-muted-foreground">{t('verticals')}:</span>
+          {driver.verticals.map((v) => (
+            <Badge
+              key={v.transportType}
+              variant={
+                v.status === 'APPROVED'
+                  ? 'default'
+                  : v.status === 'REJECTED'
+                    ? 'destructive'
+                    : 'secondary'
+              }
+            >
+              {t(`vertical.${v.transportType}` as 'vertical.PASSENGER')} ·{' '}
+              {t(`verticalStatus.${v.status}` as 'verticalStatus.NOT_APPLIED')}
+            </Badge>
+          ))}
+          {canEdit &&
+            (['PASSENGER', 'GOODS'] as const)
+              .filter((v) => !applied.includes(v))
+              .map((v) => (
+                <Button
+                  key={v}
+                  size="sm"
+                  variant="outline"
+                  disabled={busy !== null}
+                  onClick={() => {
+                    addVertical(v);
+                  }}
+                >
+                  <Plus className="size-4" />
+                  {t('addVertical', { vertical: t(`vertical.${v}`) })}
+                </Button>
+              ))}
+        </div>
 
         <DocumentChecklist
           key={checklistKey}
@@ -799,7 +854,7 @@ function DriverDialog({
           </Card>
         )}
 
-        {canApprove && driver.approvalStatus !== 'APPROVED' && (
+        {canApprove && needsApproval && (
           <div className="space-y-2">
             <Label htmlFor="drv-reason">{t('rejectReason')}</Label>
             <Input
