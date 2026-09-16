@@ -31,7 +31,7 @@ Suggested order: sections 1 → 13 build on each other (users → vendor → veh
 1. As the vendor: **Documents** → upload every mandatory company document (PDF/PNG). After the last upload the profile moves to *Documents submitted* by itself.
 2. As admin: **Owner review** queue → open the vendor → verify each document → *Approve*. Try approving before all documents are verified → refused (`OWNER_DOCUMENTS_INCOMPLETE`).
 3. As the vendor: add a **driver** (Fleet → drivers), upload the driver's licence/ID; admin approves the driver.
-4. As a customer: complete the profile, add a saved location. As admin: **Customers** → mark a corporate customer *verified* and set credit (limit + terms) — needed for invoiced bookings in §9.
+4. As a customer: complete the profile, add a saved location. As admin: **Admin → Customers** → *Manage* → fill the corporate record (company, CR, contact, national address, billing cycle *Monthly*), set the VAT number, verify the three corporate documents the customer uploaded (Documents page), **Verify corporate record**, then in *Credit & invoicing* set status *Approved* + a credit limit — needed for invoiced bookings in §7.5 and §9.
 
 ## 3. Fleet
 
@@ -67,6 +67,7 @@ Suggested order: sections 1 → 13 build on each other (users → vendor → veh
 
 1. Customer: booking → **Pay now** → mock checkout → SUCCESS. Expect: booking *Confirmed*, payment *Paid*, `PAYMENT_SUCCESSFUL` notification, ledger postings (Admin → Reports → *revenue* later).
 2. Repeat with FAIL → `PAYMENT_FAILED` notification, booking still pending.
+   Offline payment (bank transfer / cash): ops open the booking → *Disputes & no-show* card → **Confirm booking — payment received** with a reconciliation note → booking *Confirmed* (audited as `booking.confirmed_by_ops`).
 3. Cancel a paid booking → a refund request appears in **Admin → Refunds**. Approve with a *different* staff user (four-eyes: the requester cannot approve), then **Process** → mock gateway completes it → booking *Refunded*, `REFUND_COMPLETED` notification.
 4. Admin → **System → Payment webhooks**: the stored events with valid signatures; *Replay* one → result `SKIPPED`/`PROCESSED` (idempotent).
 5. Corporate customer with approved credit: book → no payment step, booking *Confirmed*, `billingMode: INVOICED`; check `/customers/{id}/credit` headroom drops (Invoices page → statement).

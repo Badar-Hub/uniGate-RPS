@@ -331,6 +331,93 @@
         "vehicle": "Vehicle",
         "review": "Review",
         "blocking": "Approval is blocked until these mandatory documents are uploaded and verified:"
+      },
+      "customers": {
+        "title": "Customers",
+        "subtitle": "Corporate records, VAT numbers, document verification and credit. Approved credit with a weekly or monthly cycle bills the customer by invoice instead of upfront payment.",
+        "search": "Search by name, email or phone",
+        "customer": "Customer",
+        "type": "Type",
+        "company": "Company",
+        "billing": "Billing",
+        "credit": "Credit",
+        "empty": "No customers found.",
+        "manage": "Manage",
+        "verified": "Verified",
+        "unverified": "Not verified",
+        "verifyCustomer": "Verify corporate record",
+        "customerVerified": "Corporate record verified.",
+        "types": {
+          "INDIVIDUAL": "Individual",
+          "CORPORATE": "Corporate"
+        },
+        "billingModes": {
+          "PREPAID": "Prepaid",
+          "INVOICED": "Invoiced · {cycle}"
+        },
+        "cycles": {
+          "PER_BOOKING": "Per booking",
+          "WEEKLY": "Weekly",
+          "MONTHLY": "Monthly"
+        },
+        "creditStatuses": {
+          "NONE": "No credit",
+          "PENDING_APPROVAL": "Pending approval",
+          "APPROVED": "Approved",
+          "SUSPENDED": "Suspended"
+        },
+        "corporate": {
+          "title": "Corporate record",
+          "hint": "Company details as they appear on the commercial registration; the national address prints on tax invoices.",
+          "companyNameEn": "Company name (English)",
+          "companyNameAr": "Company name (Arabic)",
+          "crNumber": "CR number (10 digits)",
+          "contactName": "Contact person",
+          "contactPhone": "Contact phone",
+          "contactEmail": "Contact email",
+          "billingCycle": "Billing cycle",
+          "creditTermsDays": "Payment terms (days)",
+          "nationalAddress": "National address",
+          "buildingNumber": "Building number",
+          "additionalNumber": "Additional number",
+          "streetEn": "Street (English)",
+          "streetAr": "Street (Arabic)",
+          "districtEn": "District (English)",
+          "districtAr": "District (Arabic)",
+          "city": "City",
+          "postalCode": "Postal code",
+          "shortCode": "Short address (optional)",
+          "save": "Save corporate record",
+          "create": "Create corporate record"
+        },
+        "corporateSaved": "Corporate record saved.",
+        "vat": {
+          "title": "VAT number",
+          "hint": "Required for a standard tax invoice. Locked once an invoice has been issued against it.",
+          "locked": "Locked — an invoice has been issued against this VAT number.",
+          "number": "VAT number (15 digits)",
+          "reason": "Reason for change",
+          "save": "Save VAT number"
+        },
+        "vatSaved": "VAT number saved.",
+        "documents": {
+          "hint": "Commercial registration, VAT certificate and national address certificate must be verified before the record is verified.",
+          "none": "No documents uploaded yet — the customer uploads them from their Documents page."
+        },
+        "docVerified": "Document verified.",
+        "docRejected": "Document rejected.",
+        "creditPanel": {
+          "title": "Credit & invoicing",
+          "hint": "Approve credit and choose a weekly or monthly cycle to bill by invoice. Bookings then confirm without upfront payment and are invoiced at period end.",
+          "mode": "Billing mode",
+          "outstanding": "Outstanding",
+          "available": "Available credit",
+          "status": "Credit status",
+          "limit": "Credit limit (SAR)",
+          "reason": "Reason (required when suspending)",
+          "save": "Save credit"
+        },
+        "creditSaved": "Credit updated."
       }
     },
     "fleet": {
@@ -705,7 +792,12 @@
         "feeOverride": "Fee override (SAR)",
         "feeReason": "Override reason",
         "recordNoShow": "Record no-show",
-        "noShowRecorded": "No-show recorded — fee {fee}, customer refund {refund}."
+        "noShowRecorded": "No-show recorded — fee {fee}, customer refund {refund}.",
+        "confirmHint": "Payment received outside the gateway (bank transfer, cash)? Record how it was reconciled and confirm the booking. This is audited.",
+        "confirmReason": "Reconciliation note",
+        "confirmReasonPlaceholder": "e.g. Bank transfer ref 12345 matched on 16/09",
+        "confirm": "Confirm booking — payment received",
+        "confirmed": "Booking confirmed — payment recorded as received offline."
       }
     },
     "payments": {

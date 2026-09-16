@@ -63,7 +63,7 @@ export function PortalShell({ children }: { children: ReactNode }) {
     { href: '/admin/system', label: t('system'), icon: Activity, show: can('system.health.read') || can('payments.manage') || can('platform.jobs.manage') },
     { href: '/admin/owners', label: t('adminReview'), icon: FileCheck2, show: can('owners.approve') },
     { href: '/admin/vehicles', label: t('vehicleApprovals'), icon: Truck, show: can('vehicles.approve') },
-    { href: '/admin/customers', label: t('customers'), icon: Users, show: false },
+    { href: '/admin/customers', label: t('customers'), icon: Users, show: can('customers.read') && can('customers.verify') },
   ];
 
   return (

@@ -2,7 +2,7 @@
 
 import { useState, type SyntheticEvent } from 'react';
 import { useTranslations } from 'next-intl';
-import { AlertCircle, Gavel, Loader2, UserX } from 'lucide-react';
+import { AlertCircle, BadgeCheck, Gavel, Loader2, UserX } from 'lucide-react';
 import type { BookingDisputeResultDto, BookingDto, CancelBookingResultDto } from '@unigate/types';
 import { api, idempotencyKey, type ApiError } from '@/lib/api-client';
 import { useSession } from '@/lib/auth/session-provider';
@@ -20,6 +20,8 @@ const CATEGORIES = ['SERVICE_QUALITY', 'SAFETY', 'DRIVER_BEHAVIOUR', 'VEHICLE_CO
  * Disputes and no-show (api.md §8.15): a party disputes an in-progress / completed booking
  * (a linked complaint opens); staff resolve it (service stands, or a refund request); ops
  * record a customer or owner no-show with the policy charge and an optional fee override.
+ * Ops also confirm a PENDING_PAYMENT booking once an offline payment (bank transfer, cash)
+ * is reconciled — api.md §8.14 POST /bookings/{id}/confirm; the reason lands in the audit log.
  */
 export function BookingOpsActions({ booking, onChanged }: { booking: BookingDto; onChanged: () => Promise<void> }) {
   const t = useTranslations('portal.bookings.ops');
@@ -31,11 +33,13 @@ export function BookingOpsActions({ booking, onChanged }: { booking: BookingDto;
   const [dispute, setDispute] = useState({ category: 'SERVICE_QUALITY', subject: '', description: '' });
   const [resolve, setResolve] = useState({ outcome: 'COMPLETED', resolution: '', refundAmount: '' });
   const [noShow, setNoShow] = useState({ party: 'CUSTOMER', reasonText: '', feeValue: '', feeReason: '' });
+  const [confirmReason, setConfirmReason] = useState('');
 
   const canDispute = can('complaints.create') && (booking.status === 'IN_PROGRESS' || booking.status === 'COMPLETED');
   const canResolve = can('complaints.manage') && booking.status === 'DISPUTED';
   const canNoShow = can('bookings.manage') && ['CONFIRMED', 'DRIVER_ASSIGNED', 'READY'].includes(booking.status);
-  if (!canDispute && !canResolve && !canNoShow) return null;
+  const canConfirm = can('bookings.manage') && booking.status === 'PENDING_PAYMENT' && booking.billingMode === 'PREPAID';
+  if (!canDispute && !canResolve && !canNoShow && !canConfirm) return null;
 
   async function run<T>(fn: () => Promise<{ ok: boolean; error?: ApiError; data?: T }>, done: (d: T) => string) {
     setBusy(true);
@@ -56,6 +60,10 @@ export function BookingOpsActions({ booking, onChanged }: { booking: BookingDto;
     e.preventDefault();
     void run(() => api<BookingDisputeResultDto>(`/bookings/${booking.id}/resolve-dispute`, { method: 'POST', body: { outcome: resolve.outcome, resolution: resolve.resolution, ...(resolve.outcome === 'REFUND' && resolve.refundAmount ? { refundAmount: resolve.refundAmount } : {}) } }), (d) => (d.refund ? t('resolvedRefund', { number: d.refund.refundNumber }) : t('resolvedCompleted')));
   };
+  const submitConfirm = (e: SyntheticEvent) => {
+    e.preventDefault();
+    void run(() => api<BookingDto>(`/bookings/${booking.id}/confirm`, { method: 'POST', body: { reason: confirmReason.trim() } }), () => t('confirmed'));
+  };
   const submitNoShow = (e: SyntheticEvent) => {
     e.preventDefault();
     void run(() => api<CancelBookingResultDto>(`/bookings/${booking.id}/no-show`, { method: 'POST', headers: { 'Idempotency-Key': idempotencyKey() }, body: { party: noShow.party, ...(noShow.reasonText ? { reasonText: noShow.reasonText } : {}), ...(noShow.feeValue ? { feeOverride: { type: 'FIXED', value: noShow.feeValue, reason: noShow.feeReason || 'No-show penalty' } } : {}) } }), (d) => t('noShowRecorded', { fee: d.cancellation.cancellationFeeAmount, refund: d.cancellation.refundAmount }));
@@ -69,6 +77,13 @@ export function BookingOpsActions({ booking, onChanged }: { booking: BookingDto;
           <Alert variant="destructive"><AlertCircle className="size-4" /><AlertDescription>{errorMessage(tc, error)}</AlertDescription></Alert>
         )}
         {notice && <Alert><AlertDescription>{notice}</AlertDescription></Alert>}
+        {canConfirm && (
+          <form className="grid gap-2 sm:grid-cols-4" onSubmit={submitConfirm}>
+            <p className="text-sm text-muted-foreground sm:col-span-4">{t('confirmHint')}</p>
+            <div className="space-y-1 sm:col-span-3"><Label htmlFor="cf-reason">{t('confirmReason')}</Label><Input id="cf-reason" required placeholder={t('confirmReasonPlaceholder')} value={confirmReason} onChange={(e) => { setConfirmReason(e.target.value); }} /></div>
+            <div className="flex items-end"><Button type="submit" disabled={busy || confirmReason.trim().length < 3}>{busy ? <Loader2 className="animate-spin" /> : <BadgeCheck className="size-4" />}{t('confirm')}</Button></div>
+          </form>
+        )}
         {canDispute && (
           <form className="grid gap-2 sm:grid-cols-3" onSubmit={submitDispute}>
             <div className="space-y-1">
