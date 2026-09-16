@@ -200,6 +200,7 @@ function UploadDialog({ target, req, locale, onClose }: { target: ChecklistTarge
                     setExpiryDate(e.target.value);
                   }}
                   required={req.requiresExpiry}
+                  min={new Date().toISOString().slice(0, 10)}
                 />
               </div>
             </div>

@@ -147,7 +147,9 @@
       "REPORT_FORMAT_NOT_AVAILABLE": "Only CSV exports are available today.",
       "REPORT_RANGE_TOO_WIDE": "The date range is wider than this report allows.",
       "EXPORT_NOT_READY": "The export is not ready yet.",
-      "EXPORT_EXPIRED": "The export file has expired — request it again."
+      "EXPORT_EXPIRED": "The export file has expired — request it again.",
+      "DOCUMENT_EXPIRED": "This document has already expired (its expiry date is in the past). Ask for a current copy to be uploaded.",
+      "DOCUMENT_NOT_VERIFIABLE": "This document cannot be verified in its current state."
     },
     "yes": "Yes",
     "no": "No",

@@ -40,7 +40,9 @@ export const uploadUrlBody = z
     visibility: z.enum(DOCUMENT_VISIBILITY).default('PRIVATE'),
   })
   .strict()
-  .refine((b) => !(b.issueDate && b.expiryDate) || b.issueDate <= b.expiryDate, { path: ['expiryDate'], message: 'expiryDate must not precede issueDate' });
+  .refine((b) => !(b.issueDate && b.expiryDate) || b.issueDate <= b.expiryDate, { path: ['expiryDate'], message: 'expiryDate must not precede issueDate' })
+  // An already-expired document can never be verified, so it is refused at upload rather than at review.
+  .refine((b) => !b.expiryDate || b.expiryDate >= new Date().toISOString().slice(0, 10), { path: ['expiryDate'], message: 'the document has already expired — enter its current expiry date' });
 
 export const confirmUploadBody = z.object({ checksumSha256: sha256Hex }).strict();
 
