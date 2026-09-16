@@ -5,6 +5,16 @@ export function errorMessage(t: (key: string, values?: Record<string, string | n
   if (!error) return t('errors.generic');
   if (error.code === 'NETWORK') return t('errors.network');
   const key = `errors.${error.code}`;
+  // A vertical-specific refusal (DRIVER_NOT_APPROVED / OWNER_NOT_APPROVED with details.vertical) has its own wording.
+  const vertical = (error.details as { vertical?: string } | undefined)?.vertical;
+  if (vertical) {
+    try {
+      const msg = t(`${key}_VERTICAL`, { vertical: t(`vertical.${vertical}`) });
+      if (!msg.endsWith(`${key}_VERTICAL`)) return msg;
+    } catch {
+      /* fall through to the generic code */
+    }
+  }
   try {
     const msg = t(key);
     // next-intl returns the key path when a message is missing

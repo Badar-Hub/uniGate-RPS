@@ -149,12 +149,17 @@
       "EXPORT_NOT_READY": "The export is not ready yet.",
       "EXPORT_EXPIRED": "The export file has expired — request it again.",
       "DOCUMENT_EXPIRED": "This document has already expired (its expiry date is in the past). Ask for a current copy to be uploaded.",
-      "DOCUMENT_NOT_VERIFIABLE": "This document cannot be verified in its current state."
+      "DOCUMENT_NOT_VERIFIABLE": "This document cannot be verified in its current state.",
+      "DRIVER_NOT_APPROVED_VERTICAL": "The driver is not approved for {vertical} transport — add the vertical on the Drivers page, verify the TGA card and approve."
     },
     "yes": "Yes",
     "no": "No",
     "previous": "Previous",
-    "next": "Next"
+    "next": "Next",
+    "vertical": {
+      "PASSENGER": "passenger",
+      "GOODS": "goods"
+    }
   },
   "home": {
     "title": "UniGate platform",
