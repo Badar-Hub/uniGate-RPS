@@ -503,7 +503,9 @@
         "publishNow": "Publish now",
         "saveDraft": "Save as draft",
         "created": "Request created.",
-        "published": "Request published to {count} matching owners."
+        "published": "Request published to {count} matching owners.",
+        "customer": "Customer (raising on their behalf)",
+        "customerPlaceholder": "Choose the customer"
       },
       "detail": {
         "publish": "Publish",

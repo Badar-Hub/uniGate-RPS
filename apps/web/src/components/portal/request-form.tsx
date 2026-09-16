@@ -3,9 +3,10 @@
 import { useEffect, useState, type ReactNode, type SyntheticEvent } from 'react';
 import { useLocale, useTranslations } from 'next-intl';
 import { AlertCircle, Loader2 } from 'lucide-react';
-import type { CityDto, SavedLocationDto, TripRequestDto, VehicleCategoryDto } from '@unigate/types';
+import type { CityDto, CustomerDto, SavedLocationDto, TripRequestDto, VehicleCategoryDto } from '@unigate/types';
 import { api, idempotencyKey, type ApiError } from '@/lib/api-client';
-import { errorMessage, fieldErrors } from '@/lib/errors';
+import { useSession } from '@/lib/auth/session-provider';
+import { errorMessage, fieldErrors, unmappedFieldErrors } from '@/lib/errors';
 import { useRouter } from '@/lib/i18n/routing';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
@@ -33,6 +34,11 @@ export function RequestForm() {
   const tc = useTranslations('common');
   const locale = useLocale();
   const router = useRouter();
+  const { me, can } = useSession();
+  // Staff without a customer profile raise the request on behalf of a customer (api.md §8.11: customerProfileId is staff-only).
+  const onBehalf = !me?.profiles.customer && can('trip_requests.create') && can('customers.read');
+  const [customers, setCustomers] = useState<CustomerDto[]>([]);
+  const [customerProfileId, setCustomerProfileId] = useState('');
   const [categories, setCategories] = useState<VehicleCategoryDto[]>([]);
   const [cities, setCities] = useState<CityDto[]>([]);
   const [saved, setSaved] = useState<SavedLocationDto[]>([]);
@@ -50,6 +56,12 @@ export function RequestForm() {
     setForm((f) => ({ ...f, [k]: v }));
   };
 
+  useEffect(() => {
+    if (!onBehalf) return;
+    void api<CustomerDto[]>('/customers', { query: { pageSize: 100 } }).then((r) => {
+      if (r.ok) setCustomers(r.data);
+    });
+  }, [onBehalf]);
   useEffect(() => {
     // The verticals a deployment accepts new requests for (platform.verticals_enabled — ADR-009/ADR-010).
     void api<{ key: string; value: unknown }[]>('/settings/public').then((r) => {
@@ -99,6 +111,7 @@ export function RequestForm() {
       ...(goods.shipperName ? { shipperContactName: goods.shipperName } : {}), ...(goods.shipperPhone ? { shipperContactPhone: goods.shipperPhone } : {}), ...(goods.consigneeName ? { consigneeContactName: goods.consigneeName } : {}), ...(goods.consigneePhone ? { consigneeContactPhone: goods.consigneePhone } : {}),
     };
     const body = {
+      ...(onBehalf && customerProfileId ? { customerProfileId } : {}),
       transportType,
       vehicleCategoryId: form.vehicleCategoryId,
       vehiclesRequired: Number(form.vehiclesRequired),
@@ -142,8 +155,27 @@ export function RequestForm() {
           {error && (
             <Alert variant="destructive" className="md:col-span-2">
               <AlertCircle className="size-4" />
-              <AlertDescription>{errorMessage(tc, error)}</AlertDescription>
+              <AlertDescription>
+                {errorMessage(tc, error)}
+                {unmappedFieldErrors(error, [...Object.keys(form), 'customerProfileId', 'pickup.addressLine', 'pickup.cityId', 'dropoff.addressLine', 'dropoff.cityId', 'budgetAmount', 'goodsDetails', 'passengerDetails']) ? ` — ${unmappedFieldErrors(error, [...Object.keys(form), 'customerProfileId', 'pickup.addressLine', 'pickup.cityId', 'dropoff.addressLine', 'dropoff.cityId', 'budgetAmount', 'goodsDetails', 'passengerDetails'])}` : ''}
+              </AlertDescription>
             </Alert>
+          )}
+          {onBehalf && (
+            <Field id="customerProfileId" label={t('customer')} error={fe['customerProfileId']} className="md:col-span-2">
+              <Select value={customerProfileId} onValueChange={setCustomerProfileId} required>
+                <SelectTrigger id="customerProfileId">
+                  <SelectValue placeholder={t('customerPlaceholder')} />
+                </SelectTrigger>
+                <SelectContent>
+                  {customers.map((c) => (
+                    <SelectItem key={c.id} value={c.id}>
+                      {(locale === 'ar' ? c.fullNameAr : null) ?? c.fullNameEn}{c.email ? ` · ${c.email}` : ''}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </Field>
           )}
           {verticals.includes('GOODS') && (
             <Field id="transportType" label={t('transportType')} className="md:col-span-2">

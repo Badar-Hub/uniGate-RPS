@@ -503,7 +503,9 @@
         "publishNow": "نشر الآن",
         "saveDraft": "حفظ كمسودة",
         "created": "تم إنشاء الطلب.",
-        "published": "تم نشر الطلب إلى {count} مالك مطابق."
+        "published": "تم نشر الطلب إلى {count} مالك مطابق.",
+        "customer": "العميل (إنشاء الطلب نيابة عنه)",
+        "customerPlaceholder": "اختر العميل"
       },
       "detail": {
         "publish": "نشر",
