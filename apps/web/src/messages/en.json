@@ -329,7 +329,8 @@
         "rejected": "Vehicle rejected.",
         "owner": "Owner",
         "vehicle": "Vehicle",
-        "review": "Review"
+        "review": "Review",
+        "blocking": "Approval is blocked until these mandatory documents are uploaded and verified:"
       }
     },
     "fleet": {

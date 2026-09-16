@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useLocale, useTranslations } from 'next-intl';
 import { AlertCircle, CheckCircle2, ExternalLink, Loader2 } from 'lucide-react';
-import type { DocumentDto, DownloadUrlDto, VehicleDto } from '@unigate/types';
+import type { DocumentDto, DocumentRequirementDto, DownloadUrlDto, VehicleDto } from '@unigate/types';
 import { api, type ApiError } from '@/lib/api-client';
 import { useSession } from '@/lib/auth/session-provider';
 import { errorMessage } from '@/lib/errors';
@@ -48,17 +48,15 @@ export function AdminVehicles() {
     void load();
   }, [load]);
 
-  async function decide(v: VehicleDto, action: 'approve' | 'reject', reason?: string) {
+  async function decide(v: VehicleDto, action: 'approve' | 'reject', reason?: string): Promise<ApiError | null> {
     setError(null);
     setNotice(null);
     const res = await api<VehicleDto>(`/vehicles/${v.id}/${action}`, { method: 'POST', body: action === 'reject' ? { rejectionReason: reason } : {} });
-    if (!res.ok) {
-      setError(res.error);
-      return;
-    }
+    if (!res.ok) return res.error;
     setNotice(action === 'approve' ? t('approved') : t('rejected'));
     setSelected(null);
     await load();
+    return null;
   }
 
   return (
@@ -171,19 +169,30 @@ export function AdminVehicles() {
   );
 }
 
-function VehicleReviewDialog({ vehicle, canApprove, canVerify, onDecide, onClose }: { vehicle: VehicleDto; canApprove: boolean; canVerify: boolean; onDecide: (v: VehicleDto, a: 'approve' | 'reject', reason?: string) => Promise<void>; onClose: () => void }) {
+function VehicleReviewDialog({ vehicle: initial, canApprove, canVerify, onDecide, onClose }: { vehicle: VehicleDto; canApprove: boolean; canVerify: boolean; onDecide: (v: VehicleDto, a: 'approve' | 'reject', reason?: string) => Promise<ApiError | null>; onClose: () => void }) {
   const t = useTranslations('portal.admin.vehicles');
   const td = useTranslations('portal.admin.documents');
   const tc = useTranslations('common');
+  const locale = useLocale();
+  const [vehicle, setVehicle] = useState(initial);
   const [docs, setDocs] = useState<DocumentDto[]>([]);
+  const [checklist, setChecklist] = useState<DocumentRequirementDto[]>([]);
   const [reason, setReason] = useState('');
   const [busy, setBusy] = useState<string | null>(null);
   const [error, setError] = useState<ApiError | null>(null);
 
+  // Uploaded files, the mandatory checklist (what approval actually checks) and the vehicle's
+  // dispatchability are re-read after every verification so the dialog never goes stale.
   const load = useCallback(async () => {
-    const res = await api<DocumentDto[]>('/documents', { query: { vehicleId: vehicle.id, uploadStatus: 'UPLOADED', pageSize: 100 } });
-    setDocs(res.ok ? res.data : []);
-  }, [vehicle.id]);
+    const [d, r, v] = await Promise.all([
+      api<DocumentDto[]>('/documents', { query: { vehicleId: vehicle.id, uploadStatus: 'UPLOADED', pageSize: 100 } }),
+      api<DocumentRequirementDto[]>('/documents/requirements', { query: { appliesTo: 'VEHICLE', targetId: vehicle.id, transportType: vehicle.category.transportType } }),
+      api<VehicleDto>(`/vehicles/${vehicle.id}`),
+    ]);
+    setDocs(d.ok ? d.data : []);
+    setChecklist(r.ok ? r.data : []);
+    if (v.ok) setVehicle(v.data);
+  }, [vehicle.id, vehicle.category.transportType]);
   useEffect(() => {
     void load();
   }, [load]);
@@ -208,6 +217,15 @@ function VehicleReviewDialog({ vehicle, canApprove, canVerify, onDecide, onClose
     window.open(res.data.url, '_blank', 'noopener');
   }
   const pending = docs.filter((d) => d.verificationStatus === 'PENDING').length;
+  const blocking = checklist.filter((r) => r.isMandatory && r.status !== 'VERIFIED');
+  async function decide(action: 'approve' | 'reject') {
+    setBusy(action);
+    setError(null);
+    const err = await onDecide(vehicle, action, reason.trim());
+    setBusy(null);
+    if (err) setError(err);
+  }
+  const missingDetail = (error?.details as { missing?: string[] } | undefined)?.missing;
 
   return (
     <Dialog
@@ -228,6 +246,21 @@ function VehicleReviewDialog({ vehicle, canApprove, canVerify, onDecide, onClose
               </Badge>
             ))}
           </div>
+        )}
+        {blocking.length > 0 && (
+          <Alert>
+            <AlertCircle className="size-4" />
+            <AlertDescription>
+              {t('blocking')}
+              <ul className="mt-1 list-disc ps-5">
+                {blocking.map((r) => (
+                  <li key={r.documentTypeCode}>
+                    {locale === 'ar' ? r.nameAr : r.nameEn} — <span className="font-mono text-xs">{r.status}</span>
+                  </li>
+                ))}
+              </ul>
+            </AlertDescription>
+          </Alert>
         )}
         <Card>
           <CardHeader className="p-4">
@@ -266,7 +299,10 @@ function VehicleReviewDialog({ vehicle, canApprove, canVerify, onDecide, onClose
         {error && (
           <Alert variant="destructive">
             <AlertCircle className="size-4" />
-            <AlertDescription>{errorMessage(tc, error)}</AlertDescription>
+            <AlertDescription>
+              {errorMessage(tc, error)}
+              {missingDetail?.length ? <span className="ms-1 font-mono text-xs">({missingDetail.join(', ')})</span> : null}
+            </AlertDescription>
           </Alert>
         )}
         <div className="space-y-2">
@@ -282,10 +318,12 @@ function VehicleReviewDialog({ vehicle, canApprove, canVerify, onDecide, onClose
         <DialogFooter>
           {canApprove && vehicle.approvalStatus === 'PENDING_APPROVAL' && (
             <>
-              <Button variant="destructive" disabled={reason.trim().length < 5} onClick={() => void onDecide(vehicle, 'reject', reason.trim())}>
+              <Button variant="destructive" disabled={busy !== null || reason.trim().length < 5} onClick={() => void decide('reject')}>
+                {busy === 'reject' ? <Loader2 className="animate-spin" /> : null}
                 {t('reject')}
               </Button>
-              <Button disabled={pending > 0} onClick={() => void onDecide(vehicle, 'approve')}>
+              <Button disabled={busy !== null || pending > 0 || blocking.length > 0} title={blocking.length > 0 ? t('blocking') : undefined} onClick={() => void decide('approve')}>
+                {busy === 'approve' ? <Loader2 className="animate-spin" /> : null}
                 {t('approve')}
               </Button>
             </>
