@@ -1,6 +1,6 @@
 import type { DocumentDto, UploadUrlDto } from '@unigate/types';
 import { api, idempotencyKey, type ApiResult } from '@/lib/api-client';
-import { sha256Bytes } from './sha256.js';
+import { sha256Bytes } from './sha256';
 
 /** SHA-256 of a File in the browser — the API verifies it against the stored object. WebCrypto when the page is a secure context, a pure-JS digest otherwise (plain HTTP on a LAN address). */
 export async function sha256Hex(file: File): Promise<string> {
