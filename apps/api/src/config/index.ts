@@ -24,6 +24,13 @@ export interface AppConfig {
     refreshTokenTtlSeconds: number;
     argon2: { memoryKib: number; timeCost: number; parallelism: number };
   };
+  rateLimit: {
+    enabled: boolean;
+    global: { limit: number; seconds: number };
+    anonymous: { limit: number; seconds: number };
+    reads: { limit: number; seconds: number };
+    writes: { limit: number; seconds: number };
+  };
   crypto: {
     encryptionKey: Buffer;
     encryptionKeyId: string;
@@ -81,6 +88,13 @@ export function buildConfig(env: Env): AppConfig {
       accessTokenTtlSeconds: env.ACCESS_TOKEN_TTL_SECONDS,
       refreshTokenTtlSeconds: env.REFRESH_TOKEN_TTL_SECONDS,
       argon2: { memoryKib: env.ARGON2_MEMORY_KIB, timeCost: env.ARGON2_TIME_COST, parallelism: env.ARGON2_PARALLELISM },
+    },
+    rateLimit: {
+      enabled: env.RATE_LIMIT_ENABLED ? env.RATE_LIMIT_ENABLED === 'true' : env.NODE_ENV !== 'test',
+      global: { limit: env.RATE_LIMIT_GLOBAL_PER_5MIN, seconds: 300 },
+      anonymous: { limit: env.RATE_LIMIT_ANON_PER_MIN, seconds: 60 },
+      reads: { limit: env.RATE_LIMIT_READS_PER_MIN, seconds: 60 },
+      writes: { limit: env.RATE_LIMIT_WRITES_PER_MIN, seconds: 60 },
     },
     crypto: {
       encryptionKey: Buffer.from(env.ENCRYPTION_KEY, 'base64'),

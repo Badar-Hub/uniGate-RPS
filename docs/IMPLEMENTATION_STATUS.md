@@ -37,7 +37,7 @@ Status values: `NOT_STARTED` · `IN_PROGRESS` · `BLOCKED` · `COMPLETE`
 | 11b | **Goods vertical** | **COMPLETE** 2026-09-15 | See *Phase 11b exit* below. Built behind `platform.verticals_enabled` (seed PASSENGER only); the Bayan gate and zero-rating are hooks awaiting OQ-29 / OQ-27; TGA licensing OQ-13 |
 | 12 | Maintenance | **COMPLETE** 2026-09-15 | See *Phase 12 exit* below. Records hold the vehicle on its calendar (EXCLUDE), completion feeds odometer / schedule / expenses; the reminder job publishes `maintenance.due` (fan-out lands with notifications, Phase 13) |
 | 13 | Admin & reporting | **COMPLETE** 2026-09-15 | See the *Phase 13a / 13b / 13c exit* tables. Notifications, engagement, disputes / no-show, statements, dashboard, system tooling, audit explorer, 15 reports + CSV exports, settings / roles / refunds screens; per-vertical dashboard filter; `platform.verticals_enabled` editable in the settings screen |
-| 14 | Hardening | `NOT_STARTED` | ~~Performance targets pending OQ-15~~ estimates agreed 2026-09-15 |
+| 14 | Hardening | **IN PROGRESS** 2026-09-16 | [hardening.md](hardening.md): global rate-limit tiers, API/web security headers with nonce CSP (report-only), CSP collector, Argon2 bench tool, k6 baseline, backup/restore drill passed, DB role audit 6/6, `pnpm audit` clean. Pentest / DAST / container scan / capacity run wait for a deployed staging (Phase 16). Mobile app (Expo) started in parallel — [mobile-app.md](mobile-app.md) |
 | 15 | Testing | `NOT_STARTED` | |
 | 16 | Deployment | `NOT_STARTED` | Hosting region **BLOCKED** on OQ-12 (data residency) |
 

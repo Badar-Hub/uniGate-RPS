@@ -155,7 +155,14 @@ All items delivered; residuals moved to Phase 3 below.
 
 ## Immediate — next phase (UniGate's call)
 
-- [ ] **Phase 14 — Hardening**: rate-limit review, security headers audit, load test against the agreed estimates (OQ-15), dependency audit, backup/restore drill
+- [~] **Phase 14 — Hardening** — [hardening.md](hardening.md)
+  - [x] Rate-limit review: global / anonymous / user read+write / refresh / bid / export / upload / webhook tiers with `RateLimit-*` headers
+  - [x] Security headers audit: API JSON-only CSP + no-store; web nonce CSP (report-only) with `/platform/csp-report` collector
+  - [x] Dependency audit clean (`pnpm audit --prod`): PostCSS / uuid / decode-uri-component overrides, next-intl 4
+  - [x] Backup/restore drill on dev (`scripts/db/backup.sh` / `restore.sh`); DB role + grant audit (`scripts/db/roles.sql` / `audit-grants.sql`)
+  - [x] Argon2id benchmark tool (`bench:argon2`); k6 baseline script + 1-VU smoke
+  - [ ] Staging: Argon2 production benchmark, k6 capacity run (60 VUs / 10 min) + tracking-ingest script, CSP enforced after a clean report week
+  - [ ] Pentest + remediation + re-test, ZAP baseline in CI, Trivy image scan, external TLS/header check — need Phase 16 infrastructure
 
 ## Deferred design work
 

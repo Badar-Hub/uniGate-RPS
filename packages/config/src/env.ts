@@ -65,6 +65,14 @@ export const envSchema = z
     ARGON2_MEMORY_KIB: z.coerce.number().int().min(19456).default(65536),
     ARGON2_TIME_COST: z.coerce.number().int().min(2).default(3),
     ARGON2_PARALLELISM: z.coerce.number().int().min(1).default(1),
+    /** Global rate-limit tiers (security.md §6.8). Ceilings, not business rules — hence env, not settings. Off under test by default. */
+    RATE_LIMIT_ENABLED: z.enum(['true', 'false']).optional(),
+    RATE_LIMIT_GLOBAL_PER_5MIN: z.coerce.number().int().positive().default(600),
+    RATE_LIMIT_ANON_PER_MIN: z.coerce.number().int().positive().default(120),
+    RATE_LIMIT_READS_PER_MIN: z.coerce.number().int().positive().default(300),
+    RATE_LIMIT_WRITES_PER_MIN: z.coerce.number().int().positive().default(120),
+    /** Web CSP: report-only until go-live (security.md §6.3). The API collects reports at /platform/csp-report. */
+    CSP_ENFORCE: z.enum(['true', 'false']).default('false'),
 
     PAYMENT_PROVIDER: z.enum(['mock', 'hyperpay', 'moyasar', 'paytabs', 'checkout']),
     PAYMENT_API_KEY: optionalSecret,

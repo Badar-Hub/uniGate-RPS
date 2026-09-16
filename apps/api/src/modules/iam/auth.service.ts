@@ -245,6 +245,8 @@ export async function refresh(presented: string, expectedClientMode: 'WEB' | 'MO
     return { reuse: false as const, userId: session.userId, sessionId: session.id, clientType: session.clientType };
   });
 
+  // security.md §6.8: 60 refreshes / hour per session — a rotation loop or a replaying client trips this before it can spin.
+  if (config().rateLimit.enabled) await enforce('RATE_LIMITED', [{ key: `refresh:${outcome.sessionId}`, window: { limit: 60, seconds: 3600 } }]);
   if (outcome.reuse) {
     logger().warn({ sessionId: outcome.sessionId }, 'refresh token replay detected; family revoked');
     throw new UnauthorizedError('AUTH_REFRESH_REUSE_DETECTED', `Refresh token replay detected; token family and session ${outcome.sessionId} revoked`);

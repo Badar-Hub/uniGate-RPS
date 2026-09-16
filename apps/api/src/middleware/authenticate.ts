@@ -6,6 +6,7 @@ import { cacheGet } from '@/common/throttle.js';
 import { prisma } from '@/database/prisma.js';
 import { verifyAccessToken, type AccessClaims } from '@/modules/iam/jwt.js';
 import { resolveAuthority } from '@/modules/iam/permission.service.js';
+import { userTier } from './rate-limit.js';
 
 /** Reads one cookie parsed by cookie-parser (absent when the middleware did not run). */
 export function cookieOf(req: Request, name: string): string | undefined {
@@ -39,10 +40,12 @@ export function isAuthenticated(req: Request): req is AuthenticatedRequest {
  * `optional: true` lets a route serve both anonymous and signed-in callers.
  */
 export function authenticate(opts: { optional?: boolean } = {}): RequestHandler {
-  return (req: Request, _res: Response, next: NextFunction) => {
-    run(req, opts.optional ?? false).then(() => {
-      next();
-    }, next);
+  return (req: Request, res: Response, next: NextFunction) => {
+    run(req, opts.optional ?? false)
+      .then(() => userTier(req, res))
+      .then(() => {
+        next();
+      }, next);
   };
 }
 

@@ -814,7 +814,7 @@ Every outbound HTTP call — payment gateway, SMS, maps, tracking, email, push, 
 
 ### 6.8 Rate-limiting tiers
 
-Redis sliding-window counters (`rate-limit-redis`), keyed by the most specific available identity (user → session → API key → IP), with `RateLimit-*` headers and `Retry-After` on rejection. All rejections return **`RATE_LIMITED`** (429).
+Redis sliding-window counters (`apps/api/src/middleware/rate-limit.ts` — implemented in Phase 14, see [hardening.md §1](hardening.md)), keyed by the most specific available identity (user → session → API key → IP), with `RateLimit-*` headers and `Retry-After` on rejection. All rejections return **`RATE_LIMITED`** (429).
 
 | Tier | Scope key | Limit | Rationale |
 |---|---|---|---|

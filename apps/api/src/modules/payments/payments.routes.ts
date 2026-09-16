@@ -9,6 +9,7 @@ import { mockGateway } from '@/integrations/payments/index.js';
 import { authenticate, requirePermission, scopeFor } from '@/middleware/authenticate.js';
 import { csrfGuard } from '@/middleware/csrf.js';
 import { idempotent } from '@/middleware/idempotency.js';
+import { providerTier } from '@/middleware/rate-limit.js';
 import { validate, type ValidatedRequest } from '@/middleware/validate.js';
 import { HEADER_IDEMPOTENCY_KEY } from '@unigate/types';
 import * as payments from './payment.service.js';
@@ -28,7 +29,7 @@ export function paymentsRouter(): Router {
   const r = Router({ strict: true });
 
   // ── webhooks: raw body, no session, persist-then-process ──────────────────
-  r.post('/webhooks/payments/:provider', express.raw({ type: '*/*', limit: '256kb' }), validate({ params: providerParams }), h(async (req, res) => {
+  r.post('/webhooks/payments/:provider', providerTier('webhook-ingest', { limit: 1000, seconds: 60 }), express.raw({ type: '*/*', limit: '256kb' }), validate({ params: providerParams }), h(async (req, res) => {
     const { params } = (req as R<unknown, unknown, z.infer<typeof providerParams>>).validated;
     const raw = Buffer.isBuffer(req.body) ? req.body : Buffer.from('');
     const headers = Object.fromEntries(Object.entries(req.headers).map(([k, v]) => [k.toLowerCase(), Array.isArray(v) ? v.join(',') : v]));

@@ -119,7 +119,7 @@ export function LiveTracking({ tripId }: { tripId: string }) {
             {position ? (
               <>
                 <div className="text-muted-foreground" dir="ltr">
-                  {t('lastSeen', { ago })}
+                  {t('lastSeen', { ago: ago ?? 0 })}
                   {position.speedKmh !== null ? ` · ${position.speedKmh} km/h` : ''}
                 </div>
                 {stale && <div className="text-amber-700">{t('stale')}</div>}

@@ -11,6 +11,8 @@ export function docsRouter(apiUrl: string, version: string): Router {
     res.json(generateSpec(apiUrl, version));
   });
   r.get('/docs', (_req, res) => {
+    // Dev-only page (API_DOCS_ENABLED is refused in production): relax the JSON-only policy for the Scalar bundle.
+    res.setHeader('Content-Security-Policy', "default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: https:; connect-src 'self'; worker-src 'self' blob:; frame-ancestors 'none'; base-uri 'none'");
     res.type('html').send(`<!doctype html><html><head><meta charset="utf-8"><title>UniGate API</title></head>
 <body><script id="api-reference" data-url="${apiUrl}/api/v1/docs/openapi.json"></script>
 <script src="https://cdn.jsdelivr.net/npm/@scalar/api-reference"></script></body></html>`);

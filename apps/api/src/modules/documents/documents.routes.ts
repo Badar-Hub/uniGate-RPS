@@ -14,6 +14,7 @@ import { authenticate, requirePermission } from '@/middleware/authenticate.js';
 import { csrfGuard } from '@/middleware/csrf.js';
 import { idempotent } from '@/middleware/idempotency.js';
 import { validate } from '@/middleware/validate.js';
+import { routeTier } from '@/middleware/rate-limit.js';
 import * as c from './documents.controller.js';
 
 /** api.md §8.10 `/documents`. Static paths are declared before `/:id` so `requirements` never matches as an id. */
@@ -23,7 +24,7 @@ export function documentsRouter(): Router {
   // router, including public routes mounted later (settings/public, reference catalogue).
   r.use('/documents', authenticate(), csrfGuard());
 
-  r.post('/documents/upload-url', requirePermission('documents.upload'), validate({ body: uploadUrlBody }), h(c.uploadUrl));
+  r.post('/documents/upload-url', requirePermission('documents.upload'), routeTier('document-upload', { limit: 30, seconds: 3600 }), validate({ body: uploadUrlBody }), h(c.uploadUrl));
   r.get('/documents/requirements', requirePermission('documents.read'), validate({ query: documentRequirementsQuery }), h(c.requirements));
   r.get('/documents', requirePermission('documents.read'), validate({ query: listDocumentsQuery }), h(c.list));
   r.get('/documents/:id', requirePermission('documents.read'), validate({ params: idParams }), h(c.get));

@@ -6,6 +6,7 @@ import { h } from '@/common/handler.js';
 import { authenticate, requirePermission, scopeFor } from '@/middleware/authenticate.js';
 import { csrfGuard } from '@/middleware/csrf.js';
 import { idempotent } from '@/middleware/idempotency.js';
+import { routeTier } from '@/middleware/rate-limit.js';
 import { validate, type ValidatedRequest } from '@/middleware/validate.js';
 import * as reports from './reporting.service.js';
 
@@ -38,7 +39,7 @@ export function reportingRouter(): Router {
     const envelope = paginated(dto.rows, page, pageSize, total);
     res.status(200).json({ ...envelope, meta: { ...envelope.meta, columns: dto.columns, code: dto.code } });
   }));
-  r.post('/reports/:code/export', requirePermission('reports.export'), idempotent({ required: true }), validate({ params: reportCodeParams, body: reportExportBody }), h(async (req, res) => {
+  r.post('/reports/:code/export', requirePermission('reports.export'), routeTier('report-export', { limit: 5, seconds: 3600 }), idempotent({ required: true }), validate({ params: reportCodeParams, body: reportExportBody }), h(async (req, res) => {
     const { params, body } = (req as R<z.infer<typeof reportExportBody>, unknown, z.infer<typeof reportCodeParams>>).validated;
     sendAccepted(res, await reports.requestExport(scopeFor(req, 'bookings.read_any', 'OWN'), params.code, body));
   }));

@@ -6,6 +6,7 @@ import { h } from '@/common/handler.js';
 import { authenticate, requirePermission, scopeFor } from '@/middleware/authenticate.js';
 import { csrfGuard } from '@/middleware/csrf.js';
 import { idempotent } from '@/middleware/idempotency.js';
+import { routeTier } from '@/middleware/rate-limit.js';
 import { validate, type ValidatedRequest } from '@/middleware/validate.js';
 import { acceptBid, assignPlatformVehicle, awardRequest } from './award.service.js';
 import * as bids from './bid.service.js';
@@ -30,7 +31,7 @@ export function biddingRouter(): Router {
     const { items, total } = await bids.listBids(readScope(req), query, query);
     res.status(200).json(paginated(items, query.page, query.pageSize, total));
   }));
-  r.post('/bids', requirePermission('bids.create'), idempotent({ required: true }), validate({ body: createBidBody }), h(async (req, res) => {
+  r.post('/bids', requirePermission('bids.create'), routeTier('bid-submission', { limit: 60, seconds: 3600 }), idempotent({ required: true }), validate({ body: createBidBody }), h(async (req, res) => {
     const { body } = (req as R<z.infer<typeof createBidBody>>).validated;
     const dto = await bids.submitBid(scopeFor(req, undefined, 'OWN'), body);
     res.setHeader('Location', `/api/v1/bids/${dto.id}`);

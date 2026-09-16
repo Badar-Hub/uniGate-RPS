@@ -29,6 +29,7 @@ import { engagementRouter } from '@/modules/engagement/engagement.routes.js';
 import { adminRouter } from '@/modules/admin/admin.routes.js';
 import { reportingRouter } from '@/modules/reporting/reporting.routes.js';
 import { platformRouter } from '@/modules/platform/platform.routes.js';
+import { ipTier } from '@/middleware/rate-limit.js';
 import '@/docs/all.js';
 
 /**
@@ -46,13 +47,21 @@ export function createApp(cfg: AppConfig): Express {
   app.use(requestId);
   app.use(
     helmet({
-      // The docs page loads a CDN script; API responses are JSON and carry no scripts.
-      ...(cfg.apiDocsEnabled ? { contentSecurityPolicy: false as const } : {}),
+      // JSON-only origin, so the policy is maximal (security.md §6.3). The docs page (dev only)
+      // overrides it for itself because it loads the Scalar bundle from a CDN.
+      contentSecurityPolicy: { directives: { defaultSrc: ["'none'"], frameAncestors: ["'none'"], baseUri: ["'none'"], formAction: ["'none'"], sandbox: [] }, useDefaults: false },
+      frameguard: { action: 'deny' },
       crossOriginResourcePolicy: { policy: 'same-site' },
+      crossOriginOpenerPolicy: { policy: 'same-origin' },
       referrerPolicy: { policy: 'no-referrer' },
-      hsts: cfg.isProduction ? { maxAge: 31_536_000, includeSubDomains: true, preload: true } : false,
+      hsts: cfg.isProduction ? { maxAge: 63_072_000, includeSubDomains: true, preload: true } : false,
     }),
   );
+  // Nothing the API returns is cacheable by a browser or a shared proxy.
+  app.use((_req, res, next) => {
+    res.setHeader('Cache-Control', 'no-store');
+    next();
+  });
   app.use(
     cors({
       origin: (origin, cb) => {
@@ -63,7 +72,7 @@ export function createApp(cfg: AppConfig): Express {
       credentials: true,
       methods: ['GET', 'POST', 'PATCH', 'PUT', 'DELETE', 'OPTIONS'],
       allowedHeaders: ['Content-Type', 'Authorization', 'X-Request-Id', 'Idempotency-Key', 'Accept-Language', 'X-Requested-With', 'X-Step-Up-Token'],
-      exposedHeaders: ['X-Request-Id', 'Retry-After', 'Location', 'Idempotency-Replayed'],
+      exposedHeaders: ['X-Request-Id', 'Retry-After', 'Location', 'Idempotency-Replayed', 'RateLimit-Limit', 'RateLimit-Remaining'],
       maxAge: 600,
     }),
   );
@@ -87,6 +96,8 @@ export function createApp(cfg: AppConfig): Express {
   );
 
   const v1 = express.Router({ strict: true });
+  // Blunt IP ceilings first (security.md §6.8); the user tiers run inside authenticate().
+  v1.use(ipTier());
   v1.use(healthRouter());
   v1.use(authRouter());
   v1.use(meRouter());

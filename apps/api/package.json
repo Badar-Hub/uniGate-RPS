@@ -25,7 +25,8 @@
     "db:studio": "prisma studio",
     "openapi:generate": "tsx src/docs/generate.ts > openapi.json",
     "openapi:check": "tsx src/docs/check.ts",
-    "admin:create": "tsx src/cli/create-admin.ts"
+    "admin:create": "tsx src/cli/create-admin.ts",
+    "bench:argon2": "tsx src/cli/bench-argon2.ts"
   },
   "prisma": {
     "schema": "prisma/schema.prisma"
