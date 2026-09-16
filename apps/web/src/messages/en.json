@@ -363,7 +363,8 @@
         "submit": "Register",
         "created": "Vehicle registered in draft. Upload its documents next.",
         "owner": "Owner (registering on their behalf)",
-        "ownerPlaceholder": "Choose the vendor"
+        "ownerPlaceholder": "Choose the vendor",
+        "platformFleet": "UniGate fleet (our own vehicles)"
       },
       "detail": {
         "documents": "Documents",

@@ -69,7 +69,11 @@ export function VehicleForm() {
   useEffect(() => {
     if (!onBehalf) return;
     void api<OwnerDto[]>('/owners', { query: { pageSize: 100, onboardingStatus: 'APPROVED' } }).then((r) => {
-      if (r.ok) setOwners(r.data);
+      if (!r.ok) return;
+      // UniGate's own fleet first and preselected; vendors follow.
+      const sorted = [...r.data].sort((x, y) => Number(y.isPlatformFleet) - Number(x.isPlatformFleet));
+      setOwners(sorted);
+      setOwnerProfileId((cur) => cur || (sorted[0]?.id ?? ''));
     });
   }, [onBehalf]);
   useEffect(() => {
@@ -134,7 +138,7 @@ export function VehicleForm() {
                 </SelectTrigger>
                 <SelectContent>
                   {owners.map((o) => (
-                    <SelectItem key={o.id} value={o.id}>{(locale === 'ar' ? o.businessNameAr : o.businessNameEn) ?? o.businessNameEn ?? o.id.slice(0, 8)}{o.isPlatformFleet ? ' · UniGate' : ''}</SelectItem>
+                    <SelectItem key={o.id} value={o.id}>{o.isPlatformFleet ? t('platformFleet') : ((locale === 'ar' ? o.businessNameAr : o.businessNameEn) ?? o.businessNameEn ?? o.id.slice(0, 8))}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>

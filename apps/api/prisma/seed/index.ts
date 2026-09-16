@@ -186,6 +186,13 @@ async function seedBusinessDefaults(): Promise<void> {
       data: { id: uuidv7(), userId, ownerType: 'PLATFORM', isPlatformFleet: true, businessNameEn: 'UniGate', businessNameAr: 'يونيجيت', onboardingStatus: 'APPROVED', approvedAt: new Date() },
     });
   }
+  // UniGate's own fleet serves every vertical (goods, Hajj/Umrah and other passenger transport): approvals are data, not a review.
+  const platform = await prisma.ownerProfile.findFirstOrThrow({ where: { isPlatformFleet: true }, select: { id: true } });
+  for (const transportType of ['PASSENGER', 'GOODS'] as const) {
+    const existing = await prisma.ownerVerticalApproval.findFirst({ where: { ownerProfileId: platform.id, transportType }, select: { id: true } });
+    if (existing) await prisma.ownerVerticalApproval.update({ where: { id: existing.id }, data: { status: 'APPROVED' } });
+    else await prisma.ownerVerticalApproval.create({ data: { id: uuidv7(), ownerProfileId: platform.id, transportType, status: 'APPROVED' } });
+  }
   console.log('✓ business defaults: NONE commission rule, NONE cancellation policies, NONE SPO model, platform-fleet owner');
 }
 
