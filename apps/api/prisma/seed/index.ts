@@ -13,6 +13,8 @@
  * Production seeds reference data and permissions ONLY. The first production admin is created
  * by a one-off CLI (Phase 3) that forces a password change on first login.
  */
+// Load the monorepo .env (and apps/api/.env) so `pnpm db:seed` sees SEED_ADMIN_* without exporting them.
+import '../../src/config/dotenv.js';
 import { PrismaClient, Prisma } from '@prisma/client';
 import argon2 from 'argon2';
 import { v7 as uuidv7 } from 'uuid';
