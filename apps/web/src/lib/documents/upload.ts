@@ -1,10 +1,13 @@
 import type { DocumentDto, UploadUrlDto } from '@unigate/types';
 import { api, idempotencyKey, type ApiResult } from '@/lib/api-client';
+import { sha256Bytes } from './sha256.js';
 
-/** SHA-256 of a File in the browser — the API verifies it against the stored object. */
+/** SHA-256 of a File in the browser — the API verifies it against the stored object. WebCrypto when the page is a secure context, a pure-JS digest otherwise (plain HTTP on a LAN address). */
 export async function sha256Hex(file: File): Promise<string> {
-  const digest = await crypto.subtle.digest('SHA-256', await file.arrayBuffer());
-  return [...new Uint8Array(digest)].map((b) => b.toString(16).padStart(2, '0')).join('');
+  const bytes = await file.arrayBuffer();
+  // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -- `subtle` is undefined outside secure contexts despite the lib typing
+  const digest = typeof crypto.subtle?.digest === 'function' ? new Uint8Array(await crypto.subtle.digest('SHA-256', bytes)) : sha256Bytes(new Uint8Array(bytes));
+  return [...digest].map((b) => b.toString(16).padStart(2, '0')).join('');
 }
 
 /**
@@ -21,7 +24,13 @@ export async function uploadDocument(input: {
   onProgress?: (stage: 'hashing' | 'requesting' | 'uploading' | 'confirming') => void;
 }): Promise<ApiResult<DocumentDto>> {
   input.onProgress?.('hashing');
-  const checksumSha256 = await sha256Hex(input.file);
+  let checksumSha256: string;
+  try {
+    checksumSha256 = await sha256Hex(input.file);
+  } catch (e) {
+    // A failed hash (unreadable file, exotic browser) must surface in the dialog, never hang it.
+    return { ok: false, error: { status: 0, code: 'DOCUMENT_UPLOAD_INCOMPLETE', message: e instanceof Error ? e.message : 'hashing failed' } };
+  }
   input.onProgress?.('requesting');
   const url = await api<UploadUrlDto>('/documents/upload-url', {
     method: 'POST',
