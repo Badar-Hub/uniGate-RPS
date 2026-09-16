@@ -14,10 +14,15 @@ export function errorMessage(t: (key: string, values?: Record<string, string | n
   }
 }
 
-/** Field-level messages from a 422 VALIDATION_FAILED body (api.md §4.5). */
+/** Field-level messages from a 422 VALIDATION_FAILED body (api.md §4.5). Keys arrive as `body.plateNumberEn` / `query.page`; the prefix is dropped so forms match on the field name. */
 export function fieldErrors(error: ApiError | null | undefined): Record<string, string> {
   const details = error?.details as { fieldErrors?: Record<string, string[]> } | undefined;
   const out: Record<string, string> = {};
-  for (const [k, v] of Object.entries(details?.fieldErrors ?? {})) if (v[0]) out[k] = v[0];
+  for (const [k, v] of Object.entries(details?.fieldErrors ?? {})) if (v[0]) out[k.replace(/^(body|query|params)\./, '')] = v[0];
   return out;
+}
+
+/** "field: message" pairs for fields a form has no input for — shown beside the banner so a rejection is never blank. */
+export function unmappedFieldErrors(error: ApiError | null | undefined, known: readonly string[]): string {
+  return Object.entries(fieldErrors(error)).filter(([k]) => !known.includes(k)).map(([k, v]) => `${k}: ${v}`).join(' · ');
 }

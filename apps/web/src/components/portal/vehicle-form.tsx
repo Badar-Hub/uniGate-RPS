@@ -3,9 +3,10 @@
 import { useEffect, useState, type SyntheticEvent } from 'react';
 import { useLocale, useTranslations } from 'next-intl';
 import { AlertCircle, Loader2 } from 'lucide-react';
-import type { CityDto, VehicleCategoryDto, VehicleDto, VehicleMakeDto, VehicleModelDto } from '@unigate/types';
+import type { CityDto, OwnerDto, VehicleCategoryDto, VehicleDto, VehicleMakeDto, VehicleModelDto } from '@unigate/types';
 import { api, type ApiError } from '@/lib/api-client';
-import { errorMessage, fieldErrors } from '@/lib/errors';
+import { useSession } from '@/lib/auth/session-provider';
+import { errorMessage, fieldErrors, unmappedFieldErrors } from '@/lib/errors';
 import { useRouter } from '@/lib/i18n/routing';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
@@ -33,6 +34,11 @@ export function VehicleForm() {
   const tc = useTranslations('common');
   const locale = useLocale();
   const router = useRouter();
+  const { me, can } = useSession();
+  // Staff without an owner profile register on behalf of a vendor (api.md §8.8: ownerProfileId is admin-only).
+  const onBehalf = !me?.profiles.owner && can('vehicles.create') && can('owners.read');
+  const [owners, setOwners] = useState<OwnerDto[]>([]);
+  const [ownerProfileId, setOwnerProfileId] = useState('');
   const [categories, setCategories] = useState<VehicleCategoryDto[]>([]);
   const [makes, setMakes] = useState<VehicleMakeDto[]>([]);
   const [models, setModels] = useState<VehicleModelDto[]>([]);
@@ -61,6 +67,12 @@ export function VehicleForm() {
     });
   }, []);
   useEffect(() => {
+    if (!onBehalf) return;
+    void api<OwnerDto[]>('/owners', { query: { pageSize: 100, onboardingStatus: 'APPROVED' } }).then((r) => {
+      if (r.ok) setOwners(r.data);
+    });
+  }, [onBehalf]);
+  useEffect(() => {
     if (form.vehicleMakeId === NONE) {
       setModels([]);
       return;
@@ -75,6 +87,7 @@ export function VehicleForm() {
     setBusy(true);
     setError(null);
     const body: Record<string, unknown> = {
+      ...(onBehalf && ownerProfileId ? { ownerProfileId } : {}),
       vehicleCategoryId: form.vehicleCategoryId,
       modelYear: Number(form.modelYear),
       plateNumberEn: form.plateNumberEn.trim(),
@@ -110,8 +123,22 @@ export function VehicleForm() {
           {error && (
             <Alert variant="destructive" className="md:col-span-2">
               <AlertCircle className="size-4" />
-              <AlertDescription>{errorMessage(tc, error)}</AlertDescription>
+              <AlertDescription>{errorMessage(tc, error)}{unmappedFieldErrors(error, [...Object.keys(form), 'ownerProfileId']) ? ` — ${unmappedFieldErrors(error, [...Object.keys(form), 'ownerProfileId'])}` : ''}</AlertDescription>
             </Alert>
+          )}
+          {onBehalf && (
+            <Field id="ownerProfileId" label={t('owner')} error={fe['ownerProfileId']}>
+              <Select value={ownerProfileId} onValueChange={setOwnerProfileId} required>
+                <SelectTrigger id="ownerProfileId">
+                  <SelectValue placeholder={t('ownerPlaceholder')} />
+                </SelectTrigger>
+                <SelectContent>
+                  {owners.map((o) => (
+                    <SelectItem key={o.id} value={o.id}>{(locale === 'ar' ? o.businessNameAr : o.businessNameEn) ?? o.businessNameEn ?? o.id.slice(0, 8)}{o.isPlatformFleet ? ' · UniGate' : ''}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </Field>
           )}
           <Field id="vehicleCategoryId" label={t('category')} error={fe['vehicleCategoryId']}>
             <Select value={form.vehicleCategoryId} onValueChange={set('vehicleCategoryId')} required>

@@ -361,7 +361,9 @@
         "registrationExpiry": "Registration expiry",
         "inspectionExpiry": "Inspection expiry",
         "submit": "Register",
-        "created": "Vehicle registered in draft. Upload its documents next."
+        "created": "Vehicle registered in draft. Upload its documents next.",
+        "owner": "Owner (registering on their behalf)",
+        "ownerPlaceholder": "Choose the vendor"
       },
       "detail": {
         "documents": "Documents",
