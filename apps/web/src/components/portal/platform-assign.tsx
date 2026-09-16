@@ -34,10 +34,13 @@ export function PlatformAssign({ request, onChanged }: { request: TripRequestDto
     });
   }, [request.vehicleCategory?.id]);
 
+  // Ops type a plain amount ("50000", "1,250.5"); the API wants a 2-decimal string.
+  const amount = Number(baseAmount.replace(/[,\s]/g, ''));
+  const amountOk = baseAmount.trim() !== '' && Number.isFinite(amount) && amount > 0;
   async function assign() {
     setBusy(true);
     setError(null);
-    const res = await api<AcceptBidResultDto>(`/trip-requests/${request.id}/assign-platform-vehicle`, { method: 'POST', body: { vehicleId, baseAmount }, headers: { 'Idempotency-Key': idempotencyKey() } });
+    const res = await api<AcceptBidResultDto>(`/trip-requests/${request.id}/assign-platform-vehicle`, { method: 'POST', body: { vehicleId, baseAmount: amount.toFixed(2) }, headers: { 'Idempotency-Key': idempotencyKey() } });
     setBusy(false);
     if (res.ok) {
       setBaseAmount('');
@@ -68,9 +71,9 @@ export function PlatformAssign({ request, onChanged }: { request: TripRequestDto
           </div>
           <div className="space-y-1">
             <Label htmlFor="pa-amount">{t('baseAmount')}</Label>
-            <Input id="pa-amount" dir="ltr" placeholder="1000.00" value={baseAmount} onChange={(e) => { setBaseAmount(e.target.value); }} />
+            <Input id="pa-amount" dir="ltr" inputMode="decimal" placeholder="1000.00" value={baseAmount} onChange={(e) => { setBaseAmount(e.target.value); }} />
           </div>
-          <Button disabled={busy || !vehicleId || !/^\d+\.\d{2}$/.test(baseAmount)} onClick={() => void assign()}>
+          <Button disabled={busy || !vehicleId || !amountOk} onClick={() => void assign()}>
             {busy && <Loader2 className="animate-spin" />}
             {t('assign')}
           </Button>
