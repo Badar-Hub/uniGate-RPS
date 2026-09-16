@@ -18,6 +18,8 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   icon: './assets/images/icon.png',
   // Deep links: unigate://… (and the universal links added in M1).
   scheme: 'unigate',
+  // Native only: the portal is the web client. Without this Metro also tries a web bundle (react-native-web is not installed).
+  platforms: ['ios', 'android'],
   userInterfaceStyle: 'automatic',
   ios: {
     supportsTablet: false,

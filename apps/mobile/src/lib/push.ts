@@ -1,14 +1,15 @@
-import Constants from 'expo-constants';
+import Constants, { ExecutionEnvironment } from 'expo-constants';
 import * as Device from 'expo-device';
-import * as Notifications from 'expo-notifications';
 import { Platform } from 'react-native';
 
 /**
  * M0: obtain a push token and log it — nothing is sent to the API yet (device registration,
  * `POST /me/devices`, lands in M1 together with the notifications channel work).
  *
- * Expo Go on Android (SDK 53+) no longer supports remote push; on a simulator there is no
- * token at all. Both cases resolve to null quietly so the app never blocks on push.
+ * `expo-notifications` is loaded lazily and only outside Expo Go: since SDK 53 the module
+ * throws at import time inside Expo Go on Android ("remote notifications were removed"), and an
+ * import-time throw would take the whole `(app)` layout down with it. Development builds and
+ * store builds load it normally; simulators have no token and resolve null quietly.
  */
 function easProjectIdOf(extra: unknown): string | undefined {
   if (typeof extra !== 'object' || extra === null) return undefined;
@@ -18,9 +19,18 @@ function easProjectIdOf(extra: unknown): string | undefined {
   return typeof id === 'string' && id.length > 0 ? id : undefined;
 }
 
+export function isExpoGo(): boolean {
+  return Constants.executionEnvironment === ExecutionEnvironment.StoreClient;
+}
+
 export async function registerPushToken(): Promise<string | null> {
   if (!Device.isDevice) return null;
+  if (isExpoGo()) {
+    console.warn('[push] Expo Go cannot receive remote notifications — use a development build to test push');
+    return null;
+  }
   try {
+    const Notifications = await import('expo-notifications');
     const current = await Notifications.getPermissionsAsync();
     const status = current.granted
       ? current.status
@@ -37,7 +47,7 @@ export async function registerPushToken(): Promise<string | null> {
     const easProjectId = easProjectIdOf(Constants.expoConfig?.extra);
     const token: unknown = easProjectId
       ? (await Notifications.getExpoPushTokenAsync({ projectId: easProjectId })).data
-      : // Without an EAS project (Expo Go / local dev) fall back to the raw APNs/FCM device token.
+      : // Without an EAS project (local dev build) fall back to the raw APNs/FCM device token.
         (await Notifications.getDevicePushTokenAsync()).data;
     const value = typeof token === 'string' ? token : JSON.stringify(token);
     console.warn(`[push] device token (M0: logged only, not registered): ${value}`);
