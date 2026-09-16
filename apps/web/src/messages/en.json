@@ -487,6 +487,19 @@
         "INACTIVE": "Inactive",
         "SUSPENDED": "Suspended",
         "ARCHIVED": "Archived"
+      },
+      "spec": {
+        "title": "Vehicle details",
+        "color": "Colour",
+        "passengerCapacity": "Passenger seats",
+        "payloadCapacityKg": "Payload (kg)",
+        "cargoVolumeM3": "Cargo volume (m³)",
+        "bodyType": "Body type",
+        "features": "Features",
+        "refrigeration": "Refrigerated",
+        "tailLift": "Tail lift",
+        "rating": "Rating",
+        "drivers": "Assigned drivers"
       }
     },
     "requests": {

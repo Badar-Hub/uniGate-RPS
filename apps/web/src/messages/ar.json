@@ -487,6 +487,19 @@
         "INACTIVE": "غير نشطة",
         "SUSPENDED": "موقوفة",
         "ARCHIVED": "مؤرشفة"
+      },
+      "spec": {
+        "title": "بيانات المركبة",
+        "color": "اللون",
+        "passengerCapacity": "عدد المقاعد",
+        "payloadCapacityKg": "الحمولة (كجم)",
+        "cargoVolumeM3": "حجم الشحن (م³)",
+        "bodyType": "نوع الهيكل",
+        "features": "المزايا",
+        "refrigeration": "مبرّدة",
+        "tailLift": "رافعة خلفية",
+        "rating": "التقييم",
+        "drivers": "السائقون المعيّنون"
       }
     },
     "requests": {
