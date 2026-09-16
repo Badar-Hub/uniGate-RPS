@@ -1507,6 +1507,84 @@
       "debit": "مدين",
       "credit": "دائن",
       "noMovements": "لا حركات في هذه الفترة."
+    },
+    "drivers": {
+      "title": "السائقون",
+      "subtitle": "سجّل السائقين وارفع رخصة القيادة وبطاقة هيئة النقل والصورة ثم اعتمدهم. يُعيَّن السائقون المعتمدون على المركبات من صفحة المركبة ويسجّلون الدخول لتطبيق السائق برقم الجوال.",
+      "status": "الحالة",
+      "any": "كل الحالات",
+      "add": "إضافة سائق",
+      "driver": "السائق",
+      "licence": "الرخصة",
+      "verticals": "القطاعات",
+      "approval": "الاعتماد",
+      "availability": "الجاهزية",
+      "open": "فتح",
+      "empty": "لا يوجد سائقون بعد.",
+      "expires": "تنتهي {date}",
+      "licenceEnding": "رخصة تنتهي بـ {last4}",
+      "created": "تم تسجيل السائق {name} — ارفع مستنداته الآن.",
+      "noDocs": "لم تُرفع مستندات بعد.",
+      "docVerified": "تم التحقق من المستند.",
+      "docRejected": "تم رفض المستند.",
+      "rejectReason": "سبب الرفض (للسائق) / لمستند مرفوض",
+      "approve": "اعتماد السائق",
+      "reject": "رفض السائق",
+      "approved": "تم اعتماد السائق.",
+      "rejected": "تم رفض السائق.",
+      "statuses": {
+        "DRAFT": "مسودة",
+        "DOCUMENTS_SUBMITTED": "تم إرسال المستندات",
+        "UNDER_REVIEW": "قيد المراجعة",
+        "APPROVED": "معتمد",
+        "REJECTED": "مرفوض",
+        "SUSPENDED": "موقوف"
+      },
+      "availabilities": {
+        "OFF_DUTY": "خارج الخدمة",
+        "AVAILABLE": "متاح",
+        "ON_TRIP": "في رحلة"
+      },
+      "vertical": {
+        "PASSENGER": "الركاب",
+        "GOODS": "البضائع"
+      },
+      "verticalStatus": {
+        "NOT_APPLIED": "لم يُقدَّم",
+        "UNDER_REVIEW": "قيد المراجعة",
+        "APPROVED": "معتمد",
+        "REJECTED": "مرفوض"
+      },
+      "form": {
+        "title": "تسجيل سائق",
+        "owner": "المالك (التسجيل نيابة عنه)",
+        "fullNameEn": "الاسم الكامل (إنجليزي)",
+        "fullNameAr": "الاسم الكامل (عربي)",
+        "phone": "رقم الجوال",
+        "locale": "اللغة المفضلة",
+        "idType": "نوع الهوية",
+        "idTypes": {
+          "NATIONAL_ID": "هوية وطنية",
+          "IQAMA": "إقامة"
+        },
+        "nationalId": "رقم الهوية / الإقامة",
+        "dateOfBirth": "تاريخ الميلاد",
+        "licenseNumber": "رقم الرخصة",
+        "licenseExpiryDate": "انتهاء الرخصة",
+        "licenseCategories": "فئات الرخصة",
+        "licenceCategories": {
+          "PRIVATE": "خصوصي",
+          "PUBLIC": "عمومي",
+          "HEAVY": "ثقيل",
+          "BUS": "حافلة",
+          "MOTORCYCLE": "دراجة نارية"
+        },
+        "transportTypes": "القطاعات التي سيعمل بها السائق",
+        "emergencyContactName": "جهة اتصال للطوارئ",
+        "emergencyContactPhone": "هاتف جهة الطوارئ",
+        "loginHint": "يسجّل السائق الدخول لتطبيق السائق بهذا الرقم ورمز لمرة واحدة — لا تُحدَّد كلمة مرور هنا.",
+        "submit": "تسجيل السائق"
+      }
     }
   },
   "driver": {

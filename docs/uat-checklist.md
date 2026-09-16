@@ -35,6 +35,8 @@ Suggested order: sections 1 → 13 build on each other (users → vendor → veh
 
 ## 3. Fleet
 
+0. **Drivers** page (vendor, or staff on behalf of a vendor / the UniGate fleet): *Add driver* (name, mobile, ID, licence, classes, verticals) → open the driver → upload licence, TGA card for each vertical, photo → staff **Verify** each document → **Approve driver**. The driver signs in to `/ar/driver` with the mobile number + one-time code.
+
 1. As the vendor: **Fleet → Add vehicle** (category, plate, capacity…). Try to add a vehicle before the vendor is approved → refused (`OWNER_NOT_APPROVED`).
 2. Upload the vehicle's mandatory documents; the vehicle enters *Pending approval* automatically. Admin → **Vehicle approvals** → verify documents → approve. Expect `dispatchable: ok`.
 3. Assign the approved driver to the vehicle.

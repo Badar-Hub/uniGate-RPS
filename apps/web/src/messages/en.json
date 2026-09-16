@@ -1507,6 +1507,84 @@
       "debit": "Debit",
       "credit": "Credit",
       "noMovements": "No movements in this period."
+    },
+    "drivers": {
+      "title": "Drivers",
+      "subtitle": "Register drivers, upload their licence, TGA card and photo, and get them approved. Approved drivers are assigned to vehicles from the vehicle page and sign in to the driver app with their phone number.",
+      "status": "Status",
+      "any": "Any status",
+      "add": "Add driver",
+      "driver": "Driver",
+      "licence": "Licence",
+      "verticals": "Verticals",
+      "approval": "Approval",
+      "availability": "Availability",
+      "open": "Open",
+      "empty": "No drivers yet.",
+      "expires": "Expires {date}",
+      "licenceEnding": "licence ending {last4}",
+      "created": "Driver {name} registered — upload their documents next.",
+      "noDocs": "No documents uploaded yet.",
+      "docVerified": "Document verified.",
+      "docRejected": "Document rejected.",
+      "rejectReason": "Reason for rejection (drivers) / for a rejected document",
+      "approve": "Approve driver",
+      "reject": "Reject driver",
+      "approved": "Driver approved.",
+      "rejected": "Driver rejected.",
+      "statuses": {
+        "DRAFT": "Draft",
+        "DOCUMENTS_SUBMITTED": "Documents submitted",
+        "UNDER_REVIEW": "Under review",
+        "APPROVED": "Approved",
+        "REJECTED": "Rejected",
+        "SUSPENDED": "Suspended"
+      },
+      "availabilities": {
+        "OFF_DUTY": "Off duty",
+        "AVAILABLE": "Available",
+        "ON_TRIP": "On trip"
+      },
+      "vertical": {
+        "PASSENGER": "Passengers",
+        "GOODS": "Goods"
+      },
+      "verticalStatus": {
+        "NOT_APPLIED": "not applied",
+        "UNDER_REVIEW": "under review",
+        "APPROVED": "approved",
+        "REJECTED": "rejected"
+      },
+      "form": {
+        "title": "Register a driver",
+        "owner": "Owner (registering on their behalf)",
+        "fullNameEn": "Full name (English)",
+        "fullNameAr": "Full name (Arabic)",
+        "phone": "Mobile number",
+        "locale": "Preferred language",
+        "idType": "ID type",
+        "idTypes": {
+          "NATIONAL_ID": "National ID",
+          "IQAMA": "Iqama"
+        },
+        "nationalId": "National ID / Iqama number",
+        "dateOfBirth": "Date of birth",
+        "licenseNumber": "Licence number",
+        "licenseExpiryDate": "Licence expiry",
+        "licenseCategories": "Licence classes",
+        "licenceCategories": {
+          "PRIVATE": "Private",
+          "PUBLIC": "Public",
+          "HEAVY": "Heavy",
+          "BUS": "Bus",
+          "MOTORCYCLE": "Motorcycle"
+        },
+        "transportTypes": "Verticals the driver will work in",
+        "emergencyContactName": "Emergency contact",
+        "emergencyContactPhone": "Emergency contact phone",
+        "loginHint": "The driver signs in to the driver app with this mobile number and a one-time code — no password is set here.",
+        "submit": "Register driver"
+      }
     }
   },
   "driver": {
