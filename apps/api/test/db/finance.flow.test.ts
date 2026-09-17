@@ -413,6 +413,9 @@ describeDb('finance', () => {
     expect(lines.body.data[0]).toMatchObject({ lineType: 'ORDER', netAmount: '1000.00', vatRate: '0.1500', vatAmount: '150.00', totalAmount: '1150.00' });
     expect((lines.body.data as { bookingIds: string[] }[]).flatMap((l) => l.bookingIds).sort()).toEqual([c1.bookingId, c2.bookingId].sort());
     expect((await bearer(request(h.app).get(`/api/v1/invoices/${invoiceId}`), customer)).status).toBe(404); // another buyer
+    // api.md §8.14: once billed, the booking carries its live invoice (the mobile booking screen links to it)
+    const billed = await bearer(request(h.app).get(`/api/v1/bookings/${c1.bookingId}`), corporate);
+    expect(billed.body.data).toMatchObject({ billingMode: 'INVOICED', invoiceId, invoiceNumber: inv.body.data.invoiceNumber });
     expect((await bearer(request(h.app).get('/api/v1/invoices'), corporate)).body.meta.totalItems).toBe(1);
     expect((await bearer(request(h.app).get(`/api/v1/invoices/${invoiceId}/pdf-url`), corporate)).status).toBe(501);
     expect((await bearer(request(h.app).post('/api/v1/admin/invoices/generate'), finance).set('Idempotency-Key', key()).send({ periodStart: daysAgo(30).toISOString().slice(0, 10), periodEnd: today })).body.data.invoices).toHaveLength(0);

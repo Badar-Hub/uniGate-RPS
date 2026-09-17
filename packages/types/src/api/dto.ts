@@ -795,6 +795,9 @@ export interface BookingDto extends TimestampedDto {
   totalAmount: MoneyString;
   currency: string;
   billingMode: string;
+  /** The live invoice covering this booking, once billed (INVOICED customers at cycle end, PREPAID after capture). */
+  invoiceId: string | null;
+  invoiceNumber: string | null;
   creditTermsDaysSnapshot: number | null;
   fulfilmentSequence: number;
   status: string;

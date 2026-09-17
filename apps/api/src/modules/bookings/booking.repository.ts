@@ -23,6 +23,8 @@ export const bookingSelect = {
   trip: { select: { id: true, tripNumber: true, status: true } },
   cancellation: { select: { cancelledByRole: true, eventType: true, reasonCode: true, reasonText: true, hoursBeforePickup: true, feePayer: true, cancellationFeeAmount: true, refundAmount: true, currency: true, feeSource: true, feeRuleSnapshot: true, feeWaivedAt: true, feeWaivedReason: true, cancelledAt: true } },
   calendarEntry: { select: { id: true, status: true } },
+  // The live invoice covering this booking (one per booking — database.md §12.6); voided ones are skipped.
+  invoiceLineLinks: { where: { invoiceLine: { invoice: { status: { not: 'VOID' } } } }, select: { invoiceLine: { select: { invoice: { select: { id: true, invoiceNumber: true } } } } }, take: 1 },
 } satisfies Prisma.BookingSelect;
 export type BookingRow = Prisma.BookingGetPayload<{ select: typeof bookingSelect }>;
 

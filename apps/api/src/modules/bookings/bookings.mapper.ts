@@ -36,6 +36,8 @@ export function toBookingDto(b: BookingRow, showFinancial: boolean): BookingDto 
     totalAmount: toMoneyString(b.totalAmount),
     currency: b.currency,
     billingMode: b.billingMode,
+    invoiceId: b.invoiceLineLinks[0]?.invoiceLine.invoice.id ?? null,
+    invoiceNumber: b.invoiceLineLinks[0]?.invoiceLine.invoice.invoiceNumber ?? null,
     creditTermsDaysSnapshot: b.creditTermsDaysSnapshot,
     fulfilmentSequence: b.fulfilmentSequence,
     status: b.status,
