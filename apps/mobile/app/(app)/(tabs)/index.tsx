@@ -1,5 +1,6 @@
 import { ScrollView, View } from 'react-native';
-import { useRouter, type Href } from 'expo-router';
+import { Redirect, useRouter, type Href } from 'expo-router';
+import { DriverHome } from '@/components/driver/driver-home';
 import { Badge, LinkRow, Screen, SectionTitle, Subtitle, Title, type IconName } from '@/components/ui';
 import { VendorHome } from '@/components/vendor-home';
 import { useI18n } from '@/i18n';
@@ -16,6 +17,8 @@ export default function HomeScreen() {
   const { me, audience } = useSession();
   const router = useRouter();
   if (!me) return null;
+  // A driver-only account's home is the Active tab (Home is not in its tab set).
+  if (audience.driver && !audience.customer && !audience.vendor) return <Redirect href="/(app)/(tabs)/active" />;
 
   const name = locale === 'ar' && me.fullNameAr ? me.fullNameAr : me.fullNameEn;
   const shortcuts: Shortcut[] = [
@@ -42,6 +45,12 @@ export default function HomeScreen() {
     ...(audience.customer
       ? [{ key: 'home.quickComplaints', icon: 'chatbox-ellipses-outline' as const, href: '/complaints' }]
       : []),
+    ...(audience.driver
+      ? [
+          { key: 'home.quickTrips', icon: 'navigate-outline' as const, href: '/(app)/(tabs)/trips' as const },
+          { key: 'home.quickDriverAccount', icon: 'car-outline' as const, href: '/account/driver' as const },
+        ]
+      : []),
   ];
 
   return (
@@ -51,21 +60,27 @@ export default function HomeScreen() {
         <View className="mt-2 flex-row flex-wrap gap-2">
           {audience.customer ? <Badge>{t('home.customer')}</Badge> : null}
           {audience.vendor ? <Badge>{t('home.vendor')}</Badge> : null}
-          {!audience.customer && !audience.vendor
+          {audience.driver ? <Badge>{t('home.driver')}</Badge> : null}
+          {!audience.customer && !audience.vendor && !audience.driver
             ? me.roles.map((r) => <Badge key={r}>{r}</Badge>)
             : null}
         </View>
 
-        {!audience.customer && !audience.vendor ? (
+        {!audience.customer && !audience.vendor && !audience.driver ? (
           <View className="mt-6">
             <Subtitle>{t('home.noPortal')}</Subtitle>
           </View>
         ) : null}
 
+        {audience.driver ? (
+          <View className="mt-2">
+            <DriverHome compact />
+          </View>
+        ) : null}
         {audience.vendor ? <VendorHome /> : null}
 
         <View className="mt-6">
-          {audience.vendor ? <SectionTitle>{t('home.shortcuts')}</SectionTitle> : null}
+          {audience.vendor || audience.driver ? <SectionTitle>{t('home.shortcuts')}</SectionTitle> : null}
           {shortcuts.map((s) => (
             <LinkRow
               key={s.key}

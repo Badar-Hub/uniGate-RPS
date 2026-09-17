@@ -1,6 +1,9 @@
 import '../global.css';
 // Must run before any module that builds Idempotency-Key headers (see src/lib/crypto-shim.ts).
 import '@/lib/crypto-shim';
+// Defines the driver's background-location task in global scope (expo-task-manager requires it
+// before any React lifecycle, so a headless relaunch can run it).
+import '@/lib/driver/tracker';
 
 import { useEffect } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';

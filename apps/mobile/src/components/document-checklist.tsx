@@ -15,7 +15,7 @@ import { useDocumentRequirements, useInvalidate, keys } from '@/lib/queries';
 import { statusLabel, toneFor } from '@/lib/status';
 
 export interface ChecklistTarget {
-  kind: 'USER' | 'OWNER' | 'DRIVER' | 'VEHICLE' | 'CORPORATE_CUSTOMER' | 'EXPENSE' | 'MAINTENANCE_RECORD';
+  kind: 'USER' | 'OWNER' | 'DRIVER' | 'VEHICLE' | 'CORPORATE_CUSTOMER' | 'EXPENSE' | 'MAINTENANCE_RECORD' | 'TRIP_PROOF';
   id: string;
   /** Shown in the section title and the upload sheet. */
   label: string;

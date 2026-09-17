@@ -3,7 +3,7 @@ import * as Device from 'expo-device';
 import { Platform } from 'react-native';
 import { config, platformClientType } from '@/config';
 import { api } from '@/lib/api';
-import { routeForNotification, routeForUrl, type DeepLinkRoute } from '@/lib/deep-link';
+import { routeForNotification, routeForUrl, type DeepLinkContext, type DeepLinkRoute } from '@/lib/deep-link';
 // Type-only: erased at build time, so Expo Go never loads the native module through this line.
 import type * as NotificationsNs from 'expo-notifications';
 
@@ -107,13 +107,13 @@ export async function unregisterPush(): Promise<void> {
 }
 
 /** Where a notification payload (push `data`, or the deep-link URL some providers send) should take the app. */
-export function routeForPushData(data: Record<string, unknown> | null | undefined): DeepLinkRoute {
+export function routeForPushData(data: Record<string, unknown> | null | undefined, ctx?: DeepLinkContext): DeepLinkRoute {
   const url = data?.['url'];
   if (typeof url === 'string') {
-    const fromUrl = routeForUrl(url);
+    const fromUrl = routeForUrl(url, ctx);
     if (fromUrl) return fromUrl;
   }
-  return routeForNotification(data);
+  return routeForNotification(data, ctx);
 }
 
 /**
@@ -122,6 +122,8 @@ export function routeForPushData(data: Record<string, unknown> | null | undefine
  */
 export async function watchNotificationTaps(
   onRoute: (route: DeepLinkRoute) => void,
+  /** Evaluated at tap time (the profile may load after the subscription). */
+  context: () => DeepLinkContext = () => ({ driver: false }),
 ): Promise<() => void> {
   const Notifications = await notificationsModule();
   if (!Notifications) return () => undefined;
@@ -130,7 +132,7 @@ export async function watchNotificationTaps(
     return typeof d === 'object' && d !== null ? (d as Record<string, unknown>) : null;
   };
   const sub = Notifications.addNotificationResponseReceivedListener((response) => {
-    onRoute(routeForPushData(dataOf(response)));
+    onRoute(routeForPushData(dataOf(response), context()));
   });
   const tokenSub = Notifications.addPushTokenListener(() => {
     // The provider rotated the token: re-register so the API keeps a live one.
@@ -138,7 +140,7 @@ export async function watchNotificationTaps(
   });
   try {
     const last = Notifications.getLastNotificationResponse();
-    if (last) onRoute(routeForPushData(dataOf(last)));
+    if (last) onRoute(routeForPushData(dataOf(last), context()));
   } catch {
     /* no cold-start tap */
   }

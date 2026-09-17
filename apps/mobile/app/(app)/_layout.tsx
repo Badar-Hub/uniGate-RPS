@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { Redirect, Stack, useRouter } from 'expo-router';
 import { Loading, usePalette } from '@/components/ui';
 import { useI18n } from '@/i18n';
@@ -11,10 +11,16 @@ import { useSession } from '@/lib/session';
  * screens show the native header (back button, title); the tab screens draw their own titles.
  */
 export default function AppLayout() {
-  const { status, me } = useSession();
+  const { status, me, audience } = useSession();
   const { t } = useI18n();
   const colors = usePalette();
   const router = useRouter();
+  // A tapped `tripId` opens the driver's trip screen for a driver, the tracking view otherwise;
+  // read through a ref so the subscription is not re-created when the profile loads.
+  const isDriver = useRef(audience.driver);
+  useEffect(() => {
+    isDriver.current = audience.driver;
+  }, [audience.driver]);
 
   // Push: register the device with the API (api.md §8.26) and route tapped notifications.
   useEffect(() => {
@@ -22,9 +28,12 @@ export default function AppLayout() {
     void syncPushRegistration();
     let unsubscribe: (() => void) | null = null;
     let cancelled = false;
-    void watchNotificationTaps((route) => {
-      router.push(route.path);
-    }).then((off) => {
+    void watchNotificationTaps(
+      (route) => {
+        router.push(route.path);
+      },
+      () => ({ driver: isDriver.current }),
+    ).then((off) => {
       if (cancelled) off();
       else unsubscribe = off;
     });
@@ -87,6 +96,9 @@ export default function AppLayout() {
       <Stack.Screen name="maintenance/index" options={{ title: t('maintenance.title') }} />
       <Stack.Screen name="maintenance/new" options={{ title: t('maintenance.record') }} />
       <Stack.Screen name="maintenance/[id]" options={{ title: t('maintenance.detailTitle') }} />
+      {/* Driver (M3) */}
+      <Stack.Screen name="trips/[id]" options={{ title: t('driver.trip.title') }} />
+      <Stack.Screen name="account/driver" options={{ title: t('driver.account.title') }} />
     </Stack>
   );
 }

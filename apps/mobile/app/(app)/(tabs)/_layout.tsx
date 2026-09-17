@@ -4,12 +4,14 @@ import { Loading, usePalette } from '@/components/ui';
 import { useUnreadCount } from '@/hooks/use-unread-count';
 import { useI18n } from '@/i18n';
 import { useSession } from '@/lib/session';
-import { tabsFor, TAB_NAMES, type TabName } from '@/lib/tabs';
+import { initialTabFor, tabsFor, TAB_NAMES, type TabName } from '@/lib/tabs';
 
 type IconName = keyof typeof Ionicons.glyphMap;
 
 const ICONS: Record<TabName, { focused: IconName; idle: IconName }> = {
   index: { focused: 'home', idle: 'home-outline' },
+  trips: { focused: 'navigate', idle: 'navigate-outline' },
+  active: { focused: 'radio', idle: 'radio-outline' },
   requests: { focused: 'clipboard', idle: 'clipboard-outline' },
   opportunities: { focused: 'megaphone', idle: 'megaphone-outline' },
   bookings: { focused: 'calendar', idle: 'calendar-outline' },
@@ -20,6 +22,8 @@ const ICONS: Record<TabName, { focused: IconName; idle: IconName }> = {
 
 const TITLE_KEYS: Record<TabName, string> = {
   index: 'tabs.home',
+  trips: 'tabs.trips',
+  active: 'tabs.active',
   requests: 'tabs.requests',
   opportunities: 'tabs.opportunities',
   bookings: 'tabs.bookings',
@@ -45,6 +49,8 @@ export default function TabsLayout() {
 
   return (
     <Tabs
+      // A driver-only account has no Home: it lands on Trips (tabsFor keeps the order).
+      initialRouteName={initialTabFor(audience)}
       screenOptions={{
         headerShown: false,
         tabBarActiveTintColor: colors.primary,

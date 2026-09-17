@@ -21,6 +21,7 @@ import { api, ApiRequestError, apiErrorOf } from '@/lib/api';
 import { routeForNotification } from '@/lib/deep-link';
 import { formatDateTime } from '@/lib/format';
 import { keys } from '@/lib/queries';
+import { useSession } from '@/lib/session';
 import { enumLabel } from '@/lib/status';
 
 /**
@@ -29,6 +30,7 @@ import { enumLabel } from '@/lib/status';
  */
 export default function NotificationsScreen() {
   const { t, has, errorMessage, locale, isRTL } = useI18n();
+  const { audience } = useSession();
   const colors = usePalette();
   const router = useRouter();
   const qc = useQueryClient();
@@ -58,7 +60,7 @@ export default function NotificationsScreen() {
   };
   const open = (n: NotificationDto) => {
     void markRead(n);
-    const route = routeForNotification(n.data);
+    const route = routeForNotification(n.data, { driver: audience.driver });
     if (route.kind !== 'inbox') router.push(route.path);
   };
   const readAll = async () => {
@@ -103,7 +105,7 @@ export default function NotificationsScreen() {
           ListFooterComponent={q.isFetchingNextPage ? <Loading /> : <View className="h-6" />}
           contentContainerClassName="pb-6"
           renderItem={({ item: n }) => {
-            const route = routeForNotification(n.data);
+            const route = routeForNotification(n.data, { driver: audience.driver });
             return (
               <Pressable
                 accessibilityRole="button"

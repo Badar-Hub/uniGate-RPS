@@ -70,3 +70,22 @@ describe('routeForUrl', () => {
     expect(routeForUrl('not a url')).toBeNull();
   });
 });
+
+describe('driver-aware trip routing (M3)', () => {
+  const driver = { driver: true };
+  it('sends a tripId hint to the driver trip screen for a driver, and to tracking for everyone else', () => {
+    expect(routeForNotification({ tripId: 't1' }, driver)).toEqual({ kind: 'driverTrip', path: '/trips/t1' });
+    expect(routeForNotification({ tripId: 't1' }, { driver: false })).toEqual({ kind: 'trip', path: '/track/t1' });
+    expect(routeForNotification({ tripId: 't1' })).toEqual({ kind: 'trip', path: '/track/t1' });
+    // The booking hint still wins for a driver (the same precedence as the web resolver).
+    expect(routeForNotification({ bookingId: 'b1', tripId: 't1' }, driver).kind).toBe('booking');
+  });
+
+  it('resolves unigate://trips/{id} and unigate://track/{id} by who opens them', () => {
+    expect(routeForUrl('unigate://trips/t1', driver)).toEqual({ kind: 'driverTrip', path: '/trips/t1' });
+    expect(routeForUrl('unigate://track/t1', driver)).toEqual({ kind: 'driverTrip', path: '/trips/t1' });
+    expect(routeForUrl('unigate://trips/t1')).toEqual({ kind: 'trip', path: '/track/t1' });
+    expect(routeForUrl('unigate://trips/t%2F1', driver)).toBeNull();
+    expect(routeForUrl('unigate://trips', driver)).toBeNull();
+  });
+});

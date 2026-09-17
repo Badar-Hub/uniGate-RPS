@@ -1,7 +1,8 @@
 /**
  * Deep-link resolution — pure, so both the inbox rows and a tapped push notification route
- * through the same table (the web's `notifications/deep-link.ts`, restricted to the customer
- * surfaces this app has). Every route is a plain path under `app/(app)`; Expo Router resolves
+ * through the same table (the web's `notifications/deep-link.ts`). A `tripId` is the one hint
+ * whose destination depends on who taps it (`DeepLinkContext`): the driver's trip screen, or
+ * the customer's tracking view. Every route is a plain path under `app/(app)`; Expo Router resolves
  * `unigate://bookings/{id}` to the same screen, so the scheme URL and the in-app push go the
  * same way.
  */
@@ -9,6 +10,7 @@
 export type DeepLinkRoute =
   | { kind: 'booking'; path: `/bookings/${string}` }
   | { kind: 'trip'; path: `/track/${string}` }
+  | { kind: 'driverTrip'; path: `/trips/${string}` }
   | { kind: 'request'; path: `/requests/${string}` }
   | { kind: 'invoice'; path: `/invoices/${string}` }
   | { kind: 'complaint'; path: `/complaints/${string}` }
@@ -23,6 +25,19 @@ export type DeepLinkRoute =
 
 const INBOX: DeepLinkRoute = { kind: 'inbox', path: '/notifications' };
 
+/**
+ * Who is opening the link. A driver opens a trip on their own trip screen (status buttons,
+ * location sharing); everyone else opens the customer's live-tracking view of the same trip.
+ */
+export interface DeepLinkContext {
+  driver: boolean;
+}
+const ANYONE: DeepLinkContext = { driver: false };
+
+function tripRoute(id: string, ctx: DeepLinkContext): DeepLinkRoute {
+  return ctx.driver ? { kind: 'driverTrip', path: `/trips/${id}` } : { kind: 'trip', path: `/track/${id}` };
+}
+
 function str(data: Record<string, unknown> | null | undefined, key: string): string | null {
   const v = data?.[key];
   return typeof v === 'string' && v.length > 0 && !v.includes('/') ? v : null;
@@ -35,11 +50,12 @@ function str(data: Record<string, unknown> | null | undefined, key: string): str
  */
 export function routeForNotification(
   data: Record<string, unknown> | null | undefined,
+  ctx: DeepLinkContext = ANYONE,
 ): DeepLinkRoute {
   const bookingId = str(data, 'bookingId');
   if (bookingId) return { kind: 'booking', path: `/bookings/${bookingId}` };
   const tripId = str(data, 'tripId');
-  if (tripId) return { kind: 'trip', path: `/track/${tripId}` };
+  if (tripId) return tripRoute(tripId, ctx);
   const tripRequestId = str(data, 'tripRequestId');
   if (tripRequestId) return { kind: 'request', path: `/requests/${tripRequestId}` };
   const invoiceId = str(data, 'invoiceId');
@@ -64,7 +80,7 @@ export function routeForNotification(
  * not one this app owns. Only the path and a whitelisted query key are read: nothing else from
  * an inbound URL reaches the router.
  */
-export function routeForUrl(url: string): DeepLinkRoute | null {
+export function routeForUrl(url: string, ctx: DeepLinkContext = ANYONE): DeepLinkRoute | null {
   let path: string;
   let query: URLSearchParams;
   try {
@@ -86,7 +102,10 @@ export function routeForUrl(url: string): DeepLinkRoute | null {
     case 'bookings':
       return isId(id) ? { kind: 'booking', path: `/bookings/${id}` } : null;
     case 'track':
-      return isId(id) ? { kind: 'trip', path: `/track/${id}` } : null;
+      return isId(id) ? tripRoute(id, ctx) : null;
+    case 'trips':
+      // The driver's own trip screen; a non-driver following a driver link gets the tracking view.
+      return isId(id) ? tripRoute(id, ctx) : null;
     case 'requests':
       return isId(id) && id !== 'new' ? { kind: 'request', path: `/requests/${id}` } : null;
     case 'invoices':

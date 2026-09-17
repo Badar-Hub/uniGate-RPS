@@ -7,6 +7,7 @@ import type {
   CodedLabelDto,
   CustomerCreditDto,
   DocumentRequirementDto,
+  DriverAssignmentDto,
   DriverDto,
   InvoiceDto,
   MaintenanceRecordDto,
@@ -17,7 +18,10 @@ import type {
   SavedLocationDto,
   SettlementDto,
   SettlementLineDto,
+  TripDto,
+  TripProofDto,
   TripRequestDto,
+  TripStatusHistoryDto,
   VehicleAssignmentDto,
   VehicleCategoryDto,
   VehicleDto,
@@ -81,6 +85,13 @@ export const keys = {
   maintenanceRecords: ['maintenance', 'records'] as const,
   maintenanceRecord: (id: string) => ['maintenance', 'records', id] as const,
   maintenanceTypes: ['reference', 'maintenance-service-types'] as const,
+  // ── driver (M3) ──
+  trips: ['trips'] as const,
+  activeTrips: ['trips', 'active'] as const,
+  trip: (id: string) => ['trips', id] as const,
+  tripHistory: (id: string) => ['trips', id, 'status-history'] as const,
+  tripProofs: (id: string) => ['trips', id, 'proofs'] as const,
+  driverAssignments: (id: string) => ['drivers', id, 'assignments'] as const,
 } satisfies Record<string, QueryKey | ((...args: never[]) => QueryKey)>;
 
 export interface PublicSetting {
@@ -339,4 +350,49 @@ export function useMaintenanceRecord(id: string) {
 export function useInvalidate() {
   const qc = useQueryClient();
   return (...families: QueryKey[]) => Promise.all(families.map((k) => qc.invalidateQueries({ queryKey: k })));
+}
+
+// ── driver (M3) ─────────────────────────────────────────────────────────────
+
+export function useTrip(id: string) {
+  return useQuery({
+    queryKey: keys.trip(id),
+    queryFn: () => fetchOrThrow<TripDto>(`/trips/${id}`),
+    enabled: id.length > 0,
+  });
+}
+
+/** `GET /trips/active` — the driver's trips in a non-terminal, moving state (api.md §8.15). */
+export function useActiveTrips(enabled = true) {
+  return useQuery({
+    queryKey: keys.activeTrips,
+    queryFn: () => fetchOrThrow<TripDto[]>('/trips/active', { query: { page: 1, pageSize: 20 } }),
+    enabled,
+    staleTime: 15 * 1000,
+  });
+}
+
+export function useTripHistory(id: string) {
+  return useQuery({
+    queryKey: keys.tripHistory(id),
+    queryFn: () => fetchOrThrow<TripStatusHistoryDto[]>(`/trips/${id}/status-history`),
+    enabled: id.length > 0,
+  });
+}
+
+export function useTripProofs(id: string) {
+  return useQuery({
+    queryKey: keys.tripProofs(id),
+    queryFn: () => fetchOrThrow<TripProofDto[]>(`/trips/${id}/proofs`),
+    enabled: id.length > 0,
+  });
+}
+
+/** `GET /drivers/{id}/assignments` — the vehicles this driver has been assigned to, newest first. */
+export function useDriverAssignments(id: string | null) {
+  return useQuery({
+    queryKey: keys.driverAssignments(id ?? ''),
+    queryFn: () => fetchOrThrow<DriverAssignmentDto[]>(`/drivers/${id ?? ''}/assignments`),
+    enabled: Boolean(id),
+  });
 }

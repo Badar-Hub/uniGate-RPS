@@ -90,6 +90,30 @@ export default function AccountScreen() {
             </>
           ) : null}
 
+          {audience.driver ? (
+            <>
+              <SectionTitle>{t('account.driverSection')}</SectionTitle>
+              <LinkRow
+                title={t('driver.account.title')}
+                subtitle={t('driver.account.subtitle')}
+                icon="car-outline"
+                rtl={isRTL}
+                onPress={() => {
+                  router.push('/account/driver');
+                }}
+              />
+              <LinkRow
+                title={t('driver.trips.title')}
+                subtitle={t('driver.trips.subtitle')}
+                icon="navigate-outline"
+                rtl={isRTL}
+                onPress={() => {
+                  router.push('/(app)/(tabs)/trips');
+                }}
+              />
+            </>
+          ) : null}
+
           {corporate ? (
             <>
               <SectionTitle>{t('company.section')}</SectionTitle>

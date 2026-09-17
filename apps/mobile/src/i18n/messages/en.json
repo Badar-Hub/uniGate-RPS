@@ -127,7 +127,13 @@
     "MAINTENANCE_CALENDAR_CONFLICT": "That window overlaps a booking on the vehicle’s calendar.",
     "MAINTENANCE_INVALID_TRANSITION": "This action is not available in the record’s current state.",
     "EXPENSE_IMMUTABLE": "This expense is part of a paid settlement and can no longer change.",
-    "SETTLEMENT_INVALID_TRANSITION": "This action is not available in the settlement’s current state."
+    "SETTLEMENT_INVALID_TRANSITION": "This action is not available in the settlement’s current state.",
+    "TRACKING_STALE_POINT": "The position sample was refused: its time is too far from the last one recorded.",
+    "TRIP_INVALID_TRANSITION": "This step is not allowed from the trip’s current state.",
+    "TRIP_ALREADY_COMPLETED": "The trip is already completed.",
+    "TRIP_ODOMETER_REQUIRED": "This step needs the odometer reading.",
+    "TRIP_PROOF_REQUIRED": "Delivery needs a proof of delivery (recipient) first.",
+    "TRIP_REGULATORY_DOCUMENT_REQUIRED": "The transport document (Bayan) reference is required before departure."
   },
   "vertical": {
     "PASSENGER": "passenger",
@@ -162,7 +168,9 @@
     "bookings": "Bookings",
     "fleet": "Fleet",
     "notifications": "Notifications",
-    "account": "Account"
+    "account": "Account",
+    "trips": "Trips",
+    "active": "Active"
   },
   "home": {
     "welcome": "Welcome, {name}",
@@ -192,7 +200,10 @@
       "attentionTitle": "Needs attention",
       "lastSettlement": "Last settlement",
       "noSettlement": "No settlement yet — earnings appear here once a period is settled."
-    }
+    },
+    "driver": "Driver",
+    "quickTrips": "My trips",
+    "quickDriverAccount": "Driver account"
   },
   "lists": {
     "requests": "Trip requests",
@@ -221,7 +232,8 @@
     "signOutConfirm": "Sign out of this device?",
     "version": "Version {version}",
     "api": "API",
-    "vendorSection": "Vehicle owner"
+    "vendorSection": "Vehicle owner",
+    "driverSection": "Driver"
   },
   "status": {
     "request": {
@@ -518,6 +530,12 @@
       "MANUAL": "Held by UniGate",
       "HOLD_PERIOD": "Hold period",
       "PAYMENT_PENDING": "Awaiting payment / invoice"
+    },
+    "tripProofType": {
+      "PICKUP_CONFIRMATION": "Pickup confirmation",
+      "DELIVERY_CONFIRMATION": "Delivery confirmation",
+      "DAMAGE_REPORT": "Damage report",
+      "EXCEPTION": "Exception"
     }
   },
   "requests": {
@@ -1277,6 +1295,141 @@
       "overdue": "Overdue",
       "inDays": "in {n} days",
       "inKm": "in {n} km"
+    }
+  },
+  "driver": {
+    "noProfile": "This account is not a driver. Ask your vehicle owner to register you.",
+    "home": {
+      "subtitle": "Your active trip and what is coming next. Open a trip to update its status and share your location.",
+      "activeTrip": "Active trip",
+      "nextTrips": "Next trips",
+      "empty": "No trips assigned to you yet.",
+      "notSharing": "Location sharing is off — open the trip to start it.",
+      "moreActive": "{count} more active trip(s) — see My trips."
+    },
+    "trips": {
+      "title": "My trips",
+      "subtitle": "Upcoming, active and completed trips.",
+      "active": "Active",
+      "upcoming": "Upcoming",
+      "done": "Done"
+    },
+    "action": {
+      "DRIVER_EN_ROUTE": "Start driving to pickup",
+      "ARRIVED_AT_PICKUP": "I have arrived at pickup",
+      "TRIP_STARTED": "Passengers on board — start trip",
+      "IN_PROGRESS": "Underway",
+      "LOADING": "Start loading",
+      "LOADED": "Loaded — depart",
+      "IN_TRANSIT": "In transit",
+      "ARRIVED_AT_DESTINATION": "Arrived at destination",
+      "UNLOADING": "Start unloading",
+      "DELIVERED": "Delivered",
+      "COMPLETED": "Complete trip",
+      "EXCEPTION": "Report a problem"
+    },
+    "trip": {
+      "title": "Trip",
+      "pickup": "Pickup",
+      "dropoff": "Drop-off",
+      "scheduled": "Scheduled",
+      "vehicle": "Vehicle",
+      "vertical": "Transport",
+      "customerNotes": "Customer notes",
+      "driverNotes": "Driver notes",
+      "actualStart": "Started",
+      "actualEnd": "Ended",
+      "odometer": "Odometer",
+      "distance": "Distance",
+      "openMap": "Open in maps",
+      "actions": "Next step",
+      "noActions": "No step is available right now.",
+      "history": "History",
+      "odometerPrompt": "Odometer reading (km)",
+      "odometerHint": "Required for this step. It cannot be lower than {km} km.",
+      "noteLabel": "Note (optional)",
+      "bayanPrompt": "Transport document (Bayan) reference",
+      "bayanHint": "Enter the TGA Bayan reference for this consignment if operations have not recorded it yet.",
+      "positionNote": "Your current position is recorded with this step.",
+      "locating": "Getting your position…",
+      "confirm": "Confirm",
+      "updated": "Status updated: {status}",
+      "done": "Trip completed. Thank you.",
+      "cancelled": "This trip was cancelled."
+    },
+    "proof": {
+      "title": "Proof of delivery",
+      "recipient": "Received by (name)",
+      "idLast4": "Recipient ID — last 4 digits",
+      "notes": "Condition / notes",
+      "hint": "Recorded with your current position; a photo or signature can be attached below once the proof is saved."
+    },
+    "proofs": {
+      "title": "Proofs",
+      "add": "Record a proof",
+      "type": "Type",
+      "recipientOptional": "Received by (optional)",
+      "hint": "Saved with your current position. Attach the photo or the signature afterwards.",
+      "save": "Save proof",
+      "recorded": "Proof recorded — you can attach a photo or a signature to it.",
+      "attached": "Attachment uploaded — awaiting verification.",
+      "attachPhoto": "Attach photo",
+      "attachSignature": "Attach signature",
+      "receivedBy": "Received by {name}{last4}",
+      "signatureAttached": "Signature attached",
+      "empty": "No proofs recorded on this trip."
+    },
+    "location": {
+      "sharing": "Sharing live location",
+      "notSharing": "Location sharing is off",
+      "shareOn": "Share",
+      "shareOff": "Stop",
+      "starting": "Starting location sharing…",
+      "modeBackground": "Keeps running in the background (a notification shows while sharing).",
+      "modeForeground": "Foreground only: sharing pauses when the app is in the background.",
+      "modeExpoGo": "Expo Go: foreground only — background sharing needs a development build.",
+      "counts": "{sent} sent · {queued} queued",
+      "summary": "Sharing location · {sent} sent · {queued} queued",
+      "lastFix": "Last fix {ago}s ago · ±{acc} m",
+      "waitingFix": "Waiting for the first GPS fix…",
+      "lowConfidence": "Low accuracy (> 500 m): the position is shown to the customer but not used for the arrival estimate.",
+      "rejected": "{count} sample(s) refused by the server",
+      "keepOpen": "Keep the app open while driving.",
+      "queuedOnly": "{queued} sample(s) waiting to be sent when the connection returns.",
+      "permissionDenied": "Location permission was refused. Allow location for UniGate in the phone settings to share your position.",
+      "backgroundDenied": "Background location was not allowed: sharing pauses when the app is in the background. Choose “Allow all the time” in the settings for uninterrupted tracking.",
+      "servicesDisabled": "Location services are turned off on this phone.",
+      "startFailed": "The GPS could not be started on this device.",
+      "openSettings": "Open settings",
+      "serviceTitle": "UniGate — sharing your location",
+      "serviceBody": "Trip {trip} is under way. The customer sees your position."
+    },
+    "account": {
+      "title": "Driver account",
+      "subtitle": "Availability, licence, vehicle assignments, location.",
+      "availability": "Availability",
+      "availabilityHint": "Go on duty to be dispatched. “On trip” is set by the system while a trip is under way.",
+      "availabilitySaved": "Availability: {status}",
+      "onTrip": "You are on a trip; availability changes once it ends.",
+      "licenceExpired": "Your licence expired on {date}. You cannot go on duty until it is renewed and verified.",
+      "licenceExpiring": "Your licence expires in {days} day(s) ({date}). Renew it and upload the new one to your owner.",
+      "notApproved": "Your driver profile is not approved yet — trips are dispatched to approved drivers only.",
+      "assignments": "Vehicle assignments",
+      "vehicleRef": "Vehicle {id}…",
+      "assignmentActive": "Active",
+      "assignmentEnded": "Ended",
+      "noAssignments": "No vehicle assignment yet.",
+      "location": "Location sharing",
+      "permission": "Permission",
+      "permissionState": {
+        "unknown": "Not asked yet",
+        "foreground": "While using the app",
+        "background": "Always (background)",
+        "denied": "Refused"
+      },
+      "permissionHint": "Background permission keeps the customer’s map moving when the screen is locked or the app is behind the navigation app.",
+      "queued": "Samples waiting",
+      "signOutWhileSharing": "You are sharing your location. Signing out stops it. Continue?"
     }
   }
 }

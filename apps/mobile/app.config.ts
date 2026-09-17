@@ -30,7 +30,11 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   ios: {
     supportsTablet: false,
     bundleIdentifier: 'sa.unigate.app',
-    infoPlist: { ITSAppUsesNonExemptEncryption: false },
+    infoPlist: {
+      ITSAppUsesNonExemptEncryption: false,
+      // Driver live location keeps streaming with the app in the background (M3).
+      UIBackgroundModes: ['location'],
+    },
   },
   android: {
     package: 'sa.unigate.app',
@@ -65,6 +69,20 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
       },
     ],
     'expo-document-picker',
+    // Driver live location (M3): foreground + background permission strings, the Android
+    // ACCESS_BACKGROUND_LOCATION + FOREGROUND_SERVICE_LOCATION permissions and the foreground
+    // service the background task runs under (expo-task-manager needs no plugin of its own).
+    [
+      'expo-location',
+      {
+        locationWhenInUsePermission: 'UniGate shares your position with the customer while you are on a trip.',
+        locationAlwaysAndWhenInUsePermission: 'UniGate keeps sharing your position with the customer while a trip is under way, even when the app is in the background.',
+        locationAlwaysPermission: 'UniGate keeps sharing your position with the customer while a trip is under way, even when the app is in the background.',
+        isIosBackgroundLocationEnabled: true,
+        isAndroidBackgroundLocationEnabled: true,
+        isAndroidForegroundServiceEnabled: true,
+      },
+    ],
   ],
   experiments: { typedRoutes: true },
   extra: {

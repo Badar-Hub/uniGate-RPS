@@ -11,6 +11,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { logout as logoutCall, me as meCall, type MobileAuthResult } from '@unigate/api-client';
 import type { MeDto } from '@unigate/types';
 import { ApiRequestError, client } from '@/lib/api';
+import { tracker } from '@/lib/driver/tracker';
 import { sessionEvents } from '@/lib/auth/events';
 import { tokens } from '@/lib/auth/tokens';
 import { unregisterPush } from '@/lib/push';
@@ -70,6 +71,7 @@ export function SessionProvider({ children }: { children: ReactNode }) {
   useEffect(
     () =>
       sessionEvents.onSignedOut(() => {
+        void tracker().stop();
         disconnectRealtime();
         queryClient.clear();
         setStatus('signedOut');
@@ -103,8 +105,10 @@ export function SessionProvider({ children }: { children: ReactNode }) {
   );
 
   const signOut = useCallback(async () => {
-    // Deactivate the push token while the access token is still valid, then revoke the session.
+    // Deactivate the push token while the access token is still valid, stop the location agent
+    // (its last flush still carries a valid Bearer), then revoke the session.
     await unregisterPush();
+    await tracker().stop();
     disconnectRealtime();
     try {
       await logoutCall(client);
