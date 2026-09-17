@@ -1,4 +1,6 @@
 import '../global.css';
+// Must run before any module that builds Idempotency-Key headers (see src/lib/crypto-shim.ts).
+import '@/lib/crypto-shim';
 
 import { useEffect } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
