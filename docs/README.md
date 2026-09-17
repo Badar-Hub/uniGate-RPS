@@ -21,6 +21,7 @@ Vehicle Hiring & Management Platform (passenger + goods transport), Kingdom of S
 | 8 | [TODO.md](TODO.md) | Outstanding engineering work |
 | 9 | [uat-checklist.md](uat-checklist.md) | Hands-on test script for every module on a running dev stack |
 | 10 | [hardening.md](hardening.md) | Phase 14 record: rate limits, headers/CSP, benchmarks, load test, backup drill, DB roles, dependency audit |
+| 11 | [testing.md](testing.md) | Phase 15: the test map, the golden-path E2E in en/ar, phase-exit items → assertions |
 | 11 | [mobile-app.md](mobile-app.md) | The Expo (React Native) app for customers and vehicle owners: stack, layout, running on a phone against the LAN API, token storage, RTL, milestones |
 
 ## Architecture decision records

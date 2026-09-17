@@ -195,9 +195,9 @@ All items delivered; residuals moved to Phase 3 below.
 These are exit criteria, not nice-to-haves. Each is tied to the phase that must not close without it.
 
 - [x] **Phase 3** — authorization matrix test: every role × every IAM resource, cross-tenant access returns 404 (extends per phase)
-- [ ] **Phase 5** — vehicle calendar overlap tests against real PostgreSQL (Testcontainers)
-- [ ] **Phase 7** — N-way concurrent bid acceptance: exactly one 201, rest 409, no orphan bookings
-- [ ] **Phase 9** — webhook idempotency: duplicate delivery, out-of-order delivery, invalid signature
-- [ ] **Phase 11** — ledger balance assertion: debits = credits per transaction group on every posting path
-- [ ] **Phase 11** — snapshot immutability: changing a commission rule does not alter historical bookings
-- [ ] **Phase 15** — golden path E2E in both `en` and `ar`, with RTL visual diff
+- [x] **Phase 5** — vehicle calendar overlap tests against real PostgreSQL (`fleet.flow`, EXCLUDE under concurrent inserts)
+- [x] **Phase 7** — N-way concurrent bid acceptance: exactly one 201, rest 409, no orphan bookings (`bidding.flow`)
+- [x] **Phase 9** — webhook idempotency: duplicate delivery, out-of-order delivery, invalid signature (`payments.flow`)
+- [x] **Phase 11** — ledger balance assertion: debits = credits per transaction group on every posting path (`payments.flow`, `finance.flow`)
+- [x] **Phase 11** — snapshot immutability: changing a commission rule does not alter historical bookings (`finance.flow`)
+- [x] **Phase 15** — golden path E2E in both `en` and `ar`, with RTL visual diff (`apps/web/e2e`, [testing.md](testing.md)); still open: axe pass, mobile E2E on a dev build, CI job

@@ -38,7 +38,7 @@ Status values: `NOT_STARTED` · `IN_PROGRESS` · `BLOCKED` · `COMPLETE`
 | 12 | Maintenance | **COMPLETE** 2026-09-15 | See *Phase 12 exit* below. Records hold the vehicle on its calendar (EXCLUDE), completion feeds odometer / schedule / expenses; the reminder job publishes `maintenance.due` (fan-out lands with notifications, Phase 13) |
 | 13 | Admin & reporting | **COMPLETE** 2026-09-15 | See the *Phase 13a / 13b / 13c exit* tables. Notifications, engagement, disputes / no-show, statements, dashboard, system tooling, audit explorer, 15 reports + CSV exports, settings / roles / refunds screens; per-vertical dashboard filter; `platform.verticals_enabled` editable in the settings screen |
 | 14 | Hardening | **IN PROGRESS** 2026-09-16 | [hardening.md](hardening.md): global rate-limit tiers, API/web security headers with nonce CSP (report-only), CSP collector, Argon2 bench tool, k6 baseline, backup/restore drill passed, DB role audit 6/6, `pnpm audit` clean. Pentest / DAST / container scan / capacity run wait for a deployed staging (Phase 16). Mobile app (Expo) started in parallel — [mobile-app.md](mobile-app.md) |
-| 15 | Testing | `NOT_STARTED` | |
+| 15 | Testing | **IN PROGRESS** 2026-09-17 | [testing.md](testing.md): Playwright golden path (request → bid → accept → pay → CONFIRMED) in en + ar with RTL screenshots, `e2e:seed` CLI, every phase-exit test item mapped to its assertion (snapshot-immutability assertion added); found and fixed the login throttle counting successes. Open: axe pass, mobile E2E on a dev build, CI job |
 | 16 | Deployment | `NOT_STARTED` | Hosting region **BLOCKED** on OQ-12 (data residency) |
 
 ---
@@ -396,7 +396,7 @@ Verified on 2026-09-15 with `pnpm turbo run typecheck lint test build --force` (
 | Authorization scope layer | **DONE** | `authenticate()` → `ActorScope`; `requirePermission()`; `scopeFor()`; repositories take the scope first (lint-enforced). **Highest-risk component in the system** — every new repository joins the matrix. |
 | Audit logging | **DONE (helper)** | `writeAudit()` in the business transaction; before/after redacted; DB-level append-only trigger proven by test |
 | CI pipeline | **DONE** | GitHub Actions: services (Postgres+Redis) → gitleaks → `turbo run typecheck lint test build` → migrate deploy + seed twice (idempotency) → openapi diff → docs cross-reference check |
-| E2E golden path | NOT_STARTED | Phase 15, but scaffolded from Phase 7 |
+| E2E golden path | **DONE** | `apps/web/e2e/golden-path.spec.ts`, en + ar, RTL baselines |
 | Concurrency test | **DONE (calendar)** | 8 concurrent owner blocks on one window → 1 × 201, 7 × 409, one live row (real PostgreSQL EXCLUDE). Bid acceptance (Phase 7) adds its own. |
 | Authorization matrix test | **DONE (IAM surface)** | `test/db/authorization.matrix.test.ts` — 9 roles × IAM endpoints, step-up, pv bump, anti-enumeration 404s, self-modification, suspension, idempotency. Grows with every phase. |
 

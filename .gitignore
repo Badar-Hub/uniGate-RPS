@@ -34,3 +34,7 @@ Thumbs.db
 # docker volumes (local)
 docker/data/
 backups/
+
+# Playwright
+apps/web/.e2e-results/
+apps/web/.e2e-report/

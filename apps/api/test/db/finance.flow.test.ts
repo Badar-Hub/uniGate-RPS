@@ -162,6 +162,17 @@ describeDb('finance', () => {
     expect(preview.body.data).toMatchObject({ source: 'RULE', type: 'PERCENTAGE', value: '12.00', ruleId: catId, grossAmount: '1150.00', vatAmount: '150.00', netOfVatAmount: '1000.00', commissionAmount: '120.00', commissionVatAmount: '0.00', ownerNetAmount: '1030.00', vatTreatment: 'DEEMED_SUPPLIER' });
     const previewOverride = await bearer(request(h.app).post('/api/v1/commissions/rules/preview'), finance).send({ ownerProfileId, vehicleCategoryId: busCategoryId, grossAmount: '1150.00', commissionOverride: { type: 'FIXED', value: '40.00', reason: 'negotiated' } });
     expect(previewOverride.body.data).toMatchObject({ source: 'OVERRIDE', commissionAmount: '40.00', ownerNetAmount: '1110.00' });
+    // Snapshot immutability (Phase 11 exit): a booking awarded under the 10 % global rule keeps its
+    // financial snapshot while the 12 % category rule is active — rules never rewrite history.
+    const earlier = await book(customer, 72);
+    const snap = await bearer(request(h.app).get(`/api/v1/bookings/${earlier.bookingId}/financials`), finance);
+    expect(snap.status, JSON.stringify(snap.body)).toBe(200);
+    expect(snap.body.data.owner).toMatchObject({ commissionAmount: '120.00' }); // awarded now, under the category rule
+    const bump = await bearer(request(h.app).patch(`/api/v1/commissions/rules/${catId}`), finance).send({ percentageRate: '20.00' });
+    expect(bump.status, JSON.stringify(bump.body)).toBe(200);
+    const after = await bearer(request(h.app).get(`/api/v1/bookings/${earlier.bookingId}/financials`), finance);
+    expect(after.body.data.owner).toMatchObject({ commissionAmount: '120.00' });
+    expect((await bearer(request(h.app).post('/api/v1/commissions/rules/preview'), finance).send({ ownerProfileId, vehicleCategoryId: busCategoryId, grossAmount: '1150.00' })).body.data.commissionAmount).toBe('200.00');
     // deactivate the category rule again so the rest of the suite runs on the 10 % global rule
     expect((await bearer(request(h.app).delete(`/api/v1/commissions/rules/${catId}`), finance)).status).toBe(204);
     expect((await bearer(request(h.app).get(`/api/v1/commissions/rules/${catId}`), finance)).body.data.isActive).toBe(false);
