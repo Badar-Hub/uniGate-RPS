@@ -245,6 +245,7 @@ export async function setServiceAreas(scope: ActorScope, id: string, cityIds: st
     await tx.ownerServiceArea.deleteMany({ where: { ownerProfileId: id } });
     await tx.ownerServiceArea.createMany({ data: unique.map((cityId) => ({ ownerProfileId: id, cityId })) });
     await writeAudit({ ...audit(scope), action: 'owner.service_areas_replaced', entityType: 'owner_profile', entityId: id, beforeValue: { cityIds: o.serviceAreas.map((s) => s.cityId) }, afterValue: { cityIds: unique } }, tx);
+    await publishEvent('owner', id, 'owner.service_areas_replaced', { cityIds: unique }, tx);
   });
   return getOwner(scope, id);
 }

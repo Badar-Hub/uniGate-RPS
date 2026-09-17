@@ -46,6 +46,12 @@ export const subscribers: Record<string, Subscriber> = {
     const t = s(e.payload['transportType']);
     await send(e, owners, 'NEW_TRIP_OPPORTUNITY', { requestNumber: s(e.payload['requestNumber']), transportType: t, pickupAt }, { variablesByLocale: { en: { transportType: t === 'GOODS' ? 'goods' : 'passenger' }, ar: { transportType: t === 'GOODS' ? 'بضائع' : 'ركاب' } }, data: { tripRequestId: e.aggregateId } });
   },
+  'trip_request.invitations_added': async (e) => {
+    const owners = await who.usersOfOwners(e.payload['invitedOwnerProfileIds']);
+    const pickupAt = await who.tripRequestPickup(e.aggregateId);
+    const t = s(e.payload['transportType']);
+    await send(e, owners, 'NEW_TRIP_OPPORTUNITY', { requestNumber: s(e.payload['requestNumber']), transportType: t, pickupAt }, { variablesByLocale: { en: { transportType: t === 'GOODS' ? 'goods' : 'passenger' }, ar: { transportType: t === 'GOODS' ? 'بضائع' : 'ركاب' } }, data: { tripRequestId: e.aggregateId } });
+  },
   'bid.submitted': async (e) => {
     await send(e, await who.usersOfCustomer(e.payload['customerProfileId']), 'BID_RECEIVED', { requestNumber: s(e.payload['requestNumber']), bidNumber: s(e.payload['bidNumber']), totalAmount: s(e.payload['totalAmount']), currency: await currency() }, { data: { tripRequestId: s(e.payload['tripRequestId']), bidId: e.aggregateId } });
   },

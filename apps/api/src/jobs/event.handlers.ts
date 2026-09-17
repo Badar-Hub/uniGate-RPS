@@ -1,6 +1,7 @@
 import { Worker, type Job } from 'bullmq';
 import { logger } from '@/logging/logger.js';
 import { handleDomainEvent } from '@/modules/notifications/event.subscribers.js';
+import { rematchOpenRequests } from '@/modules/demand/rematch.service.js';
 import { bullConnection, QUEUE } from './queues.js';
 
 /**
@@ -44,20 +45,30 @@ const handlers: Record<string, Handler> = {
     logger().info({ aggregateId: job.data.aggregateId }, 'event: roles changed');
     await Promise.resolve();
   },
+  // Late invitations (demand/rematch.service): a vehicle or owner that became eligible after publish.
+  'vehicle.approved': async (job) => {
+    await rematchOpenRequests({ vehicleId: job.data.aggregateId }, 'vehicle.approved');
+  },
+  'owner.approved': async (job) => {
+    await rematchOpenRequests({ ownerProfileId: job.data.aggregateId }, 'owner.approved');
+  },
+  'owner.service_areas_replaced': async (job) => {
+    await rematchOpenRequests({ ownerProfileId: job.data.aggregateId }, 'owner.service_areas_replaced');
+  },
 };
 
 export function startEventWorker(): Worker<EventJobData> {
   const worker = new Worker<EventJobData>(
     QUEUE.events,
     async (job) => {
+      // Notification subscribers and domain handlers are independent: both run for the same event.
       const handled = await handleDomainEvent({ id: job.data.id, eventType: job.name, aggregateType: job.data.aggregateType, aggregateId: job.data.aggregateId, payload: job.data.payload ?? {} });
       const h = handlers[job.name];
-      if (handled) return;
-      if (!h) {
-        logger().warn({ event: job.name }, 'no handler registered; acknowledging');
+      if (h) {
+        await h(job);
         return;
       }
-      await h(job);
+      if (!handled) logger().warn({ event: job.name }, 'no handler registered; acknowledging');
     },
     { connection: bullConnection(), concurrency: 5 },
   );

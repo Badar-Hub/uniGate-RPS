@@ -52,6 +52,8 @@ Suggested order: sections 1 → 13 build on each other (users → vendor → veh
 
 ## 5. Bidding
 
+0. **Late invitation**: publish a request first, then approve a matching vehicle (or add the pickup city to a vendor's service areas) — within a few seconds the vendor sees the request under Opportunities and gets the opportunity notification; the invitation's match reason shows `LATE:vehicle.approved`.
+
 1. As the vendor: **Opportunities → Bid** (base amount, extras, validity). Revise the bid (amount changes, history kept). Withdraw and re-bid.
 2. Bid with a second vendor. As the customer: **Requests → detail → Bids**: compare, then **Accept** one. Expect: booking created, the other bid *Rejected*, the vehicle reserved on its calendar, notifications to both vendors (bell / MailHog).
 3. Try to accept twice / accept an expired bid → refused.

@@ -12,6 +12,7 @@ import request from 'supertest';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { prisma } from '@/database/prisma.js';
 import { expireStaleRequests } from '@/modules/demand/trip-request.service.js';
+import { rematchOpenRequests } from '@/modules/demand/rematch.service.js';
 import { TEST_DB, bearer, bootHarness, clearThrottles, createUserWithRoles, loginBearer, teardownHarness, type Harness } from './helpers.js';
 
 const describeDb = TEST_DB ? describe : describe.skip;
@@ -168,6 +169,36 @@ describeDb('demand', () => {
     expect(cancelled.status).toBe(200);
     expect(cancelled.body.data.status).toBe('CANCELLED');
     expect((await bearer(request(h.app).get('/api/v1/opportunities'), owner)).body.data).toEqual([]);
+  });
+
+  it('late invitations: a vehicle approved or a service area added after publish still gets invited to open requests', async () => {
+    const created = await post(customer, passengerBody({ publish: true }));
+    expect(created.status, JSON.stringify(created.body)).toBe(201);
+    const id: string = created.body.data.id;
+    // Nothing for the Jeddah owner at publish time.
+    expect(((await bearer(request(h.app).get('/api/v1/opportunities'), otherOwner)).body.data as { request: { id: string } }[]).map((o) => o.request.id)).not.toContain(id);
+    // 1. A brand-new bus for the Riyadh owner: nothing changes until it is approved; the approval event re-matches.
+    const lateBus = await approvedVehicle(ownerProfileId, busCategoryId, 50);
+    const before = await rematchOpenRequests({ vehicleId: randomUUID() }, 'test');
+    expect(before.invitations).toBe(0);
+    const late = await rematchOpenRequests({ vehicleId: lateBus }, 'vehicle.approved');
+    expect(late.invitations).toBe(1);
+    const inv = await bearer(request(h.app).get(`/api/v1/trip-requests/${id}/invitations`), admin);
+    expect((inv.body.data as { vehicleId: string; matchReason: { reasons: string[] } }[]).find((i) => i.vehicleId === lateBus)?.matchReason.reasons).toContain('LATE:vehicle.approved');
+    // Idempotent: running again writes nothing.
+    expect((await rematchOpenRequests({ vehicleId: lateBus }, 'vehicle.approved')).invitations).toBe(0);
+    // 2. The Jeddah owner adds Riyadh to their service areas → their 45-seater is invited and they see the opportunity.
+    const otherProfileId = (await prisma().ownerProfile.findFirstOrThrow({ where: { user: { email: 'other@demand.test' } } })).id;
+    const areas = await bearer(request(h.app).put(`/api/v1/owners/${otherProfileId}/service-areas`), otherOwner).send({ cityIds: [jeddah, riyadh] });
+    expect(areas.status, JSON.stringify(areas.body)).toBe(200);
+    const byOwner = await rematchOpenRequests({ ownerProfileId: otherProfileId }, 'owner.service_areas_replaced');
+    expect(byOwner.invitations).toBeGreaterThanOrEqual(1);
+    expect(((await bearer(request(h.app).get('/api/v1/opportunities'), otherOwner)).body.data as { request: { id: string } }[]).map((o) => o.request.id)).toContain(id);
+    // The newly invited owner is queued for the opportunity notification; the original owner is not re-notified.
+    const events = await prisma().outboxEvent.findMany({ where: { aggregateId: id, eventType: 'trip_request.invitations_added' } });
+    expect(events).toHaveLength(1);
+    expect((events[0]?.payload as { invitedOwnerProfileIds: string[] }).invitedOwnerProfileIds).toEqual([otherProfileId]);
+    await prisma().ownerServiceArea.deleteMany({ where: { ownerProfileId: otherProfileId, cityId: riyadh } });
   });
 
   it('remainder rules and the expiry job (partially awarded orders never expire)', async () => {
