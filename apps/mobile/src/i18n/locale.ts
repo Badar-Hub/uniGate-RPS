@@ -12,6 +12,8 @@ const LOCALE_KEY = 'unigate.locale';
 export const i18n = new I18n({ en, ar });
 i18n.enableFallback = true;
 i18n.defaultLocale = 'en';
+// The catalogues use single-brace placeholders (`{name}`), like the web app's next-intl messages.
+i18n.placeholder = /\{([^{}]+)\}/gm;
 
 function isLocale(value: unknown): value is Locale {
   return typeof value === 'string' && (LOCALES as readonly string[]).includes(value);

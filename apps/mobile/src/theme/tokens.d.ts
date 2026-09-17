@@ -6,6 +6,7 @@ export interface PaletteScheme {
   mutedForeground: string;
   border: string;
   card: string;
+  destructive: string;
 }
 export declare const colors: Record<string, string | Record<string, string>>;
 export declare const palette: { light: PaletteScheme; dark: PaletteScheme };

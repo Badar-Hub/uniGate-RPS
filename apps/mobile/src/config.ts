@@ -19,10 +19,16 @@ const fromExtra =
     ? str((extra as { apiUrl?: unknown }).apiUrl)
     : undefined;
 const fromEnv = str(process.env['EXPO_PUBLIC_API_URL']);
+const mapsAndroidKeyConfigured =
+  typeof extra === 'object' && extra !== null
+    ? (extra as { mapsAndroidKeyConfigured?: unknown }).mapsAndroidKeyConfigured === true
+    : false;
 
 export const config = {
   apiUrl: (fromExtra ?? fromEnv ?? DEFAULT_API_URL).replace(/\/+$/, ''),
   appVersion: Constants.expoConfig?.version ?? '0.0.0',
+  /** Android Google Maps key present in the native config (EXPO_PUBLIC_MAPS_ANDROID_KEY at build time). */
+  mapsAndroidKeyConfigured,
 } as const;
 
 /** The `clientType` the API keys token transport on (api.md §6.2). Web is never used by this app. */

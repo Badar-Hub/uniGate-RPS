@@ -13,6 +13,8 @@ import type { MeDto } from '@unigate/types';
 import { ApiRequestError, client } from '@/lib/api';
 import { sessionEvents } from '@/lib/auth/events';
 import { tokens } from '@/lib/auth/tokens';
+import { unregisterPush } from '@/lib/push';
+import { disconnectRealtime } from '@/lib/realtime';
 import { audienceOf, type Audience } from '@/lib/tabs';
 
 export type SessionStatus = 'loading' | 'signedOut' | 'signedIn';
@@ -68,6 +70,7 @@ export function SessionProvider({ children }: { children: ReactNode }) {
   useEffect(
     () =>
       sessionEvents.onSignedOut(() => {
+        disconnectRealtime();
         queryClient.clear();
         setStatus('signedOut');
       }),
@@ -100,6 +103,9 @@ export function SessionProvider({ children }: { children: ReactNode }) {
   );
 
   const signOut = useCallback(async () => {
+    // Deactivate the push token while the access token is still valid, then revoke the session.
+    await unregisterPush();
+    disconnectRealtime();
     try {
       await logoutCall(client);
     } catch {

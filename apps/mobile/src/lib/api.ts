@@ -3,6 +3,7 @@ import { config, platformClientType } from '@/config';
 import { sessionEvents } from '@/lib/auth/events';
 import { tokens } from '@/lib/auth/tokens';
 import { currentLocale } from '@/i18n/locale';
+import { refreshRealtimeAuth } from '@/lib/realtime';
 
 /**
  * The one API client for the app (api.md §6.2 mobile mode). Refresh flow: on a 401
@@ -20,6 +21,8 @@ async function refreshSession(): Promise<boolean> {
     return false;
   }
   await tokens.setPair(result.data.tokens);
+  // A live socket keeps its rooms only while its token is valid (api.md §9.1).
+  refreshRealtimeAuth();
   return true;
 }
 

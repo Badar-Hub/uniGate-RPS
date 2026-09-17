@@ -31,6 +31,7 @@ const palette = {
     mutedForeground: '#71717a',
     border: '#e4e4e7',
     card: '#ffffff',
+    destructive: '#ef4444',
   },
   dark: {
     background: '#09090b',
@@ -40,6 +41,7 @@ const palette = {
     mutedForeground: '#a1a1aa',
     border: '#27272a',
     card: '#09090b',
+    destructive: '#7f1d1d',
   },
 };
 

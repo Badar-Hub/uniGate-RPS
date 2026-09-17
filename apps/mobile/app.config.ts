@@ -8,6 +8,12 @@ import type { ConfigContext, ExpoConfig } from 'expo/config';
  */
 const DEFAULT_API_URL = 'http://172.23.65.81:4000/api/v1';
 const apiUrl = (process.env['EXPO_PUBLIC_API_URL'] ?? DEFAULT_API_URL).replace(/\/+$/, '');
+/**
+ * Google Maps key for Android (react-native-maps). Optional: without it the live-tracking screen
+ * shows the coordinates card instead of tiles (Expo Go on Android never has our key anyway).
+ * iOS uses Apple Maps and needs nothing.
+ */
+const mapsAndroidKey = process.env['EXPO_PUBLIC_MAPS_ANDROID_KEY'] ?? '';
 
 export default ({ config }: ConfigContext): ExpoConfig => ({
   ...config,
@@ -35,6 +41,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
       monochromeImage: './assets/images/android-icon-monochrome.png',
     },
     predictiveBackGestureEnabled: false,
+    ...(mapsAndroidKey ? { config: { googleMaps: { apiKey: mapsAndroidKey } } } : {}),
   },
   plugins: [
     'expo-router',
@@ -46,9 +53,13 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
       { backgroundColor: '#0a7050', image: './assets/images/splash-icon.png', imageWidth: 120 },
     ],
     ['expo-notifications', { color: '#0a7050' }],
+    '@react-native-community/datetimepicker',
+    'expo-web-browser',
   ],
   experiments: { typedRoutes: true },
   extra: {
     apiUrl,
+    // Only the fact that a key exists is exposed to JS; the key itself lives in the native manifest.
+    mapsAndroidKeyConfigured: mapsAndroidKey.length > 0,
   },
 });
