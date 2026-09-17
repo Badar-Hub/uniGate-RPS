@@ -203,7 +203,8 @@ describeDb('payments', () => {
     // decline through the dev endpoint (which delivers the webhook to our own route and processes it)
     const a = await book(140);
     const p1 = await pay(customer, { bookingId: a.bookingId, amount: '1150.00', currency: 'SAR', methodType: 'MADA', returnUrl: RETURN });
-    const declined = await bearer(request(h.app).post(`/api/v1/payments/mock/checkout/${p1.body.data.payment.providerPaymentId}`), customer).send({ outcome: 'DECLINE' });
+    // The hosted page carries no session with us (the phone's in-app browser has no portal cookies): public, like a real gateway page.
+    const declined = await request(h.app).post(`/api/v1/payments/mock/checkout/${p1.body.data.payment.providerPaymentId}`).send({ outcome: 'DECLINE' });
     expect(declined.status, JSON.stringify(declined.body)).toBe(200);
     expect((await bearer(request(h.app).get(`/api/v1/payments/${p1.body.data.payment.id}`), customer)).body.data).toMatchObject({ status: 'FAILED', failureCode: 'DO_NOT_HONOR' });
     expect((await bearer(request(h.app).get(`/api/v1/bookings/${a.bookingId}`), customer)).body.data.status).toBe('PENDING_PAYMENT');

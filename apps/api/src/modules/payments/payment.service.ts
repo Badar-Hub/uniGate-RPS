@@ -79,6 +79,8 @@ function assertReturnUrl(url: string): void {
   const u = new URL(url);
   const scheme = config().mobileDeepLinkScheme;
   if (u.protocol === `${scheme}:`) return;
+  // Expo Go (development only) opens the app through exp:// links instead of the custom scheme.
+  if (!config().isProduction && (u.protocol === 'exp:' || u.protocol === 'exps:')) return;
   const allowed = [config().appUrl, ...config().corsOrigins].map((o) => new URL(o).origin);
   if (!allowed.includes(u.origin)) throw new BusinessRuleError('PAYMENT_RETURN_URL_NOT_ALLOWED', 'returnUrl must be on an allow-listed origin or the mobile app scheme', { origin: u.origin });
 }

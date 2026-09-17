@@ -9,7 +9,7 @@ import { mockGateway } from '@/integrations/payments/index.js';
 import { authenticate, requirePermission, scopeFor } from '@/middleware/authenticate.js';
 import { csrfGuard } from '@/middleware/csrf.js';
 import { idempotent } from '@/middleware/idempotency.js';
-import { providerTier } from '@/middleware/rate-limit.js';
+import { providerTier, routeTier } from '@/middleware/rate-limit.js';
 import { validate, type ValidatedRequest } from '@/middleware/validate.js';
 import { HEADER_IDEMPOTENCY_KEY } from '@unigate/types';
 import * as payments from './payment.service.js';
@@ -37,6 +37,27 @@ export function paymentsRouter(): Router {
     // Answer first; the job does the work (target < 200 ms).
     res.status(200).json(ok(receipt));
     if (eventRowId) enqueueWebhookProcessing(eventRowId);
+  }));
+
+  // Development only: the MockGateway's "hosted page" drives the outcome. A real provider's page needs
+  // no session with us, and neither does this one — the phone's in-app browser has no portal cookies.
+  // Refused outright without the mock gateway or in production; the provider payment id is the only handle.
+  r.post('/payments/mock/checkout/:providerPaymentId', routeTier('mock-checkout', { limit: 30, seconds: 60 }), validate({ body: mockCheckoutBody }), h(async (req, res) => {
+    const g = mockGateway();
+    if (!g || config().isProduction) throw new NotFoundError('ROUTE_NOT_FOUND', 'The mock checkout exists only with the mock gateway outside production');
+    const { body } = (req as R<z.infer<typeof mockCheckoutBody>>).validated;
+    const providerPaymentId = String(req.params['providerPaymentId'] ?? '');
+    const deliveries = g.simulateCheckout(providerPaymentId, body.outcome, body.last4);
+    const receipts = [];
+    if (body.deliverWebhook) {
+      // The gateway "calls" our own webhook route: signature, persist-first and the job all run for real.
+      for (const d of deliveries) {
+        const { receipt, eventRowId } = await ingestWebhook(g.code, d.body, d.headers);
+        if (eventRowId) await processWebhookEvent(eventRowId);
+        receipts.push(receipt);
+      }
+    }
+    sendOk(res, { outcome: body.outcome, delivered: receipts });
   }));
 
   r.use(['/payments', '/refunds'], authenticate(), csrfGuard());
@@ -79,24 +100,6 @@ export function paymentsRouter(): Router {
     sendOk(res, await payments.cancelPayment(scopeFor(req, 'payments.manage', 'OWN'), params.id, body.reason));
   }));
 
-  // ── development only: drive the MockGateway checkout ──────────────────────
-  r.post('/payments/mock/checkout/:providerPaymentId', requirePermission('payments.create'), validate({ body: mockCheckoutBody }), h(async (req, res) => {
-    const g = mockGateway();
-    if (!g || config().isProduction) throw new NotFoundError('ROUTE_NOT_FOUND', 'The mock checkout exists only with the mock gateway outside production');
-    const { body } = (req as R<z.infer<typeof mockCheckoutBody>>).validated;
-    const providerPaymentId = String(req.params['providerPaymentId'] ?? '');
-    const deliveries = g.simulateCheckout(providerPaymentId, body.outcome, body.last4);
-    const receipts = [];
-    if (body.deliverWebhook) {
-      // The gateway "calls" our own webhook route: signature, persist-first and the job all run for real.
-      for (const d of deliveries) {
-        const { receipt, eventRowId } = await ingestWebhook(g.code, d.body, d.headers);
-        if (eventRowId) await processWebhookEvent(eventRowId);
-        receipts.push(receipt);
-      }
-    }
-    sendOk(res, { outcome: body.outcome, delivered: receipts });
-  }));
 
   // ── refunds ───────────────────────────────────────────────────────────────
   r.get('/refunds', requirePermission('payments.read'), validate({ query: listRefundsQuery }), h(async (req, res: Response) => {
