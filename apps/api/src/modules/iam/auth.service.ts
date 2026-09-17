@@ -21,7 +21,7 @@ import {
 import { newId } from '@/common/ids.js';
 import { maskPhone } from '@/common/redact.js';
 import { getRequestId } from '@/common/request-context.js';
-import { enforce, hit, reset } from '@/common/throttle.js';
+import { enforce, hit, peek, reset } from '@/common/throttle.js';
 import { config } from '@/config/index.js';
 import { prisma } from '@/database/prisma.js';
 import { logger } from '@/logging/logger.js';
@@ -107,41 +107,46 @@ export async function login(body: z.infer<typeof loginBody>, meta: RequestMeta) 
   const idh = identifierHash(identifier);
   const iph = meta.ipAddress ? sha256Hex(meta.ipAddress) : 'noip';
 
-  // Progressive delay before the Argon2 verify (security.md §3.3); throttles on the pair.
-  await enforce('RATE_LIMITED', [
-    { key: `login:fail:ip:${iph}`, window: { limit: 20, seconds: 900 } },
-    { key: `login:fail:id_ip:${idh}:${iph}`, window: { limit: 5, seconds: 900 } },
+  // security.md §3.3: the counters hold FAILURES. They are read here (never incremented — a
+  // successful sign-in must not move them, or twenty colleagues behind one NAT lock each other
+  // out) and incremented in recordAttempt() on every failed outcome. Progressive delay before
+  // the Argon2 verify follows the per-identifier failure count.
+  const [ipFailures, pairFailures, idFailures] = await Promise.all([
+    peek(`login:fail:ip:${iph}`, LOGIN_WINDOWS.ip),
+    peek(`login:fail:id_ip:${idh}:${iph}`, LOGIN_WINDOWS.pair),
+    peek(`login:fail:id:${idh}`, LOGIN_WINDOWS.id),
   ]);
-  const idFailures = await hit(`login:fail:id:${idh}`, { limit: 12, seconds: 900 });
-  if (idFailures.exceeded) {
-    await recordAttempt(identifier, idh, meta, false, 'SOFT_LOCK');
+  if (ipFailures >= LOGIN_WINDOWS.ip.limit || pairFailures >= LOGIN_WINDOWS.pair.limit) throw new RateLimitError(LOGIN_WINDOWS.ip.seconds, 'RATE_LIMITED', 'Too many attempts');
+  if (idFailures >= LOGIN_WINDOWS.id.limit) {
+    await recordAttempt(identifier, idh, meta, false, 'SOFT_LOCK', iph);
     throw new RateLimitError(900, 'AUTH_ACCOUNT_LOCKED', 'Too many failed attempts; try again later');
   }
-  await delayFor(idFailures.count);
+  await delayFor(idFailures);
 
   const user = await users.findUserForLogin(scope, identifier);
   if (!user?.passwordHash) {
     await dummyVerify(body.password);
-    await recordAttempt(identifier, idh, meta, false, 'UNKNOWN_OR_NO_PASSWORD');
+    await recordAttempt(identifier, idh, meta, false, 'UNKNOWN_OR_NO_PASSWORD', iph);
     throw new UnauthorizedError('AUTH_INVALID_CREDENTIALS', 'Invalid credentials');
   }
   const { ok, needsRehash } = await verifyPassword(user.passwordHash, body.password);
   if (!ok) {
-    await recordAttempt(identifier, idh, meta, false, 'BAD_PASSWORD');
+    await recordAttempt(identifier, idh, meta, false, 'BAD_PASSWORD', iph);
     throw new UnauthorizedError('AUTH_INVALID_CREDENTIALS', 'Invalid credentials');
   }
   if (user.status === 'SUSPENDED' || user.status === 'DEACTIVATED') {
-    await recordAttempt(identifier, idh, meta, false, 'SUSPENDED');
+    await recordAttempt(identifier, idh, meta, false, 'SUSPENDED', iph);
     throw new ForbiddenError('AUTH_ACCOUNT_SUSPENDED', 'Account is suspended');
   }
   if (user.status === 'PENDING_VERIFICATION') {
-    await recordAttempt(identifier, idh, meta, false, 'PENDING_VERIFICATION');
+    await recordAttempt(identifier, idh, meta, false, 'PENDING_VERIFICATION', iph);
     throw new ForbiddenError('AUTH_PHONE_NOT_VERIFIED', 'Verify your phone number to continue');
   }
   if (needsRehash) {
     await prisma().user.update({ where: { id: user.id }, data: { passwordHash: await hashPassword(body.password) } });
   }
-  // A successful login clears the per-identifier counter but not the per-IP one.
+  // A successful login clears the per-identifier counters but not the per-IP one (a real attacker
+  // who guesses one account still burns their IP budget).
   await reset(`login:fail:id:${idh}`);
   await reset(`login:fail:id_ip:${idh}:${iph}`);
   await recordAttempt(identifier, idh, meta, true, null);
@@ -170,10 +175,19 @@ async function delayFor(failures: number): Promise<void> {
   if (ms && !config().isTest) await new Promise((r) => setTimeout(r, ms));
 }
 
-async function recordAttempt(identifier: string, idh: string, meta: RequestMeta, succeeded: boolean, failureReason: string | null): Promise<void> {
+const LOGIN_WINDOWS = {
+  ip: { limit: 20, seconds: 900 },
+  pair: { limit: 5, seconds: 900 },
+  id: { limit: 12, seconds: 900 },
+} as const;
+
+async function recordAttempt(identifier: string, idh: string, meta: RequestMeta, succeeded: boolean, failureReason: string | null, iph?: string): Promise<void> {
   await prisma().loginAttempt.create({
     data: { id: newId(), identifier, identifierHash: idh, ipAddress: meta.ipAddress, userAgent: meta.userAgent, succeeded, failureReason },
   });
+  if (!succeeded && iph) {
+    await Promise.all([hit(`login:fail:ip:${iph}`, LOGIN_WINDOWS.ip), hit(`login:fail:id_ip:${idh}:${iph}`, LOGIN_WINDOWS.pair), hit(`login:fail:id:${idh}`, LOGIN_WINDOWS.id)]);
+  }
 }
 
 // ── sessions & tokens ────────────────────────────────────────────────────────

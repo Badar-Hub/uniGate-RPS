@@ -66,6 +66,21 @@ describeDb('auth lifecycle', () => {
     expect(attempts).toBeGreaterThanOrEqual(2);
   });
 
+  it('login throttles count failures only: 25 successful sign-ins from one IP pass, 5 wrong passwords lock the pair', async () => {
+    await clearThrottles();
+    for (let i = 0; i < 25; i++) {
+      const ok = await request(h.app).post('/api/v1/auth/login').send({ identifier: h.adminEmail, password: h.adminPassword, clientType: 'IOS', deviceId: 'throttle-device-0001' });
+      expect(ok.status, `sign-in ${i}: ${JSON.stringify(ok.body)}`).toBe(200);
+    }
+    for (let i = 0; i < 5; i++) {
+      expect((await request(h.app).post('/api/v1/auth/login').send({ identifier: h.adminEmail, password: 'definitely-wrong-pw-1', clientType: 'IOS' })).status).toBe(401);
+    }
+    const locked = await request(h.app).post('/api/v1/auth/login').send({ identifier: h.adminEmail, password: h.adminPassword, clientType: 'IOS' });
+    expect(locked.status).toBe(429);
+    expect(locked.body.error.code).toBe('RATE_LIMITED');
+    await clearThrottles();
+  });
+
   it('rotates refresh tokens and detects replay: whole family + session revoked', async () => {
     await clearThrottles();
     const first = await loginBearer(h.app, phone, password);
