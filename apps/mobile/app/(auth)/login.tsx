@@ -118,6 +118,9 @@ export default function LoginScreen() {
             value={password}
             onChangeText={setPassword}
             secureTextEntry
+            autoCapitalize="none"
+            autoCorrect={false}
+            spellCheck={false}
             textContentType="password"
             autoComplete="password"
             onSubmitEditing={() => void submit()}
