@@ -591,7 +591,9 @@
         "shipperPhone": "Shipper phone",
         "consignee": "Consignee contact",
         "consigneePhone": "Consignee phone"
-      }
+      },
+      "pickupTooSoon": "Pickup is too soon — bidding needs at least {hours} h before pickup. Choose a later time.",
+      "pickupLeadHint": "At least {hours} h from now, so vendors have time to bid."
     },
     "detail": {
       "awardedOf": "{awarded}/{required} vehicles awarded",

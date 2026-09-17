@@ -611,7 +611,8 @@
         "created": "Request created.",
         "published": "Request published to {count} matching owners.",
         "customer": "Customer (raising on their behalf)",
-        "customerPlaceholder": "Choose the customer"
+        "customerPlaceholder": "Choose the customer",
+        "pickupTooSoon": "Pickup is too soon — bidding must still be open before the pickup time. Choose a later time."
       },
       "detail": {
         "publish": "Publish",

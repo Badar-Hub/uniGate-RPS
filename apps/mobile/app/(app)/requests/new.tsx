@@ -2,7 +2,12 @@ import { useMemo, useState } from 'react';
 import { Text, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { idempotencyKey } from '@unigate/api-client';
-import { CARGO_TYPE, LOADING_RESPONSIBILITY, TRIP_PURPOSE, type TripRequestDto } from '@unigate/types';
+import {
+  CARGO_TYPE,
+  LOADING_RESPONSIBILITY,
+  TRIP_PURPOSE,
+  type TripRequestDto,
+} from '@unigate/types';
 import { DateTimeField } from '@/components/date-time-field';
 import { SelectField } from '@/components/select-field';
 import {
@@ -19,7 +24,16 @@ import {
 import { useAction } from '@/hooks/use-action';
 import { useI18n } from '@/i18n';
 import { api } from '@/lib/api';
-import { keys, settingValue, stringList, useCities, useInvalidate, usePublicSettings, useSavedLocations, useVehicleCategories } from '@/lib/queries';
+import {
+  keys,
+  settingValue,
+  stringList,
+  useCities,
+  useInvalidate,
+  usePublicSettings,
+  useSavedLocations,
+  useVehicleCategories,
+} from '@/lib/queries';
 import { enumLabel } from '@/lib/status';
 import {
   buildTripRequestBody,
@@ -56,6 +70,13 @@ export default function NewRequestScreen() {
     const v = stringList(settingValue(settings.data, 'platform.verticals_enabled'));
     return v.length ? v : ['PASSENGER'];
   }, [settings.data]);
+  // Lead time the API enforces (booking.min_lead_time_hours; bidding must still be open, i.e.
+  // pickup − bidding.close_before_pickup_hours > now). Both settings are PUBLIC.
+  const leadHours = useMemo(() => {
+    const min = Number(settingValue(settings.data, 'booking.min_lead_time_hours') ?? 0);
+    const close = Number(settingValue(settings.data, 'bidding.close_before_pickup_hours') ?? 0);
+    return Math.max(Number.isFinite(min) ? min : 0, Number.isFinite(close) ? close : 0);
+  }, [settings.data]);
   const categories = useVehicleCategories(form.transportType);
   const cities = useCities();
   const saved = useSavedLocations();
@@ -74,15 +95,29 @@ export default function NewRequestScreen() {
     if (c) return t(c);
     return action.fields[key];
   };
+  // The API reports a too-soon pickup on biddingClosesAt (the derived deadline); the customer only sees the pickup time.
+  const pickupError =
+    fe('pickupAt') ??
+    (action.fields['biddingClosesAt']
+      ? t('requests.form.pickupTooSoon', { hours: leadHours })
+      : undefined);
 
   const label = (x: { nameEn: string; nameAr: string }) => (locale === 'ar' ? x.nameAr : x.nameEn);
   const cityOptions = (cities.data ?? []).map((c) => ({ value: c.id, label: label(c) }));
   const categoryOptions = (categories.data ?? []).map((c) => ({
     value: c.id,
     label: label(c),
-    hint: c.maxPassengerCapacity ? t('requests.form.seats', { count: c.maxPassengerCapacity }) : c.maxPayloadKg ? t('requests.form.payload', { kg: c.maxPayloadKg }) : undefined,
+    hint: c.maxPassengerCapacity
+      ? t('requests.form.seats', { count: c.maxPassengerCapacity })
+      : c.maxPayloadKg
+        ? t('requests.form.payload', { kg: c.maxPayloadKg })
+        : undefined,
   }));
-  const savedOptions = (saved.data ?? []).map((s) => ({ value: s.id, label: s.label, hint: s.addressLine }));
+  const savedOptions = (saved.data ?? []).map((s) => ({
+    value: s.id,
+    label: s.label,
+    hint: s.addressLine,
+  }));
 
   const applySaved = (which: 'pickup' | 'dropoff', id: string) => {
     const s = saved.data?.find((x) => x.id === id);
@@ -99,13 +134,26 @@ export default function NewRequestScreen() {
     setClientErrors(errors);
     action.clear();
     if (Object.keys(errors).length) return;
-    const body = buildTripRequestBody(form, passenger, goods, { cities: cities.data ?? [], saved: saved.data ?? [] }, publish);
+    const body = buildTripRequestBody(
+      form,
+      passenger,
+      goods,
+      { cities: cities.data ?? [], saved: saved.data ?? [] },
+      publish,
+    );
     const created = await action.run(() =>
-      api<TripRequestDto>('/trip-requests', { method: 'POST', body, headers: { 'Idempotency-Key': idempotencyKey() } }),
+      api<TripRequestDto>('/trip-requests', {
+        method: 'POST',
+        body,
+        headers: { 'Idempotency-Key': idempotencyKey() },
+      }),
     );
     if (!created) return;
     await invalidate(keys.requests);
-    router.replace({ pathname: '/requests/[id]', params: { id: created.id, created: publish ? 'published' : 'draft' } });
+    router.replace({
+      pathname: '/requests/[id]',
+      params: { id: created.id, created: publish ? 'published' : 'draft' },
+    });
   };
 
   const multi = Number(form.vehiclesRequired) > 1;
@@ -217,8 +265,9 @@ export default function NewRequestScreen() {
         onChange={(d) => {
           set('pickupAt', d);
         }}
-        minimumDate={new Date()}
-        error={fe('pickupAt')}
+        minimumDate={new Date(new Date().getTime() + leadHours * 3_600_000)}
+        error={pickupError}
+        hint={leadHours > 0 ? t('requests.form.pickupLeadHint', { hours: leadHours }) : undefined}
         doneLabel={t('common.done')}
       />
 
@@ -289,7 +338,10 @@ export default function NewRequestScreen() {
           <SelectField
             label={t('requests.form.purpose')}
             value={passenger.tripPurpose}
-            options={TRIP_PURPOSE.map((p) => ({ value: p, label: enumLabel({ t, has }, 'tripPurpose', p) }))}
+            options={TRIP_PURPOSE.map((p) => ({
+              value: p,
+              label: enumLabel({ t, has }, 'tripPurpose', p),
+            }))}
             onChange={(v) => {
               setP('tripPurpose', v);
             }}
@@ -303,8 +355,20 @@ export default function NewRequestScreen() {
             keyboardType="number-pad"
             error={fe('passengerDetails.childSeatsRequired')}
           />
-          <CheckRow label={t('requests.form.wheelchair')} value={passenger.wheelchair} onChange={(v) => { setP('wheelchair', v); }} />
-          <CheckRow label={t('requests.form.femaleDriver')} value={passenger.femaleDriver} onChange={(v) => { setP('femaleDriver', v); }} />
+          <CheckRow
+            label={t('requests.form.wheelchair')}
+            value={passenger.wheelchair}
+            onChange={(v) => {
+              setP('wheelchair', v);
+            }}
+          />
+          <CheckRow
+            label={t('requests.form.femaleDriver')}
+            value={passenger.femaleDriver}
+            onChange={(v) => {
+              setP('femaleDriver', v);
+            }}
+          />
         </>
       ) : (
         <>
@@ -312,73 +376,211 @@ export default function NewRequestScreen() {
           <SelectField
             label={t('requests.form.goods.cargoType')}
             value={goods.cargoType}
-            options={CARGO_TYPE.map((c) => ({ value: c, label: enumLabel({ t, has }, 'cargoType', c) }))}
+            options={CARGO_TYPE.map((c) => ({
+              value: c,
+              label: enumLabel({ t, has }, 'cargoType', c),
+            }))}
             onChange={(v) => {
               setG('cargoType', v);
             }}
             error={fe('goodsDetails') ?? fe('goodsDetails.cargoType')}
           />
           <Label>{t('requests.form.goods.description')}</Label>
-          <Field value={goods.cargoDescription} onChangeText={(v) => { setG('cargoDescription', v); }} error={fe('goodsDetails.cargoDescription')} />
+          <Field
+            value={goods.cargoDescription}
+            onChangeText={(v) => {
+              setG('cargoDescription', v);
+            }}
+            error={fe('goodsDetails.cargoDescription')}
+          />
           <Label>{t('requests.form.goods.weight')}</Label>
-          <Field value={goods.cargoWeightKg} onChangeText={(v) => { setG('cargoWeightKg', v); }} keyboardType="decimal-pad" error={fe('goodsDetails.cargoWeightKg')} />
+          <Field
+            value={goods.cargoWeightKg}
+            onChangeText={(v) => {
+              setG('cargoWeightKg', v);
+            }}
+            keyboardType="decimal-pad"
+            error={fe('goodsDetails.cargoWeightKg')}
+          />
           <Label>{t('requests.form.goods.volume')}</Label>
-          <Field value={goods.cargoVolumeM3} onChangeText={(v) => { setG('cargoVolumeM3', v); }} keyboardType="decimal-pad" error={fe('goodsDetails.cargoVolumeM3')} />
+          <Field
+            value={goods.cargoVolumeM3}
+            onChangeText={(v) => {
+              setG('cargoVolumeM3', v);
+            }}
+            keyboardType="decimal-pad"
+            error={fe('goodsDetails.cargoVolumeM3')}
+          />
           <Label>{t('requests.form.goods.packages')}</Label>
-          <Field value={goods.packageCount} onChangeText={(v) => { setG('packageCount', v.replace(/[^0-9]/g, '')); }} keyboardType="number-pad" error={fe('goodsDetails.packageCount')} />
+          <Field
+            value={goods.packageCount}
+            onChangeText={(v) => {
+              setG('packageCount', v.replace(/[^0-9]/g, ''));
+            }}
+            keyboardType="number-pad"
+            error={fe('goodsDetails.packageCount')}
+          />
           <SelectField
             label={t('requests.form.goods.loading')}
             value={goods.loadingResponsibility}
-            options={LOADING_RESPONSIBILITY.map((r) => ({ value: r, label: enumLabel({ t, has }, 'responsibility', r) }))}
-            onChange={(v) => { setG('loadingResponsibility', v); }}
+            options={LOADING_RESPONSIBILITY.map((r) => ({
+              value: r,
+              label: enumLabel({ t, has }, 'responsibility', r),
+            }))}
+            onChange={(v) => {
+              setG('loadingResponsibility', v);
+            }}
           />
           <SelectField
             label={t('requests.form.goods.unloading')}
             value={goods.unloadingResponsibility}
-            options={LOADING_RESPONSIBILITY.map((r) => ({ value: r, label: enumLabel({ t, has }, 'responsibility', r) }))}
-            onChange={(v) => { setG('unloadingResponsibility', v); }}
+            options={LOADING_RESPONSIBILITY.map((r) => ({
+              value: r,
+              label: enumLabel({ t, has }, 'responsibility', r),
+            }))}
+            onChange={(v) => {
+              setG('unloadingResponsibility', v);
+            }}
           />
-          <CheckRow label={t('requests.form.goods.refrigeration')} value={goods.requiresRefrigeration} onChange={(v) => { setG('requiresRefrigeration', v); }} />
+          <CheckRow
+            label={t('requests.form.goods.refrigeration')}
+            value={goods.requiresRefrigeration}
+            onChange={(v) => {
+              setG('requiresRefrigeration', v);
+            }}
+          />
           {goods.requiresRefrigeration ? (
             <View className="mb-2 flex-row items-center gap-2">
               <View className="flex-1">
                 <Label>{t('requests.form.goods.tempMin')}</Label>
-                <Field value={goods.tempMin} onChangeText={(v) => { setG('tempMin', v); }} keyboardType="numbers-and-punctuation" />
+                <Field
+                  value={goods.tempMin}
+                  onChangeText={(v) => {
+                    setG('tempMin', v);
+                  }}
+                  keyboardType="numbers-and-punctuation"
+                />
               </View>
               <View className="flex-1">
                 <Label>{t('requests.form.goods.tempMax')}</Label>
-                <Field value={goods.tempMax} onChangeText={(v) => { setG('tempMax', v); }} keyboardType="numbers-and-punctuation" />
+                <Field
+                  value={goods.tempMax}
+                  onChangeText={(v) => {
+                    setG('tempMax', v);
+                  }}
+                  keyboardType="numbers-and-punctuation"
+                />
               </View>
             </View>
           ) : null}
-          <CheckRow label={t('requests.form.goods.tailLift')} value={goods.requiresTailLift} onChange={(v) => { setG('requiresTailLift', v); }} />
-          <CheckRow label={t('requests.form.goods.crane')} value={goods.requiresCrane} onChange={(v) => { setG('requiresCrane', v); }} />
-          <CheckRow label={t('requests.form.goods.insurance')} value={goods.requiresInsurance} onChange={(v) => { setG('requiresInsurance', v); }} />
+          <CheckRow
+            label={t('requests.form.goods.tailLift')}
+            value={goods.requiresTailLift}
+            onChange={(v) => {
+              setG('requiresTailLift', v);
+            }}
+          />
+          <CheckRow
+            label={t('requests.form.goods.crane')}
+            value={goods.requiresCrane}
+            onChange={(v) => {
+              setG('requiresCrane', v);
+            }}
+          />
+          <CheckRow
+            label={t('requests.form.goods.insurance')}
+            value={goods.requiresInsurance}
+            onChange={(v) => {
+              setG('requiresInsurance', v);
+            }}
+          />
           <Label>{t('requests.form.goods.declaredValue')}</Label>
-          <Field value={goods.declaredValue} onChangeText={(v) => { setG('declaredValue', v); }} keyboardType="decimal-pad" error={fe('goodsDetails.declaredValueAmount')} />
+          <Field
+            value={goods.declaredValue}
+            onChangeText={(v) => {
+              setG('declaredValue', v);
+            }}
+            keyboardType="decimal-pad"
+            error={fe('goodsDetails.declaredValueAmount')}
+          />
           <Label>{t('requests.form.goods.loadingInstructions')}</Label>
-          <Field value={goods.loadingInstructions} onChangeText={(v) => { setG('loadingInstructions', v); }} />
+          <Field
+            value={goods.loadingInstructions}
+            onChangeText={(v) => {
+              setG('loadingInstructions', v);
+            }}
+          />
           <Label>{t('requests.form.goods.shipper')}</Label>
-          <Field value={goods.shipperName} onChangeText={(v) => { setG('shipperName', v); }} />
+          <Field
+            value={goods.shipperName}
+            onChangeText={(v) => {
+              setG('shipperName', v);
+            }}
+          />
           <Label>{t('requests.form.goods.shipperPhone')}</Label>
-          <Field value={goods.shipperPhone} onChangeText={(v) => { setG('shipperPhone', v); }} keyboardType="phone-pad" placeholder="+9665XXXXXXXX" error={fe('goodsDetails.shipperContactPhone')} />
+          <Field
+            value={goods.shipperPhone}
+            onChangeText={(v) => {
+              setG('shipperPhone', v);
+            }}
+            keyboardType="phone-pad"
+            placeholder="+9665XXXXXXXX"
+            error={fe('goodsDetails.shipperContactPhone')}
+          />
           <Label>{t('requests.form.goods.consignee')}</Label>
-          <Field value={goods.consigneeName} onChangeText={(v) => { setG('consigneeName', v); }} />
+          <Field
+            value={goods.consigneeName}
+            onChangeText={(v) => {
+              setG('consigneeName', v);
+            }}
+          />
           <Label>{t('requests.form.goods.consigneePhone')}</Label>
-          <Field value={goods.consigneePhone} onChangeText={(v) => { setG('consigneePhone', v); }} keyboardType="phone-pad" placeholder="+9665XXXXXXXX" error={fe('goodsDetails.consigneeContactPhone')} />
+          <Field
+            value={goods.consigneePhone}
+            onChangeText={(v) => {
+              setG('consigneePhone', v);
+            }}
+            keyboardType="phone-pad"
+            placeholder="+9665XXXXXXXX"
+            error={fe('goodsDetails.consigneeContactPhone')}
+          />
         </>
       )}
 
       <SectionTitle>{t('requests.form.extras')}</SectionTitle>
       <Label>{t('requests.form.budget')}</Label>
-      <Field value={form.budget} onChangeText={(v) => { set('budget', v); }} keyboardType="decimal-pad" error={fe('budgetAmount')} />
+      <Field
+        value={form.budget}
+        onChangeText={(v) => {
+          set('budget', v);
+        }}
+        keyboardType="decimal-pad"
+        error={fe('budgetAmount')}
+      />
       <Label>{t('requests.form.instructions')}</Label>
-      <TextArea value={form.instructions} onChangeText={(v) => { set('instructions', v); }} error={fe('specialInstructions')} />
+      <TextArea
+        value={form.instructions}
+        onChangeText={(v) => {
+          set('instructions', v);
+        }}
+        error={fe('specialInstructions')}
+      />
 
-      <Text className="mb-3 text-xs text-muted-foreground text-start">{t('requests.form.coordinatesHint')}</Text>
-      <Button title={t('requests.form.publishNow')} loading={action.busy} onPress={() => void submit(true)} />
+      <Text className="mb-3 text-xs text-muted-foreground text-start">
+        {t('requests.form.coordinatesHint')}
+      </Text>
+      <Button
+        title={t('requests.form.publishNow')}
+        loading={action.busy}
+        onPress={() => void submit(true)}
+      />
       <View className="mt-3">
-        <Button title={t('requests.form.saveDraft')} variant="secondary" disabled={action.busy} onPress={() => void submit(false)} />
+        <Button
+          title={t('requests.form.saveDraft')}
+          variant="secondary"
+          disabled={action.busy}
+          onPress={() => void submit(false)}
+        />
       </View>
     </FormScreen>
   );

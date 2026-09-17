@@ -19,6 +19,7 @@ export function DateTimeField({
   value,
   onChange,
   error,
+  hint,
   minimumDate,
   doneLabel,
 }: {
@@ -26,6 +27,8 @@ export function DateTimeField({
   value: Date | null;
   onChange: (value: Date) => void;
   error?: string | undefined;
+  /** Shown under the field when there is no error (e.g. the minimum lead time). */
+  hint?: string | undefined;
   minimumDate?: Date | undefined;
   doneLabel: string;
 }) {
@@ -80,7 +83,11 @@ export function DateTimeField({
         </Text>
         <Ionicons name="calendar-outline" size={18} color={colors.mutedForeground} />
       </Pressable>
-      {error ? <Text className="mt-1 text-xs text-destructive text-start">{error}</Text> : null}
+      {error ? (
+        <Text className="mt-1 text-xs text-destructive text-start">{error}</Text>
+      ) : hint ? (
+        <Text className="mt-1 text-xs text-muted-foreground text-start">{hint}</Text>
+      ) : null}
 
       {Platform.OS === 'ios' ? (
         <Modal

@@ -277,7 +277,7 @@ export function RequestForm() {
               </SelectContent>
             </Select>
           </Field>
-          <Field id="pickupAt" label={t('pickupAt')} error={fe['pickupAt']}>
+          <Field id="pickupAt" label={t('pickupAt')} error={fe['pickupAt'] ?? (fe['biddingClosesAt'] ? t('pickupTooSoon') : undefined)}>
             <Input id="pickupAt" type="datetime-local" value={form.pickupAt} onChange={(e) => { set('pickupAt')(e.target.value); }} required dir="ltr" />
           </Field>
           <Field id="dropoffAddress" label={t('dropoffAddress')} error={fe['dropoff.addressLine']}>
