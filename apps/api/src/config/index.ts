@@ -15,6 +15,8 @@ export interface AppConfig {
   apiUrl: string;
   corsOrigins: readonly string[];
   apiDocsEnabled: boolean;
+  /** Mobile app URL scheme (payment return URLs, deep links). */
+  mobileDeepLinkScheme: string;
   databaseUrl: string;
   redisUrl: string;
   auth: {
@@ -62,6 +64,7 @@ export interface AppConfig {
     smtp: { host: string; port: number; user: string | null; password: string | null; secure: boolean };
     sms: Env['SMS_PROVIDER'];
     push: Env['PUSH_PROVIDER'];
+    expoPushAccessToken: string | null;
   };
   version: string;
 }
@@ -80,6 +83,7 @@ export function buildConfig(env: Env): AppConfig {
     apiUrl: env.API_URL,
     corsOrigins: env.CORS_ORIGINS.split(',').map((s) => s.trim()).filter(Boolean),
     apiDocsEnabled: env.API_DOCS_ENABLED,
+    mobileDeepLinkScheme: env.MOBILE_DEEP_LINK_SCHEME,
     databaseUrl: env.DATABASE_URL,
     redisUrl: env.REDIS_URL,
     auth: {
@@ -126,6 +130,7 @@ export function buildConfig(env: Env): AppConfig {
       smtp: { host: env.SMTP_HOST, port: env.SMTP_PORT, user: env.SMTP_USER ?? null, password: env.SMTP_PASSWORD ?? null, secure: env.SMTP_SECURE === 'true' },
       sms: env.SMS_PROVIDER,
       push: env.PUSH_PROVIDER,
+      expoPushAccessToken: env.EXPO_PUSH_ACCESS_TOKEN ?? null,
     },
     version: process.env['GIT_SHA'] ?? process.env['npm_package_version'] ?? 'dev',
   };

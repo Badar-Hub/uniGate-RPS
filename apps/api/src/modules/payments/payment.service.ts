@@ -69,9 +69,18 @@ export async function listTransactions(scope: AnyScope, id: string): Promise<Pay
 
 // ── create ───────────────────────────────────────────────────────────────────
 
+/**
+ * The hosted page redirects here after checkout, so the target must be ours: the portal, an
+ * allow-listed web origin, or the mobile app's own URL scheme (`unigate://pay/return?…`, opened
+ * from an in-app browser session — ADR-011). Anything else would let a crafted request send the
+ * customer, and the payment id in the query string, to a third party.
+ */
 function assertReturnUrl(url: string): void {
+  const u = new URL(url);
+  const scheme = config().mobileDeepLinkScheme;
+  if (u.protocol === `${scheme}:`) return;
   const allowed = [config().appUrl, ...config().corsOrigins].map((o) => new URL(o).origin);
-  if (!allowed.includes(new URL(url).origin)) throw new BusinessRuleError('PAYMENT_RETURN_URL_NOT_ALLOWED', 'returnUrl must be on an allow-listed origin', { origin: new URL(url).origin });
+  if (!allowed.includes(u.origin)) throw new BusinessRuleError('PAYMENT_RETURN_URL_NOT_ALLOWED', 'returnUrl must be on an allow-listed origin or the mobile app scheme', { origin: u.origin });
 }
 
 /** POST /payments — exactly one target: a PENDING_PAYMENT booking, or a payable invoice (ISSUED / PARTIALLY_PAID / OVERDUE). */

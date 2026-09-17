@@ -3,6 +3,7 @@ import { config } from '@/config/index.js';
 import { logger } from '@/logging/logger.js';
 import { maskEmail, maskPhone } from '@/common/redact.js';
 import type { DeliveryResult, EmailMessage, EmailProvider, PushMessage, PushProvider, SmsMessage, SmsProvider } from './providers.js';
+import { ExpoPushProvider } from './expo-push.js';
 
 export type { DeliveryResult, EmailMessage, EmailProvider, PushMessage, PushProvider, SmsMessage, SmsProvider } from './providers.js';
 
@@ -91,7 +92,8 @@ export function pushProvider(): PushProvider {
   if (push) return push;
   const c = config().providers.push;
   if (c === 'none') push = new NoPushProvider();
-  else throw new Error('PUSH_PROVIDER=fcm is not implemented yet');
+  else if (c === 'expo') push = new ExpoPushProvider({ accessToken: config().providers.expoPushAccessToken });
+  else throw new Error('PUSH_PROVIDER=fcm is not implemented yet — use expo (ADR-011)');
   return push;
 }
 

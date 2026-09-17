@@ -108,6 +108,11 @@ describeDb('payments', () => {
     expect(stale.body.error.details).toMatchObject({ expected: '1150.00', received: '1000.00' });
     expect((await pay(customer, { ...base, methodType: 'CASH' })).body.error.code).toBe('PAYMENT_METHOD_UNSUPPORTED');
     expect((await pay(customer, { ...base, returnUrl: 'https://evil.example/return' })).body.error.code).toBe('PAYMENT_RETURN_URL_NOT_ALLOWED');
+    // the mobile app returns through its own URL scheme (ADR-011) — allowed; any other scheme is not
+    const mobile = await pay(customer, { ...base, returnUrl: 'unigate://pay/return?paymentId=x' });
+    expect(mobile.status, JSON.stringify(mobile.body)).toBe(201);
+    expect((await bearer(request(h.app).post(`/api/v1/payments/${mobile.body.data.payment.id}/cancel`), customer).send({ reason: 'mobile return-url check' })).status).toBe(200);
+    expect((await pay(customer, { ...base, returnUrl: 'evilapp://pay/return' })).body.error.code).toBe('PAYMENT_RETURN_URL_NOT_ALLOWED');
     expect((await pay(owner, base)).status).toBe(403); // owners hold no payments.create
     expect((await bearer(request(h.app).post('/api/v1/payments'), customer).send(base)).status).toBe(400); // key required
 

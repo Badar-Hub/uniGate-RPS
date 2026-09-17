@@ -97,8 +97,12 @@ export const envSchema = z
     SMTP_SECURE: z.enum(['true', 'false']).default('false'),
     /** Transactional SMS (OQ-10 / B-9) — the adapter lands with procurement; 'console' prints. */
     SMS_PROVIDER: z.enum(['console', 'unifonic', 'taqnyat', 'msegat', 'twilio']).default('console'),
-    /** Mobile push (FCM) — 'none' skips the channel; device tokens are still stored. */
-    PUSH_PROVIDER: z.enum(['none', 'fcm']).default('none'),
+    /** Mobile push — 'none' skips the channel (device tokens are still stored); 'expo' relays through the Expo Push Service (ADR-011); 'fcm' is reserved for a direct FCM adapter. */
+    PUSH_PROVIDER: z.enum(['none', 'expo', 'fcm']).default('none'),
+    /** EAS access token presented to the Expo Push Service — optional, but without it anyone holding a device token can push to it. */
+    EXPO_PUSH_ACCESS_TOKEN: optionalSecret,
+    /** Custom URL scheme of the mobile app; `scheme://…` payment return URLs are allow-listed alongside APP_URL (mobile-app.md). */
+    MOBILE_DEEP_LINK_SCHEME: z.string().regex(/^[a-z][a-z0-9+.-]*$/, 'must be a URL scheme').default('unigate'),
 
     SEED_ADMIN_EMAIL: z.string().email().optional(),
     SEED_ADMIN_PASSWORD: z.string().min(12).optional(),
