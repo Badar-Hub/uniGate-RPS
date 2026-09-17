@@ -62,6 +62,34 @@ export default function AccountScreen() {
             </>
           ) : null}
 
+          {audience.vendor ? (
+            <>
+              <SectionTitle>{t('account.vendorSection')}</SectionTitle>
+              {(
+                [
+                  { key: 'owner', title: t('owner.title'), subtitle: t('owner.subtitle'), icon: 'business-outline', href: '/account/owner-profile' },
+                  { key: 'documents', title: t('documents.title'), subtitle: t('documents.subtitle'), icon: 'document-attach-outline', href: '/account/documents' },
+                  { key: 'bids', title: t('myBids.title'), subtitle: t('myBids.subtitle'), icon: 'pricetags-outline', href: '/bids' },
+                  { key: 'drivers', title: t('drivers.title'), subtitle: t('drivers.subtitle'), icon: 'people-outline', href: '/drivers' },
+                  { key: 'settlements', title: t('settlements.title'), subtitle: t('settlements.subtitle'), icon: 'wallet-outline', href: '/settlements' },
+                  { key: 'expenses', title: t('expenses.title'), subtitle: t('expenses.subtitle'), icon: 'receipt-outline', href: '/expenses' },
+                  { key: 'maintenance', title: t('maintenance.title'), subtitle: t('maintenance.subtitle'), icon: 'construct-outline', href: '/maintenance' },
+                ] as const
+              ).map((row) => (
+                <LinkRow
+                  key={row.key}
+                  title={row.title}
+                  subtitle={row.subtitle}
+                  icon={row.icon}
+                  rtl={isRTL}
+                  onPress={() => {
+                    router.push(row.href);
+                  }}
+                />
+              ))}
+            </>
+          ) : null}
+
           {corporate ? (
             <>
               <SectionTitle>{t('company.section')}</SectionTitle>

@@ -1,6 +1,7 @@
 import { ScrollView, View } from 'react-native';
 import { useRouter, type Href } from 'expo-router';
-import { Badge, LinkRow, Screen, Subtitle, Title, type IconName } from '@/components/ui';
+import { Badge, LinkRow, Screen, SectionTitle, Subtitle, Title, type IconName } from '@/components/ui';
+import { VendorHome } from '@/components/vendor-home';
 import { useI18n } from '@/i18n';
 import { useSession } from '@/lib/session';
 
@@ -31,7 +32,12 @@ export default function HomeScreen() {
       ? [{ key: 'home.quickBookings', icon: 'calendar-outline' as const, href: '/(app)/(tabs)/bookings' }]
       : []),
     ...(audience.vendor
-      ? [{ key: 'home.quickFleet', icon: 'bus-outline' as const, href: '/(app)/(tabs)/fleet' }]
+      ? [
+          { key: 'home.quickFleet', icon: 'bus-outline' as const, href: '/(app)/(tabs)/fleet' },
+          { key: 'home.quickBids', icon: 'pricetags-outline' as const, href: '/bids' as const },
+          { key: 'home.quickDrivers', icon: 'people-outline' as const, href: '/drivers' as const },
+          { key: 'home.quickSettlements', icon: 'wallet-outline' as const, href: '/settlements' as const },
+        ]
       : []),
     ...(audience.customer
       ? [{ key: 'home.quickComplaints', icon: 'chatbox-ellipses-outline' as const, href: '/complaints' }]
@@ -56,7 +62,10 @@ export default function HomeScreen() {
           </View>
         ) : null}
 
+        {audience.vendor ? <VendorHome /> : null}
+
         <View className="mt-6">
+          {audience.vendor ? <SectionTitle>{t('home.shortcuts')}</SectionTitle> : null}
           {shortcuts.map((s) => (
             <LinkRow
               key={s.key}

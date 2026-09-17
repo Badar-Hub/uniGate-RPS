@@ -55,6 +55,16 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     ['expo-notifications', { color: '#0a7050' }],
     '@react-native-community/datetimepicker',
     'expo-web-browser',
+    // Document upload (M2): camera / photo library for a photo of the paper, files for PDFs.
+    [
+      'expo-image-picker',
+      {
+        photosPermission: 'UniGate uses your photos to upload vehicle, driver and business documents.',
+        cameraPermission: 'UniGate uses the camera to photograph vehicle, driver and business documents.',
+        microphonePermission: false,
+      },
+    ],
+    'expo-document-picker',
   ],
   experiments: { typedRoutes: true },
   extra: {

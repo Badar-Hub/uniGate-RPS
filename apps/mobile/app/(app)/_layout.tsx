@@ -67,6 +67,26 @@ export default function AppLayout() {
       <Stack.Screen name="account/statement" options={{ title: t('statement.title') }} />
       <Stack.Screen name="invoices/index" options={{ title: t('invoices.title') }} />
       <Stack.Screen name="invoices/[id]" options={{ title: t('invoices.detailTitle') }} />
+      {/* Vendor (M2) */}
+      <Stack.Screen name="opportunities/[id]" options={{ title: t('opportunities.detailTitle') }} />
+      <Stack.Screen name="bids/new" options={{ title: t('bidForm.screenTitle') }} />
+      <Stack.Screen name="bids/index" options={{ title: t('myBids.title') }} />
+      <Stack.Screen name="bids/[id]" options={{ title: t('myBids.detailTitle') }} />
+      <Stack.Screen name="fleet/new" options={{ title: t('fleet.form.title') }} />
+      <Stack.Screen name="fleet/[id]" options={{ title: t('fleet.detailTitle') }} />
+      <Stack.Screen name="drivers/index" options={{ title: t('drivers.title') }} />
+      <Stack.Screen name="drivers/new" options={{ title: t('drivers.form.title') }} />
+      <Stack.Screen name="drivers/[id]" options={{ title: t('drivers.detailTitle') }} />
+      <Stack.Screen name="account/owner-profile" options={{ title: t('owner.title') }} />
+      <Stack.Screen name="account/documents" options={{ title: t('documents.title') }} />
+      <Stack.Screen name="settlements/index" options={{ title: t('settlements.title') }} />
+      <Stack.Screen name="settlements/[id]" options={{ title: t('settlements.detailTitle') }} />
+      <Stack.Screen name="expenses/index" options={{ title: t('expenses.title') }} />
+      <Stack.Screen name="expenses/new" options={{ title: t('expenses.record') }} />
+      <Stack.Screen name="expenses/[id]" options={{ title: t('expenses.detailTitle') }} />
+      <Stack.Screen name="maintenance/index" options={{ title: t('maintenance.title') }} />
+      <Stack.Screen name="maintenance/new" options={{ title: t('maintenance.record') }} />
+      <Stack.Screen name="maintenance/[id]" options={{ title: t('maintenance.detailTitle') }} />
     </Stack>
   );
 }

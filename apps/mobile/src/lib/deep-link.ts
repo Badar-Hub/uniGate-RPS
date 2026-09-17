@@ -13,6 +13,12 @@ export type DeepLinkRoute =
   | { kind: 'invoice'; path: `/invoices/${string}` }
   | { kind: 'complaint'; path: `/complaints/${string}` }
   | { kind: 'payment'; path: `/pay/return?paymentId=${string}` }
+  | { kind: 'settlement'; path: `/settlements/${string}` }
+  | { kind: 'vehicle'; path: `/fleet/${string}` }
+  | { kind: 'bid'; path: `/bids/${string}` }
+  | { kind: 'driver'; path: `/drivers/${string}` }
+  | { kind: 'maintenance'; path: '/maintenance' }
+  | { kind: 'documents'; path: '/account/documents' }
   | { kind: 'inbox'; path: '/notifications' };
 
 const INBOX: DeepLinkRoute = { kind: 'inbox', path: '/notifications' };
@@ -24,8 +30,8 @@ function str(data: Record<string, unknown> | null | undefined, key: string): str
 
 /**
  * A notification's `data` hints → the screen to open. Precedence follows the web resolver:
- * booking, trip, request, invoice, complaint; hints for surfaces the app does not have yet
- * (settlements, vehicles, documents, maintenance) land on the inbox.
+ * booking, trip, request, invoice, complaint, then the vendor surfaces (settlement, vehicle,
+ * bid, driver, maintenance schedule, document); anything else lands on the inbox.
  */
 export function routeForNotification(
   data: Record<string, unknown> | null | undefined,
@@ -40,6 +46,16 @@ export function routeForNotification(
   if (invoiceId) return { kind: 'invoice', path: `/invoices/${invoiceId}` };
   const complaintId = str(data, 'complaintId');
   if (complaintId) return { kind: 'complaint', path: `/complaints/${complaintId}` };
+  const settlementId = str(data, 'settlementId');
+  if (settlementId) return { kind: 'settlement', path: `/settlements/${settlementId}` };
+  const vehicleId = str(data, 'vehicleId');
+  if (vehicleId) return { kind: 'vehicle', path: `/fleet/${vehicleId}` };
+  const bidId = str(data, 'bidId');
+  if (bidId) return { kind: 'bid', path: `/bids/${bidId}` };
+  const driverProfileId = str(data, 'driverProfileId');
+  if (driverProfileId) return { kind: 'driver', path: `/drivers/${driverProfileId}` };
+  if (str(data, 'scheduleId')) return { kind: 'maintenance', path: '/maintenance' };
+  if (str(data, 'documentId')) return { kind: 'documents', path: '/account/documents' };
   return INBOX;
 }
 
@@ -77,6 +93,14 @@ export function routeForUrl(url: string): DeepLinkRoute | null {
       return isId(id) ? { kind: 'invoice', path: `/invoices/${id}` } : null;
     case 'complaints':
       return isId(id) && id !== 'new' ? { kind: 'complaint', path: `/complaints/${id}` } : null;
+    case 'settlements':
+      return isId(id) ? { kind: 'settlement', path: `/settlements/${id}` } : null;
+    case 'fleet':
+      return isId(id) && id !== 'new' ? { kind: 'vehicle', path: `/fleet/${id}` } : null;
+    case 'bids':
+      return isId(id) && id !== 'new' ? { kind: 'bid', path: `/bids/${id}` } : null;
+    case 'drivers':
+      return isId(id) && id !== 'new' ? { kind: 'driver', path: `/drivers/${id}` } : null;
     case 'pay': {
       const paymentId = query.get('paymentId') ?? undefined;
       if (seg[1] !== 'return' || !isId(paymentId)) return null;

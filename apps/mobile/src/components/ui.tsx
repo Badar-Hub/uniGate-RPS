@@ -465,6 +465,34 @@ export function Stars({
   );
 }
 
+/** Determinate (0–1) or indeterminate progress line, used by the document upload sheet. */
+export function ProgressBar({ fraction, label }: { fraction: number | null; label?: string | undefined }) {
+  const pct = fraction === null ? null : Math.max(0, Math.min(1, fraction)) * 100;
+  return (
+    <View className="mb-3" accessibilityRole="progressbar" accessibilityValue={pct === null ? {} : { min: 0, max: 100, now: Math.round(pct) }}>
+      {label ? <Text className="mb-1 text-xs text-muted-foreground text-start">{label}</Text> : null}
+      <View className="h-2 overflow-hidden rounded-full bg-muted">
+        <View className={`h-2 rounded-full bg-primary ${pct === null ? 'w-1/3 opacity-60' : ''}`} style={pct === null ? undefined : { width: `${pct}%` }} />
+      </View>
+    </View>
+  );
+}
+
+/** Small stat tile for the Home summaries (count + caption), tappable. */
+export function StatTile({ value, label, onPress, tone = 'neutral' }: { value: string; label: string; onPress?: (() => void) | undefined; tone?: Tone }) {
+  const text = { neutral: 'text-card-foreground', success: 'text-primary', warning: 'text-amber-700', danger: 'text-destructive', info: 'text-sky-700' }[tone];
+  return (
+    <Pressable accessibilityRole={onPress ? 'button' : 'text'} onPress={onPress} disabled={!onPress} className="min-w-[45%] flex-1 active:opacity-80">
+      <View className="rounded-lg border border-border bg-card p-3">
+        <Text className={`text-2xl font-bold ${text}`} style={{ writingDirection: 'ltr' }}>
+          {value}
+        </Text>
+        <Text className="mt-1 text-xs text-muted-foreground text-start">{label}</Text>
+      </View>
+    </Pressable>
+  );
+}
+
 /** Loading / error / content switch shared by the detail screens. */
 export function QueryState({
   pending,

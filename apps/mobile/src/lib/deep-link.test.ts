@@ -10,9 +10,19 @@ describe('routeForNotification', () => {
     expect(routeForNotification({ complaintId: 'c1' })).toEqual({ kind: 'complaint', path: '/complaints/c1' });
   });
 
+  it('routes the vendor hints to their screens (M2), in the web precedence', () => {
+    expect(routeForNotification({ settlementId: 's1' })).toEqual({ kind: 'settlement', path: '/settlements/s1' });
+    expect(routeForNotification({ vehicleId: 'v1' })).toEqual({ kind: 'vehicle', path: '/fleet/v1' });
+    expect(routeForNotification({ bidId: 'b1' })).toEqual({ kind: 'bid', path: '/bids/b1' });
+    expect(routeForNotification({ driverProfileId: 'd1' })).toEqual({ kind: 'driver', path: '/drivers/d1' });
+    expect(routeForNotification({ scheduleId: 'm1' })).toEqual({ kind: 'maintenance', path: '/maintenance' });
+    expect(routeForNotification({ documentId: 'doc' })).toEqual({ kind: 'documents', path: '/account/documents' });
+    // A booking hint still wins over a vehicle hint on the same notification.
+    expect(routeForNotification({ vehicleId: 'v1', bookingId: 'b1' }).kind).toBe('booking');
+  });
+
   it('falls back to the inbox for hints the app has no screen for, and for junk', () => {
-    expect(routeForNotification({ settlementId: 's1' })).toEqual({ kind: 'inbox', path: '/notifications' });
-    expect(routeForNotification({ vehicleId: 'v1' }).kind).toBe('inbox');
+    expect(routeForNotification({ ownerProfileId: 'o1' })).toEqual({ kind: 'inbox', path: '/notifications' });
     expect(routeForNotification(null).kind).toBe('inbox');
     expect(routeForNotification({ bookingId: 42 }).kind).toBe('inbox');
     expect(routeForNotification({ bookingId: '' }).kind).toBe('inbox');
@@ -42,6 +52,15 @@ describe('routeForUrl', () => {
     // Expo Go form of the same link
     expect(routeForUrl('exp://172.23.65.81:8081/--/pay/return?paymentId=p1')).toEqual({ kind: 'payment', path: '/pay/return?paymentId=p1' });
     expect(routeForUrl('unigate://pay/return?paymentId=../x')).toBeNull();
+  });
+
+  it('resolves the vendor scheme paths and refuses their static children', () => {
+    expect(routeForUrl('unigate://fleet/v1')).toEqual({ kind: 'vehicle', path: '/fleet/v1' });
+    expect(routeForUrl('unigate://settlements/s1')).toEqual({ kind: 'settlement', path: '/settlements/s1' });
+    expect(routeForUrl('unigate://bids/b1')).toEqual({ kind: 'bid', path: '/bids/b1' });
+    expect(routeForUrl('unigate://drivers/d1')).toEqual({ kind: 'driver', path: '/drivers/d1' });
+    expect(routeForUrl('unigate://fleet/new')).toBeNull();
+    expect(routeForUrl('unigate://bids/new')).toBeNull();
   });
 
   it('refuses paths the app does not own and static children', () => {

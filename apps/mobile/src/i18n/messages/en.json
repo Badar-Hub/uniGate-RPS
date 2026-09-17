@@ -19,7 +19,8 @@
     "english": "English",
     "empty": "Nothing here yet.",
     "restartRequired": "Restart the app to apply the new layout direction.",
-    "restartTitle": "Restart needed"
+    "restartTitle": "Restart needed",
+    "clear": "Clear"
   },
   "errors": {
     "generic": "Something went wrong. Please try again.",
@@ -95,9 +96,43 @@
     "COMPLAINT_INVALID_TRANSITION": "This complaint cannot move to that status.",
     "TRACKING_SESSION_NOT_ACTIVE": "The trip is not being tracked yet.",
     "TRIP_NOT_ACTIVE": "This trip has ended.",
-    "ROUTE_NOT_FOUND": "This action is not available on this server."
+    "ROUTE_NOT_FOUND": "This action is not available on this server.",
+    "OWNER_DOCUMENTS_INCOMPLETE": "Upload and verify the mandatory documents first.",
+    "VEHICLE_DOCUMENTS_INCOMPLETE": "The vehicle’s mandatory documents are missing or not yet verified.",
+    "VEHICLE_CALENDAR_CONFLICT": "That period overlaps a booking or another entry on the vehicle’s calendar.",
+    "VEHICLE_HAS_ACTIVE_BOOKINGS": "The vehicle has future bookings.",
+    "VEHICLE_PLATE_TAKEN": "A vehicle with this plate is already registered.",
+    "VEHICLE_VIN_TAKEN": "A vehicle with this VIN is already registered.",
+    "VEHICLE_INVALID_TRANSITION": "This action is not available in the vehicle’s current state.",
+    "VEHICLE_NOT_FOUND": "Vehicle not found.",
+    "DRIVER_NOT_ASSIGNED_TO_VEHICLE": "That driver is not assigned to this vehicle.",
+    "DRIVER_LICENSE_EXPIRED": "The driver’s licence has expired.",
+    "DRIVER_ALREADY_ON_TRIP": "The driver is already on another trip at that time.",
+    "BOOKING_DRIVER_ALREADY_ASSIGNED": "A driver is already assigned to this booking.",
+    "BIDDING_CLOSED": "Bidding has closed on this request.",
+    "BID_NOT_ELIGIBLE": "This vehicle is not eligible for the request.",
+    "BID_DUPLICATE_VEHICLE": "You already have a live bid with this vehicle on this request.",
+    "BID_AMOUNT_INVALID": "The amount is not valid.",
+    "BID_VALIDITY_INVALID": "The validity must be in the future and before the bidding deadline.",
+    "BID_ALREADY_DECIDED": "This bid has already been decided.",
+    "DOCUMENT_TYPE_NOT_ALLOWED": "This document type does not apply here.",
+    "DOCUMENT_MIME_NOT_ALLOWED": "This file type is not accepted for this document.",
+    "DOCUMENT_SIZE_EXCEEDED": "The file is larger than this document type allows.",
+    "DOCUMENT_CHECKSUM_MISMATCH": "The uploaded file did not match — please upload it again.",
+    "DOCUMENT_UPLOAD_INCOMPLETE": "The upload did not complete. Please try again.",
+    "DOCUMENT_EXPIRY_REQUIRED": "This document needs an expiry date.",
+    "DOCUMENT_EXPIRED": "This document has expired.",
+    "DOCUMENT_ALREADY_VERIFIED": "This document is already verified.",
+    "DOCUMENT_SCAN_QUARANTINED": "The file was quarantined by the malware scan.",
+    "MAINTENANCE_CALENDAR_CONFLICT": "That window overlaps a booking on the vehicle’s calendar.",
+    "MAINTENANCE_INVALID_TRANSITION": "This action is not available in the record’s current state.",
+    "EXPENSE_IMMUTABLE": "This expense is part of a paid settlement and can no longer change.",
+    "SETTLEMENT_INVALID_TRANSITION": "This action is not available in the settlement’s current state."
   },
-  "vertical": { "PASSENGER": "passenger", "GOODS": "goods" },
+  "vertical": {
+    "PASSENGER": "passenger",
+    "GOODS": "goods"
+  },
   "auth": {
     "signIn": "Sign in",
     "signInSubtitle": "Use your phone number or email",
@@ -140,7 +175,24 @@
     "quickBookings": "Bookings",
     "quickFleet": "My fleet",
     "quickComplaints": "Complaints",
-    "noPortal": "This account has no customer or vehicle-owner profile. Sign in with a customer or owner account to see your work here."
+    "noPortal": "This account has no customer or vehicle-owner profile. Sign in with a customer or owner account to see your work here.",
+    "shortcuts": "Shortcuts",
+    "quickBids": "My bids",
+    "quickDrivers": "Drivers",
+    "quickSettlements": "Settlements",
+    "partial": "Part of the summary could not load: {reason}",
+    "owner": {
+      "openOpportunities": "Open opportunities",
+      "openOpportunitiesUnbid": "Open opportunities · {count} without a bid",
+      "bidsAwaiting": "Bids awaiting a decision",
+      "upcomingBookings": "Upcoming bookings",
+      "bookingsNeedingAction": "Upcoming bookings · {count} to dispatch",
+      "vehiclesAttention": "Vehicles needing attention (of {total})",
+      "nextBooking": "Next booking",
+      "attentionTitle": "Needs attention",
+      "lastSettlement": "Last settlement",
+      "noSettlement": "No settlement yet — earnings appear here once a period is settled."
+    }
   },
   "lists": {
     "requests": "Trip requests",
@@ -168,7 +220,8 @@
     "customerSection": "Customer",
     "signOutConfirm": "Sign out of this device?",
     "version": "Version {version}",
-    "api": "API"
+    "api": "API",
+    "vendorSection": "Vehicle owner"
   },
   "status": {
     "request": {
@@ -251,6 +304,71 @@
       "RESOLVED": "Resolved",
       "REJECTED": "Rejected",
       "CLOSED": "Closed"
+    },
+    "vehicleApproval": {
+      "DRAFT": "Draft",
+      "PENDING_APPROVAL": "Pending approval",
+      "APPROVED": "Approved",
+      "REJECTED": "Rejected"
+    },
+    "vehicleLifecycle": {
+      "ACTIVE": "Active",
+      "INACTIVE": "Inactive",
+      "SUSPENDED": "Suspended",
+      "ARCHIVED": "Archived"
+    },
+    "vehicleOperational": {
+      "IDLE": "Idle",
+      "RESERVED": "Reserved",
+      "ON_TRIP": "On trip",
+      "UNDER_MAINTENANCE": "Under maintenance",
+      "OUT_OF_SERVICE": "Out of service"
+    },
+    "onboarding": {
+      "DRAFT": "Draft",
+      "DOCUMENTS_SUBMITTED": "Documents submitted",
+      "UNDER_REVIEW": "Under review",
+      "APPROVED": "Approved",
+      "REJECTED": "Rejected",
+      "SUSPENDED": "Suspended"
+    },
+    "vertical": {
+      "NOT_APPLIED": "Not applied",
+      "UNDER_REVIEW": "Under review",
+      "APPROVED": "Approved",
+      "REJECTED": "Rejected"
+    },
+    "driverAvailability": {
+      "OFF_DUTY": "Off duty",
+      "AVAILABLE": "Available",
+      "ON_TRIP": "On trip"
+    },
+    "document": {
+      "MISSING": "Missing",
+      "PENDING": "Awaiting verification",
+      "VERIFIED": "Verified",
+      "REJECTED": "Rejected",
+      "EXPIRED": "Expired"
+    },
+    "settlement": {
+      "DRAFT": "Draft",
+      "PENDING_APPROVAL": "Pending approval",
+      "APPROVED": "Approved",
+      "PROCESSING": "Processing",
+      "PAID": "Paid",
+      "FAILED": "Failed",
+      "CANCELLED": "Cancelled"
+    },
+    "maintenance": {
+      "PLANNED": "Planned",
+      "IN_PROGRESS": "In the workshop",
+      "COMPLETED": "Completed",
+      "CANCELLED": "Cancelled"
+    },
+    "calendarEntry": {
+      "RESERVATION": "Booking",
+      "MAINTENANCE": "Maintenance",
+      "OWNER_BLOCK": "Blocked by you"
     }
   },
   "enums": {
@@ -274,11 +392,33 @@
       "CONTAINER": "Container",
       "OTHER": "Other"
     },
-    "responsibility": { "CUSTOMER": "Customer", "DRIVER": "Driver", "THIRD_PARTY": "Third party" },
-    "billingMode": { "PREPAID": "Prepaid", "INVOICED": "Invoiced (on account)" },
-    "billingCycle": { "PER_BOOKING": "Per booking", "WEEKLY": "Weekly", "MONTHLY": "Monthly" },
-    "creditStatus": { "NONE": "None", "PENDING_APPROVAL": "Pending approval", "APPROVED": "Approved", "SUSPENDED": "Suspended" },
-    "cancelledBy": { "CUSTOMER": "Customer", "OWNER": "Owner", "DRIVER": "Driver", "ADMIN": "UniGate", "SYSTEM": "System" },
+    "responsibility": {
+      "CUSTOMER": "Customer",
+      "DRIVER": "Driver",
+      "THIRD_PARTY": "Third party"
+    },
+    "billingMode": {
+      "PREPAID": "Prepaid",
+      "INVOICED": "Invoiced (on account)"
+    },
+    "billingCycle": {
+      "PER_BOOKING": "Per booking",
+      "WEEKLY": "Weekly",
+      "MONTHLY": "Monthly"
+    },
+    "creditStatus": {
+      "NONE": "None",
+      "PENDING_APPROVAL": "Pending approval",
+      "APPROVED": "Approved",
+      "SUSPENDED": "Suspended"
+    },
+    "cancelledBy": {
+      "CUSTOMER": "Customer",
+      "OWNER": "Owner",
+      "DRIVER": "Driver",
+      "ADMIN": "UniGate",
+      "SYSTEM": "System"
+    },
     "cancellationReason": {
       "CUSTOMER_PLANS_CHANGED": "Plans changed",
       "CUSTOMER_FOUND_ALTERNATIVE": "Found an alternative",
@@ -309,9 +449,26 @@
       "CREDIT_NOTE": "Credit note",
       "DEBIT_NOTE": "Debit note"
     },
-    "ratingSubject": { "DRIVER": "Driver", "VEHICLE": "Vehicle", "OWNER": "Company", "CUSTOMER": "Customer", "TRIP": "Trip" },
-    "complaintAgainst": { "DRIVER": "Driver", "OWNER": "Company", "CUSTOMER": "Customer", "VEHICLE": "Vehicle", "PLATFORM": "UniGate" },
-    "complaintSeverity": { "LOW": "Low", "MEDIUM": "Medium", "HIGH": "High", "CRITICAL": "Critical" },
+    "ratingSubject": {
+      "DRIVER": "Driver",
+      "VEHICLE": "Vehicle",
+      "OWNER": "Company",
+      "CUSTOMER": "Customer",
+      "TRIP": "Trip"
+    },
+    "complaintAgainst": {
+      "DRIVER": "Driver",
+      "OWNER": "Company",
+      "CUSTOMER": "Customer",
+      "VEHICLE": "Vehicle",
+      "PLATFORM": "UniGate"
+    },
+    "complaintSeverity": {
+      "LOW": "Low",
+      "MEDIUM": "Medium",
+      "HIGH": "High",
+      "CRITICAL": "Critical"
+    },
     "complaintCategory": {
       "SERVICE_QUALITY": "Service quality",
       "SAFETY": "Safety",
@@ -336,6 +493,31 @@
       "FINANCE": "Finance",
       "OPERATIONS": "Announcements",
       "GENERAL": "General"
+    },
+    "idType": {
+      "NATIONAL_ID": "National ID",
+      "IQAMA": "Iqama"
+    },
+    "commissionSource": {
+      "RULE": "Platform rule",
+      "OVERRIDE": "Override",
+      "NONE": "No commission"
+    },
+    "settlementLine": {
+      "BOOKING_EARNING": "Earnings",
+      "COMMISSION": "Commission",
+      "ADJUSTMENT": "Adjustment",
+      "PENALTY": "Penalty",
+      "REFUND_CLAWBACK": "Refund clawback"
+    },
+    "holdReason": {
+      "NONE": "—",
+      "SUPPLIER_INVOICE_MISSING": "Awaiting your invoice",
+      "BANK_ACCOUNT_COOLOFF": "New bank account cool-off",
+      "DISPUTE": "Under dispute",
+      "MANUAL": "Held by UniGate",
+      "HOLD_PERIOD": "Hold period",
+      "PAYMENT_PENDING": "Awaiting payment / invoice"
     }
   },
   "requests": {
@@ -347,7 +529,10 @@
     "form": {
       "title": "New request",
       "transportType": "What are we moving?",
-      "vertical": { "PASSENGER": "Passengers", "GOODS": "Goods / freight" },
+      "vertical": {
+        "PASSENGER": "Passengers",
+        "GOODS": "Goods / freight"
+      },
       "category": "Vehicle category",
       "seats": "up to {count} seats",
       "payload": "up to {kg} kg",
@@ -497,7 +682,23 @@
       "cancelled": "Booking cancelled. Fee {fee} SAR, refund {refund} SAR.",
       "dispute": "Open a dispute",
       "disputeHint": "Tell us what went wrong. A complaint is opened and our team reviews the booking.",
-      "disputed": "Dispute opened — complaint {number}."
+      "disputed": "Dispute opened — complaint {number}.",
+      "dispatch": "Dispatch",
+      "selectDriver": "Driver",
+      "assignDriver": "Assign driver",
+      "noDrivers": "No approved driver is assigned to this vehicle — assign one from the vehicle page first.",
+      "assigned": "Driver assigned — trip {number} created.",
+      "ready": "Mark as ready",
+      "readyHint": "Confirm the vehicle and driver are ready for pickup.",
+      "readyDone": "Booking marked as ready.",
+      "financial": "Your earnings",
+      "gross": "Gross",
+      "netOfVat": "Net of VAT",
+      "commission": "Platform commission",
+      "commissionVat": "VAT on commission",
+      "paymentFee": "Payment fee",
+      "net": "Your net",
+      "commissionSource": "Commission basis"
     }
   },
   "payments": {
@@ -662,5 +863,418 @@
     "debit": "Debit",
     "credit": "Credit",
     "noMovements": "No movements in this period."
+  },
+  "opportunities": {
+    "detailTitle": "Opportunity",
+    "filter": {
+      "unbid": "To bid",
+      "bid": "Bid placed",
+      "dismissed": "Dismissed"
+    },
+    "dismissed": "Dismissed",
+    "dismiss": "Dismiss",
+    "undo": "Restore",
+    "dismissedNotice": "Opportunity dismissed — no more reminders for it.",
+    "restored": "Opportunity restored.",
+    "yourBid": "Your bid",
+    "yourBidPlaced": "You have a live bid on this request.",
+    "placeBid": "Place a bid",
+    "eligible": "Your eligible vehicles",
+    "eligibleCount": "{count} eligible",
+    "noEligible": "None of your vehicles is eligible right now (approval, capacity or calendar).",
+    "matchReason": "Why you were matched",
+    "reasons": {
+      "SERVICE_AREA": "In your service area",
+      "DISPATCHABLE": "Vehicle dispatchable",
+      "CALENDAR_FREE": "Calendar free",
+      "CATEGORY_MATCH": "Category matches",
+      "PAYLOAD_OK": "Payload sufficient",
+      "LATE": "Late invitation"
+    }
+  },
+  "bidForm": {
+    "screenTitle": "Place a bid",
+    "title": "Bid on {number}",
+    "description": "Set your base fare and any extras; UniGate computes VAT and the total.",
+    "vehicle": "Vehicle",
+    "driver": "Driver (optional)",
+    "driverPickVehicle": "Choose a vehicle first",
+    "driverLater": "Assign later",
+    "noDrivers": "No approved driver on this vehicle",
+    "baseAmount": "Base fare (SAR, before VAT)",
+    "extras": "Extras",
+    "extrasHint": "Tolls, waiting time, loading help… up to 20 lines, each with a label in both languages.",
+    "extraN": "Extra {n}",
+    "extraLabelEn": "Label (English)",
+    "extraLabelAr": "Label (Arabic)",
+    "extraAmount": "Amount (SAR)",
+    "addExtra": "Add an extra",
+    "removeExtra": "Remove extra",
+    "extrasTotal": "Extras: {total} SAR",
+    "timing": "Timing",
+    "duration": "Estimated duration (minutes)",
+    "validUntil": "Bid valid until",
+    "validUntilHint": "Leave empty for the default validity; it cannot exceed the bidding deadline ({deadline}).",
+    "validUntilDefault": "Leave empty for the default validity.",
+    "notes": "Notes to the customer",
+    "submit": "Submit bid",
+    "submitted": "Bid {number} submitted — total {total}.",
+    "errors": {
+      "vehicleRequired": "Choose a vehicle.",
+      "baseInvalid": "Enter an amount above zero with at most two decimals.",
+      "extraLabelRequired": "Give the extra a label.",
+      "extraAmountInvalid": "Enter a valid amount.",
+      "tooManyExtras": "At most 20 extras.",
+      "durationInvalid": "Enter whole minutes between 1 and 10,080.",
+      "validUntilPast": "The validity must be in the future.",
+      "validUntilAfterDeadline": "The validity cannot exceed the bidding deadline."
+    }
+  },
+  "myBids": {
+    "title": "My bids",
+    "subtitle": "Quotes you submitted; totals include VAT at the rate in force when you bid.",
+    "detailTitle": "Bid",
+    "version": "Version {n}",
+    "submittedAt": "Submitted",
+    "revisedAt": "Last revised",
+    "decidedAt": "Decided",
+    "commission": "Platform commission",
+    "rejectedReason": "Rejected: {reason}",
+    "revise": "Revise bid",
+    "reviseTitle": "Revise {number}",
+    "reviseHint": "Only the changed fields are sent; the customer is notified and the version increases.",
+    "revised": "Bid revised — version {n}, total {total}.",
+    "withdraw": "Withdraw",
+    "withdrawConfirm": "Withdraw this bid? The customer will no longer be able to accept it.",
+    "withdrawn": "Bid withdrawn."
+  },
+  "fleet": {
+    "register": "Register a vehicle",
+    "detailTitle": "Vehicle",
+    "dispatchable": "Dispatchable",
+    "notDispatchable": "Not dispatchable",
+    "reasons": {
+      "VEHICLE_NOT_APPROVED": "Vehicle not approved",
+      "VEHICLE_REJECTED": "Registration rejected",
+      "VEHICLE_INACTIVE": "Vehicle inactive",
+      "VEHICLE_SUSPENDED": "Vehicle suspended",
+      "VEHICLE_ARCHIVED": "Vehicle archived",
+      "OWNER_NOT_APPROVED": "Owner profile not approved",
+      "INSURANCE_EXPIRED": "Insurance expired",
+      "REGISTRATION_EXPIRED": "Registration expired",
+      "INSPECTION_EXPIRED": "Inspection expired",
+      "INSURANCE_EXPIRING": "Insurance expiring soon",
+      "REGISTRATION_EXPIRING": "Registration expiring soon",
+      "INSPECTION_EXPIRING": "Inspection expiring soon"
+    },
+    "form": {
+      "title": "Register a vehicle",
+      "vertical": "Vehicle for",
+      "category": "Category",
+      "identity": "Identity",
+      "make": "Make",
+      "model": "Model",
+      "noMake": "— none —",
+      "pickMakeFirst": "Choose a make first",
+      "modelYear": "Model year",
+      "plateEn": "Plate (Latin)",
+      "plateAr": "Plate (Arabic)",
+      "sequenceNumber": "Sequence number",
+      "registrationNumber": "Registration (istimara) number",
+      "vin": "VIN (optional)",
+      "colour": "Colour",
+      "capacity": "Capacity",
+      "passengerCapacity": "Seats",
+      "payloadKg": "Payload (kg)",
+      "volumeM3": "Cargo volume (m³, optional)",
+      "bodyType": "Body type (optional)",
+      "operations": "Operations",
+      "baseCity": "Base city",
+      "odometer": "Odometer (km)",
+      "insuranceExpiry": "Insurance expiry",
+      "registrationExpiry": "Registration expiry",
+      "inspectionExpiry": "Inspection expiry",
+      "notes": "Notes",
+      "hint": "The vehicle is registered as a draft; upload its documents on the next screen and it goes for approval by itself.",
+      "submit": "Register",
+      "created": "Vehicle registered as a draft. Upload its documents now.",
+      "errors": {
+        "required": "Required.",
+        "year": "Enter a year between 1980 and two years ahead.",
+        "plate": "Enter a KSA plate such as 1234 ABC.",
+        "plateAr": "Enter 3–24 characters.",
+        "registration": "Enter at least 3 characters.",
+        "vin": "A VIN has 17 characters (no I, O or Q).",
+        "colour": "Enter at least 2 characters.",
+        "payload": "Enter the payload in kg (up to 100,000).",
+        "volume": "Enter a volume between 0 and 1,000 m³.",
+        "seats": "Enter 1–100 seats.",
+        "odometer": "Enter whole kilometres.",
+        "date": "Enter a date."
+      }
+    },
+    "detail": {
+      "documents": "Documents",
+      "calendar": "Calendar",
+      "drivers": "Drivers",
+      "submit": "Submit for approval",
+      "submitHint": "Once every mandatory document is confirmed the vehicle goes for approval by itself; this button re-submits after a rejection.",
+      "submitted": "Submitted for approval.",
+      "reasons": "Why it cannot be dispatched",
+      "rejectedReason": "Rejection reason",
+      "window": "Window",
+      "days": "{count} days",
+      "noEntries": "Nothing on the calendar in this window.",
+      "block": "Block dates",
+      "blockHint": "Bookings cannot be placed on a blocked period.",
+      "blockFrom": "From",
+      "blockTo": "To",
+      "blockNotes": "Notes",
+      "addBlock": "Add block",
+      "release": "Release",
+      "releaseConfirm": "Release this block? The vehicle becomes bookable for that period again.",
+      "assign": "Assign a driver",
+      "primary": "Primary",
+      "active": "Active",
+      "unassign": "Unassign",
+      "unassignConfirm": "Unassign {name} from this vehicle?",
+      "assignmentHistory": "Assignment history",
+      "noDrivers": "No approved driver of yours is free to assign. A driver belongs to one owner and is assigned only to that owner’s vehicles.",
+      "registerDriver": "Register a driver"
+    },
+    "spec": {
+      "title": "Vehicle details",
+      "color": "Colour",
+      "passengerCapacity": "Seats",
+      "payloadCapacityKg": "Payload (kg)",
+      "cargoVolumeM3": "Cargo volume (m³)",
+      "bodyType": "Body type",
+      "features": "Features",
+      "refrigeration": "Refrigerated",
+      "tailLift": "Tail lift",
+      "rating": "Rating",
+      "drivers": "Assigned drivers",
+      "operational": "Operational status"
+    }
+  },
+  "drivers": {
+    "title": "Drivers",
+    "subtitle": "Register drivers, upload their licence and TGA card, and assign them to vehicles.",
+    "detailTitle": "Driver",
+    "add": "Add a driver",
+    "driver": "Driver",
+    "licence": "Licence",
+    "verticals": "Verticals",
+    "licenceEnding": "Licence ending {last4}",
+    "created": "Driver {name} registered — upload their documents now.",
+    "verticalAdded": "Vertical added — upload its TGA card; the driver is approved for it after verification.",
+    "addVertical": "Apply for {vertical}",
+    "availabilityHint": "Availability tells dispatch whether the driver can take a trip today. “On trip” is set by the system.",
+    "form": {
+      "title": "Register a driver",
+      "identity": "Identity",
+      "fullNameEn": "Full name (English)",
+      "fullNameAr": "Full name (Arabic)",
+      "phone": "Mobile number",
+      "locale": "Preferred language",
+      "idType": "ID type",
+      "nationalId": "National ID / Iqama number",
+      "dateOfBirth": "Date of birth",
+      "licenseNumber": "Licence number",
+      "licenseExpiryDate": "Licence expiry",
+      "licenseCategories": "Licence classes",
+      "licenceCategories": {
+        "PRIVATE": "Private",
+        "PUBLIC": "Public",
+        "HEAVY": "Heavy",
+        "BUS": "Bus",
+        "MOTORCYCLE": "Motorcycle"
+      },
+      "transportTypes": "Verticals the driver will work in",
+      "emergency": "Emergency contact",
+      "emergencyContactName": "Emergency contact name",
+      "emergencyContactPhone": "Emergency contact phone",
+      "loginHint": "The driver signs in to the driver app with this number and a one-time code — no password is set here.",
+      "submit": "Register driver"
+    }
+  },
+  "documents": {
+    "title": "Documents",
+    "subtitle": "Upload the documents UniGate needs to verify you. Our team checks them.",
+    "checklistFor": "Checklist — {target}",
+    "targetUser": "Identity",
+    "targetOwner": "Business",
+    "mandatory": "Mandatory",
+    "optional": "Optional",
+    "upload": "Upload",
+    "replace": "Replace",
+    "dialogTitle": "Upload {name}",
+    "issueDate": "Issue date (optional)",
+    "expiryDate": "Expiry date (optional)",
+    "expiryDateRequired": "Expiry date",
+    "uploading": "Uploading…",
+    "uploaded": "Uploaded — awaiting verification.",
+    "accepted": "Accepted: PDF, JPEG, PNG, WebP. Photos are compressed to 2 MB.",
+    "constraints": "{types} · up to {max}",
+    "expires": "Expires {date}",
+    "noChecklist": "Nothing to upload right now.",
+    "pick": {
+      "camera": "Take a photo",
+      "gallery": "Choose a photo",
+      "file": "Choose a file (PDF)",
+      "none": "No file chosen yet.",
+      "permission": "Permission was refused. Allow camera / photos access in the phone settings.",
+      "tooLarge": "The file is too large for this document type.",
+      "typeNotAllowed": "This file type is not accepted here ({types})."
+    },
+    "stage": {
+      "hashing": "Preparing the file…",
+      "requesting": "Requesting an upload slot…",
+      "uploading": "Uploading…",
+      "confirming": "Confirming…"
+    }
+  },
+  "owner": {
+    "title": "Company / owner profile",
+    "subtitle": "Onboarding status, business details, verticals and service areas.",
+    "type": {
+      "INDIVIDUAL": "Individual",
+      "COMPANY": "Company",
+      "PLATFORM": "UniGate fleet"
+    },
+    "onboarding": {
+      "DRAFT": "Draft — complete your profile and upload the documents.",
+      "DOCUMENTS_SUBMITTED": "Documents submitted — send the profile for review.",
+      "UNDER_REVIEW": "Under review by UniGate.",
+      "APPROVED": "Approved — you can register vehicles and bid.",
+      "REJECTED": "Rejected — correct the details and resubmit.",
+      "SUSPENDED": "Suspended — contact UniGate."
+    },
+    "submit": "Submit for review",
+    "submitted": "Your profile is now under review.",
+    "missing": "missing or unverified: {codes}",
+    "details": "Business details",
+    "edit": "Edit details",
+    "editApprovedHint": "Editing an approved profile sends the changed details back for review.",
+    "ownerType": "Owner type",
+    "businessNameEn": "Business name (English)",
+    "businessNameAr": "Business name (Arabic)",
+    "crNumber": "Commercial registration",
+    "vatNumber": "VAT number",
+    "isVatRegistered": "VAT registered",
+    "approvedAt": "Approved on",
+    "verticals": "Verticals",
+    "applyVertical": "Apply for {vertical}",
+    "serviceAreas": "Service areas",
+    "serviceAreasHint": "The cities you serve — opportunities are matched on them.",
+    "noServiceAreas": "No service areas yet — you receive no opportunities until you add some.",
+    "cities": "Cities",
+    "editServiceAreas": "Edit service areas",
+    "privacy": "What customers see",
+    "privacyKeys": {
+      "showBusinessName": "Show my business name",
+      "showRating": "Show my rating",
+      "showFleetSize": "Show my fleet size",
+      "showCity": "Show my city",
+      "showContactPhone": "Show my contact phone"
+    },
+    "saved": "Saved."
+  },
+  "settlements": {
+    "title": "Settlements",
+    "subtitle": "Your pending earnings and settlement history.",
+    "detailTitle": "Settlement",
+    "pending": "Pending settlement (last 30 days)",
+    "gross": "Gross",
+    "deductions": "Deductions",
+    "adjustments": "Adjustments",
+    "net": "Net payable",
+    "heldCount": "Bookings on hold",
+    "belowMinimum": "Below the minimum payout {min} — the balance carries over.",
+    "nothingPending": "Nothing pending in this period.",
+    "lines": "{count} lines",
+    "linesTitle": "Lines",
+    "totals": "Totals",
+    "payout": "Payout",
+    "paidTo": "Paid to",
+    "paymentReference": "Transfer reference",
+    "paidAt": "Paid"
+  },
+  "expenses": {
+    "title": "Expenses",
+    "subtitle": "Running costs per vehicle; VAT is recorded beside the net amount.",
+    "detailTitle": "Expense",
+    "record": "Record an expense",
+    "summary": "By category",
+    "category": "Category",
+    "amount": "Net amount",
+    "vat": "VAT",
+    "date": "Date",
+    "vehicle": "Vehicle",
+    "vendor": "Supplier",
+    "description": "Description",
+    "reimbursable": "Reimbursable",
+    "total": "Total",
+    "locked": "Settled",
+    "lockedHint": "This expense falls in a paid settlement period and can no longer change.",
+    "receipt": "Receipt",
+    "receiptAttached": "Receipt attached",
+    "receiptAttachedNotice": "Receipt attached.",
+    "noReceipt": "No receipt",
+    "attachReceipt": "Attach a receipt",
+    "replaceReceipt": "Replace the receipt",
+    "created": "Expense recorded. Attach the receipt if you have one.",
+    "remove": "Delete expense",
+    "removeConfirm": "Delete this expense?"
+  },
+  "maintenance": {
+    "title": "Maintenance",
+    "subtitle": "Workshop visits hold the vehicle on its calendar; completion updates the odometer and books the cost.",
+    "detailTitle": "Maintenance record",
+    "record": "Plan a workshop visit",
+    "vehicle": "Vehicle",
+    "serviceType": "Service",
+    "kind": "Kind",
+    "kinds": {
+      "SCHEDULED": "Scheduled",
+      "UNSCHEDULED": "Unscheduled",
+      "REPAIR": "Repair",
+      "INSPECTION": "Inspection"
+    },
+    "from": "From",
+    "to": "To",
+    "initialStatus": "Starts as",
+    "cost": "Cost (net)",
+    "vat": "VAT",
+    "total": "Total",
+    "workshop": "Workshop",
+    "description": "Notes",
+    "window": "Window",
+    "actualStart": "Started",
+    "actualEnd": "Finished",
+    "nextService": "Next service",
+    "nextServiceKm": "Next service at",
+    "holdHint": "The window is blocked on the vehicle’s calendar immediately — bookings cannot overlap it. An existing booking inside the window is refused.",
+    "start": "Start",
+    "started": "Vehicle is now in the workshop.",
+    "cancel": "Cancel",
+    "cancelReason": "Cancellation reason",
+    "cancelConfirm": "Cancel this maintenance record and release the calendar hold?",
+    "cancelled": "Maintenance cancelled — the calendar hold was released.",
+    "created": "Workshop visit planned — the vehicle is held on its calendar.",
+    "completed": "Marked as completed.",
+    "complete": {
+      "title": "Complete — {plate} · {type}",
+      "odometer": "Odometer (km)",
+      "notes": "Notes",
+      "recordExpense": "Book the cost as an expense",
+      "confirm": "Mark as completed"
+    },
+    "due": {
+      "title": "Due soon",
+      "overdue": "Overdue",
+      "inDays": "in {n} days",
+      "inKm": "in {n} km"
+    }
   }
 }

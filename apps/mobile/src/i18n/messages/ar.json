@@ -19,7 +19,8 @@
     "english": "English",
     "empty": "لا يوجد شيء هنا بعد.",
     "restartRequired": "أعد تشغيل التطبيق لتطبيق اتجاه العرض الجديد.",
-    "restartTitle": "يلزم إعادة التشغيل"
+    "restartTitle": "يلزم إعادة التشغيل",
+    "clear": "مسح"
   },
   "errors": {
     "generic": "حدث خطأ ما. يرجى المحاولة مرة أخرى.",
@@ -95,9 +96,43 @@
     "COMPLAINT_INVALID_TRANSITION": "لا يمكن نقل هذه الشكوى إلى تلك الحالة.",
     "TRACKING_SESSION_NOT_ACTIVE": "لم يبدأ تتبع الرحلة بعد.",
     "TRIP_NOT_ACTIVE": "انتهت هذه الرحلة.",
-    "ROUTE_NOT_FOUND": "هذا الإجراء غير متاح على هذا الخادم."
+    "ROUTE_NOT_FOUND": "هذا الإجراء غير متاح على هذا الخادم.",
+    "OWNER_DOCUMENTS_INCOMPLETE": "ارفع المستندات الإلزامية وتحقق منها أولاً.",
+    "VEHICLE_DOCUMENTS_INCOMPLETE": "المستندات الإلزامية للمركبة مفقودة أو لم يتم التحقق منها بعد.",
+    "VEHICLE_CALENDAR_CONFLICT": "تتداخل هذه الفترة مع حجز أو إدخال آخر في تقويم المركبة.",
+    "VEHICLE_HAS_ACTIVE_BOOKINGS": "للمركبة حجوزات قادمة.",
+    "VEHICLE_PLATE_TAKEN": "توجد مركبة مسجلة بهذه اللوحة.",
+    "VEHICLE_VIN_TAKEN": "توجد مركبة مسجلة بهذا رقم الهيكل.",
+    "VEHICLE_INVALID_TRANSITION": "هذا الإجراء غير متاح في حالة المركبة الحالية.",
+    "VEHICLE_NOT_FOUND": "المركبة غير موجودة.",
+    "DRIVER_NOT_ASSIGNED_TO_VEHICLE": "هذا السائق غير معيّن على هذه المركبة.",
+    "DRIVER_LICENSE_EXPIRED": "انتهت صلاحية رخصة السائق.",
+    "DRIVER_ALREADY_ON_TRIP": "السائق في رحلة أخرى في ذلك الوقت.",
+    "BOOKING_DRIVER_ALREADY_ASSIGNED": "تم إسناد سائق لهذا الحجز مسبقاً.",
+    "BIDDING_CLOSED": "أُغلق باب العروض على هذا الطلب.",
+    "BID_NOT_ELIGIBLE": "هذه المركبة غير مؤهلة لهذا الطلب.",
+    "BID_DUPLICATE_VEHICLE": "لديك عرض قائم بهذه المركبة على هذا الطلب.",
+    "BID_AMOUNT_INVALID": "المبلغ غير صحيح.",
+    "BID_VALIDITY_INVALID": "يجب أن تكون الصلاحية في المستقبل وقبل موعد إغلاق العروض.",
+    "BID_ALREADY_DECIDED": "تم البت في هذا العرض مسبقاً.",
+    "DOCUMENT_TYPE_NOT_ALLOWED": "نوع المستند لا ينطبق هنا.",
+    "DOCUMENT_MIME_NOT_ALLOWED": "نوع الملف غير مقبول لهذا المستند.",
+    "DOCUMENT_SIZE_EXCEEDED": "حجم الملف أكبر مما يسمح به نوع المستند.",
+    "DOCUMENT_CHECKSUM_MISMATCH": "الملف المرفوع غير مطابق — يرجى رفعه مرة أخرى.",
+    "DOCUMENT_UPLOAD_INCOMPLETE": "لم يكتمل الرفع. يرجى المحاولة مرة أخرى.",
+    "DOCUMENT_EXPIRY_REQUIRED": "هذا المستند يحتاج إلى تاريخ انتهاء.",
+    "DOCUMENT_EXPIRED": "انتهت صلاحية هذا المستند.",
+    "DOCUMENT_ALREADY_VERIFIED": "تم التحقق من هذا المستند مسبقاً.",
+    "DOCUMENT_SCAN_QUARANTINED": "تم حجر الملف بواسطة فحص البرمجيات الخبيثة.",
+    "MAINTENANCE_CALENDAR_CONFLICT": "تتداخل هذه الفترة مع حجز في تقويم المركبة.",
+    "MAINTENANCE_INVALID_TRANSITION": "هذا الإجراء غير متاح في حالة السجل الحالية.",
+    "EXPENSE_IMMUTABLE": "هذا المصروف ضمن تسوية مدفوعة ولا يمكن تغييره.",
+    "SETTLEMENT_INVALID_TRANSITION": "هذا الإجراء غير متاح في حالة التسوية الحالية."
   },
-  "vertical": { "PASSENGER": "الركاب", "GOODS": "البضائع" },
+  "vertical": {
+    "PASSENGER": "الركاب",
+    "GOODS": "البضائع"
+  },
   "auth": {
     "signIn": "تسجيل الدخول",
     "signInSubtitle": "استخدم رقم جوالك أو بريدك الإلكتروني",
@@ -140,7 +175,24 @@
     "quickBookings": "الحجوزات",
     "quickFleet": "أسطولي",
     "quickComplaints": "الشكاوى",
-    "noPortal": "لا يملك هذا الحساب ملف عميل أو مالك مركبات. سجّل الدخول بحساب عميل أو مالك لرؤية أعمالك هنا."
+    "noPortal": "لا يملك هذا الحساب ملف عميل أو مالك مركبات. سجّل الدخول بحساب عميل أو مالك لرؤية أعمالك هنا.",
+    "shortcuts": "اختصارات",
+    "quickBids": "عروضي",
+    "quickDrivers": "السائقون",
+    "quickSettlements": "التسويات",
+    "partial": "تعذر تحميل جزء من الملخص: {reason}",
+    "owner": {
+      "openOpportunities": "فرص مفتوحة",
+      "openOpportunitiesUnbid": "فرص مفتوحة · {count} بلا عرض",
+      "bidsAwaiting": "عروض بانتظار القرار",
+      "upcomingBookings": "حجوزات قادمة",
+      "bookingsNeedingAction": "حجوزات قادمة · {count} تحتاج إسناداً",
+      "vehiclesAttention": "مركبات تحتاج انتباهاً (من {total})",
+      "nextBooking": "الحجز التالي",
+      "attentionTitle": "تحتاج انتباهاً",
+      "lastSettlement": "آخر تسوية",
+      "noSettlement": "لا توجد تسوية بعد — تظهر أرباحك هنا بعد تسوية أول فترة."
+    }
   },
   "lists": {
     "requests": "طلبات الرحلات",
@@ -168,7 +220,8 @@
     "customerSection": "العميل",
     "signOutConfirm": "تسجيل الخروج من هذا الجهاز؟",
     "version": "الإصدار {version}",
-    "api": "الخادم"
+    "api": "الخادم",
+    "vendorSection": "مالك المركبات"
   },
   "status": {
     "request": {
@@ -251,6 +304,71 @@
       "RESOLVED": "تم الحل",
       "REJECTED": "مرفوضة",
       "CLOSED": "مغلقة"
+    },
+    "vehicleApproval": {
+      "DRAFT": "مسودة",
+      "PENDING_APPROVAL": "بانتظار الاعتماد",
+      "APPROVED": "معتمدة",
+      "REJECTED": "مرفوضة"
+    },
+    "vehicleLifecycle": {
+      "ACTIVE": "نشطة",
+      "INACTIVE": "غير نشطة",
+      "SUSPENDED": "موقوفة",
+      "ARCHIVED": "مؤرشفة"
+    },
+    "vehicleOperational": {
+      "IDLE": "متاحة",
+      "RESERVED": "محجوزة",
+      "ON_TRIP": "في رحلة",
+      "UNDER_MAINTENANCE": "قيد الصيانة",
+      "OUT_OF_SERVICE": "خارج الخدمة"
+    },
+    "onboarding": {
+      "DRAFT": "مسودة",
+      "DOCUMENTS_SUBMITTED": "تم إرسال المستندات",
+      "UNDER_REVIEW": "قيد المراجعة",
+      "APPROVED": "معتمد",
+      "REJECTED": "مرفوض",
+      "SUSPENDED": "موقوف"
+    },
+    "vertical": {
+      "NOT_APPLIED": "لم يُقدَّم",
+      "UNDER_REVIEW": "قيد المراجعة",
+      "APPROVED": "معتمد",
+      "REJECTED": "مرفوض"
+    },
+    "driverAvailability": {
+      "OFF_DUTY": "خارج الخدمة",
+      "AVAILABLE": "متاح",
+      "ON_TRIP": "في رحلة"
+    },
+    "document": {
+      "MISSING": "مفقود",
+      "PENDING": "بانتظار التحقق",
+      "VERIFIED": "تم التحقق",
+      "REJECTED": "مرفوض",
+      "EXPIRED": "منتهي الصلاحية"
+    },
+    "settlement": {
+      "DRAFT": "مسودة",
+      "PENDING_APPROVAL": "بانتظار الاعتماد",
+      "APPROVED": "معتمدة",
+      "PROCESSING": "قيد المعالجة",
+      "PAID": "مدفوعة",
+      "FAILED": "فشلت",
+      "CANCELLED": "ملغاة"
+    },
+    "maintenance": {
+      "PLANNED": "مخطط",
+      "IN_PROGRESS": "في الورشة",
+      "COMPLETED": "مكتملة",
+      "CANCELLED": "ملغاة"
+    },
+    "calendarEntry": {
+      "RESERVATION": "حجز",
+      "MAINTENANCE": "صيانة",
+      "OWNER_BLOCK": "محجوب من قبلك"
     }
   },
   "enums": {
@@ -274,11 +392,33 @@
       "CONTAINER": "حاوية",
       "OTHER": "أخرى"
     },
-    "responsibility": { "CUSTOMER": "العميل", "DRIVER": "السائق", "THIRD_PARTY": "طرف ثالث" },
-    "billingMode": { "PREPAID": "دفع مسبق", "INVOICED": "بالفاتورة (على الحساب)" },
-    "billingCycle": { "PER_BOOKING": "لكل حجز", "WEEKLY": "أسبوعي", "MONTHLY": "شهري" },
-    "creditStatus": { "NONE": "لا يوجد", "PENDING_APPROVAL": "بانتظار الموافقة", "APPROVED": "معتمد", "SUSPENDED": "موقوف" },
-    "cancelledBy": { "CUSTOMER": "العميل", "OWNER": "المالك", "DRIVER": "السائق", "ADMIN": "يوني جيت", "SYSTEM": "النظام" },
+    "responsibility": {
+      "CUSTOMER": "العميل",
+      "DRIVER": "السائق",
+      "THIRD_PARTY": "طرف ثالث"
+    },
+    "billingMode": {
+      "PREPAID": "دفع مسبق",
+      "INVOICED": "بالفاتورة (على الحساب)"
+    },
+    "billingCycle": {
+      "PER_BOOKING": "لكل حجز",
+      "WEEKLY": "أسبوعي",
+      "MONTHLY": "شهري"
+    },
+    "creditStatus": {
+      "NONE": "لا يوجد",
+      "PENDING_APPROVAL": "بانتظار الموافقة",
+      "APPROVED": "معتمد",
+      "SUSPENDED": "موقوف"
+    },
+    "cancelledBy": {
+      "CUSTOMER": "العميل",
+      "OWNER": "المالك",
+      "DRIVER": "السائق",
+      "ADMIN": "يوني جيت",
+      "SYSTEM": "النظام"
+    },
     "cancellationReason": {
       "CUSTOMER_PLANS_CHANGED": "تغيرت الخطط",
       "CUSTOMER_FOUND_ALTERNATIVE": "وجدت بديلًا",
@@ -309,9 +449,26 @@
       "CREDIT_NOTE": "إشعار دائن",
       "DEBIT_NOTE": "إشعار مدين"
     },
-    "ratingSubject": { "DRIVER": "السائق", "VEHICLE": "المركبة", "OWNER": "الشركة", "CUSTOMER": "العميل", "TRIP": "الرحلة" },
-    "complaintAgainst": { "DRIVER": "السائق", "OWNER": "الشركة", "CUSTOMER": "العميل", "VEHICLE": "المركبة", "PLATFORM": "يوني جيت" },
-    "complaintSeverity": { "LOW": "منخفضة", "MEDIUM": "متوسطة", "HIGH": "عالية", "CRITICAL": "حرجة" },
+    "ratingSubject": {
+      "DRIVER": "السائق",
+      "VEHICLE": "المركبة",
+      "OWNER": "الشركة",
+      "CUSTOMER": "العميل",
+      "TRIP": "الرحلة"
+    },
+    "complaintAgainst": {
+      "DRIVER": "السائق",
+      "OWNER": "الشركة",
+      "CUSTOMER": "العميل",
+      "VEHICLE": "المركبة",
+      "PLATFORM": "يوني جيت"
+    },
+    "complaintSeverity": {
+      "LOW": "منخفضة",
+      "MEDIUM": "متوسطة",
+      "HIGH": "عالية",
+      "CRITICAL": "حرجة"
+    },
     "complaintCategory": {
       "SERVICE_QUALITY": "جودة الخدمة",
       "SAFETY": "السلامة",
@@ -336,6 +493,31 @@
       "FINANCE": "المالية",
       "OPERATIONS": "إعلانات",
       "GENERAL": "عام"
+    },
+    "idType": {
+      "NATIONAL_ID": "هوية وطنية",
+      "IQAMA": "إقامة"
+    },
+    "commissionSource": {
+      "RULE": "قاعدة المنصة",
+      "OVERRIDE": "تجاوز",
+      "NONE": "لا عمولة"
+    },
+    "settlementLine": {
+      "BOOKING_EARNING": "أرباح",
+      "COMMISSION": "عمولة",
+      "ADJUSTMENT": "تعديل",
+      "PENALTY": "غرامة",
+      "REFUND_CLAWBACK": "استرداد"
+    },
+    "holdReason": {
+      "NONE": "—",
+      "SUPPLIER_INVOICE_MISSING": "بانتظار فاتورتك",
+      "BANK_ACCOUNT_COOLOFF": "فترة انتظار الحساب البنكي الجديد",
+      "DISPUTE": "قيد النزاع",
+      "MANUAL": "محجوز من يونيجيت",
+      "HOLD_PERIOD": "فترة الحجز",
+      "PAYMENT_PENDING": "بانتظار الدفع / الفاتورة"
     }
   },
   "requests": {
@@ -347,7 +529,10 @@
     "form": {
       "title": "طلب جديد",
       "transportType": "ماذا ننقل؟",
-      "vertical": { "PASSENGER": "ركاب", "GOODS": "بضائع / شحن" },
+      "vertical": {
+        "PASSENGER": "ركاب",
+        "GOODS": "بضائع / شحن"
+      },
       "category": "فئة المركبة",
       "seats": "حتى {count} مقعدًا",
       "payload": "حتى {kg} كجم",
@@ -497,7 +682,23 @@
       "cancelled": "تم إلغاء الحجز. الرسوم {fee} ريال، والمبلغ المسترد {refund} ريال.",
       "dispute": "فتح نزاع",
       "disputeHint": "أخبرنا بما حدث. سيتم فتح شكوى ويراجع فريقنا الحجز.",
-      "disputed": "تم فتح النزاع — الشكوى {number}."
+      "disputed": "تم فتح النزاع — الشكوى {number}.",
+      "dispatch": "الإسناد",
+      "selectDriver": "السائق",
+      "assignDriver": "إسناد سائق",
+      "noDrivers": "لا يوجد سائق معتمد معيّن على هذه المركبة — عيّن سائقاً من صفحة المركبة أولاً.",
+      "assigned": "تم إسناد السائق — أُنشئت الرحلة {number}.",
+      "ready": "تحديد كجاهز",
+      "readyHint": "أكّد أن المركبة والسائق جاهزان للانطلاق.",
+      "readyDone": "تم تحديد الحجز كجاهز.",
+      "financial": "أرباحك",
+      "gross": "الإجمالي",
+      "netOfVat": "الصافي قبل الضريبة",
+      "commission": "عمولة المنصة",
+      "commissionVat": "ضريبة العمولة",
+      "paymentFee": "رسوم الدفع",
+      "net": "صافي أرباحك",
+      "commissionSource": "أساس العمولة"
     }
   },
   "payments": {
@@ -662,5 +863,418 @@
     "debit": "مدين",
     "credit": "دائن",
     "noMovements": "لا توجد حركات في هذه الفترة."
+  },
+  "opportunities": {
+    "detailTitle": "الفرصة",
+    "filter": {
+      "unbid": "للتقديم",
+      "bid": "قُدِّم عرض",
+      "dismissed": "المتجاهلة"
+    },
+    "dismissed": "متجاهلة",
+    "dismiss": "تجاهل",
+    "undo": "استعادة",
+    "dismissedNotice": "تم تجاهل الفرصة — لن تصلك تذكيرات عنها.",
+    "restored": "تمت استعادة الفرصة.",
+    "yourBid": "عرضك",
+    "yourBidPlaced": "لديك عرض قائم على هذا الطلب.",
+    "placeBid": "تقديم عرض",
+    "eligible": "مركباتك المؤهلة",
+    "eligibleCount": "{count} مؤهلة",
+    "noEligible": "لا توجد مركبة مؤهلة لديك حالياً (الاعتماد أو السعة أو التقويم).",
+    "matchReason": "سبب المطابقة",
+    "reasons": {
+      "SERVICE_AREA": "ضمن مناطق خدمتك",
+      "DISPATCHABLE": "المركبة جاهزة للتشغيل",
+      "CALENDAR_FREE": "التقويم متاح",
+      "CATEGORY_MATCH": "الفئة مطابقة",
+      "PAYLOAD_OK": "الحمولة كافية",
+      "LATE": "دعوة متأخرة"
+    }
+  },
+  "bidForm": {
+    "screenTitle": "تقديم عرض",
+    "title": "عرض على {number}",
+    "description": "حدد الأجرة الأساسية وأي إضافات؛ تحتسب يونيجيت الضريبة والإجمالي.",
+    "vehicle": "المركبة",
+    "driver": "السائق (اختياري)",
+    "driverPickVehicle": "اختر مركبة أولاً",
+    "driverLater": "التعيين لاحقاً",
+    "noDrivers": "لا يوجد سائق معتمد على هذه المركبة",
+    "baseAmount": "الأجرة الأساسية (ر.س، قبل الضريبة)",
+    "extras": "الإضافات",
+    "extrasHint": "رسوم الطرق، وقت الانتظار، المساعدة في التحميل… حتى 20 بنداً لكل منها تسمية باللغتين.",
+    "extraN": "إضافة {n}",
+    "extraLabelEn": "التسمية (إنجليزي)",
+    "extraLabelAr": "التسمية (عربي)",
+    "extraAmount": "المبلغ (ر.س)",
+    "addExtra": "إضافة بند",
+    "removeExtra": "حذف البند",
+    "extrasTotal": "الإضافات: {total} ر.س",
+    "timing": "التوقيت",
+    "duration": "المدة المقدرة (دقائق)",
+    "validUntil": "العرض صالح حتى",
+    "validUntilHint": "اتركه فارغاً للصلاحية الافتراضية؛ لا يمكن أن يتجاوز موعد إغلاق العروض ({deadline}).",
+    "validUntilDefault": "اتركه فارغاً للصلاحية الافتراضية.",
+    "notes": "ملاحظات للعميل",
+    "submit": "تقديم العرض",
+    "submitted": "تم تقديم العرض {number} — الإجمالي {total}.",
+    "errors": {
+      "vehicleRequired": "اختر مركبة.",
+      "baseInvalid": "أدخل مبلغاً أكبر من صفر بخانتين عشريتين على الأكثر.",
+      "extraLabelRequired": "أدخل تسمية للإضافة.",
+      "extraAmountInvalid": "أدخل مبلغاً صحيحاً.",
+      "tooManyExtras": "20 إضافة على الأكثر.",
+      "durationInvalid": "أدخل دقائق صحيحة بين 1 و10,080.",
+      "validUntilPast": "يجب أن تكون الصلاحية في المستقبل.",
+      "validUntilAfterDeadline": "لا يمكن أن تتجاوز الصلاحية موعد إغلاق العروض."
+    }
+  },
+  "myBids": {
+    "title": "عروضي",
+    "subtitle": "العروض التي قدمتها؛ الإجمالي يشمل ضريبة القيمة المضافة بالنسبة السارية وقت التقديم.",
+    "detailTitle": "العرض",
+    "version": "إصدار {n}",
+    "submittedAt": "تاريخ التقديم",
+    "revisedAt": "آخر تعديل",
+    "decidedAt": "تاريخ القرار",
+    "commission": "عمولة المنصة",
+    "rejectedReason": "مرفوض: {reason}",
+    "revise": "تعديل العرض",
+    "reviseTitle": "تعديل {number}",
+    "reviseHint": "تُرسل الحقول المتغيرة فقط؛ يُشعَر العميل ويزداد رقم الإصدار.",
+    "revised": "تم تعديل العرض — الإصدار {n}، الإجمالي {total}.",
+    "withdraw": "سحب",
+    "withdrawConfirm": "سحب هذا العرض؟ لن يتمكن العميل من قبوله بعد ذلك.",
+    "withdrawn": "تم سحب العرض."
+  },
+  "fleet": {
+    "register": "تسجيل مركبة",
+    "detailTitle": "المركبة",
+    "dispatchable": "جاهزة للتشغيل",
+    "notDispatchable": "غير جاهزة للتشغيل",
+    "reasons": {
+      "VEHICLE_NOT_APPROVED": "المركبة غير معتمدة",
+      "VEHICLE_REJECTED": "التسجيل مرفوض",
+      "VEHICLE_INACTIVE": "المركبة غير نشطة",
+      "VEHICLE_SUSPENDED": "المركبة موقوفة",
+      "VEHICLE_ARCHIVED": "المركبة مؤرشفة",
+      "OWNER_NOT_APPROVED": "ملف المالك غير معتمد",
+      "INSURANCE_EXPIRED": "انتهى التأمين",
+      "REGISTRATION_EXPIRED": "انتهت الاستمارة",
+      "INSPECTION_EXPIRED": "انتهى الفحص",
+      "INSURANCE_EXPIRING": "التأمين ينتهي قريباً",
+      "REGISTRATION_EXPIRING": "الاستمارة تنتهي قريباً",
+      "INSPECTION_EXPIRING": "الفحص ينتهي قريباً"
+    },
+    "form": {
+      "title": "تسجيل مركبة",
+      "vertical": "المركبة مخصصة لـ",
+      "category": "الفئة",
+      "identity": "الهوية",
+      "make": "الشركة المصنعة",
+      "model": "الطراز",
+      "noMake": "— بدون —",
+      "pickMakeFirst": "اختر الشركة المصنعة أولاً",
+      "modelYear": "سنة الصنع",
+      "plateEn": "اللوحة (لاتيني)",
+      "plateAr": "اللوحة (عربي)",
+      "sequenceNumber": "الرقم التسلسلي",
+      "registrationNumber": "رقم الاستمارة",
+      "vin": "رقم الهيكل (اختياري)",
+      "colour": "اللون",
+      "capacity": "السعة",
+      "passengerCapacity": "عدد المقاعد",
+      "payloadKg": "الحمولة (كجم)",
+      "volumeM3": "حجم الشحن (م³، اختياري)",
+      "bodyType": "نوع الهيكل (اختياري)",
+      "operations": "التشغيل",
+      "baseCity": "المدينة الأساسية",
+      "odometer": "العداد (كم)",
+      "insuranceExpiry": "انتهاء التأمين",
+      "registrationExpiry": "انتهاء الاستمارة",
+      "inspectionExpiry": "انتهاء الفحص",
+      "notes": "ملاحظات",
+      "hint": "تُسجَّل المركبة كمسودة؛ ارفع مستنداتها في الشاشة التالية وتنتقل للاعتماد تلقائياً.",
+      "submit": "تسجيل",
+      "created": "تم تسجيل المركبة كمسودة. ارفع مستنداتها الآن.",
+      "errors": {
+        "required": "مطلوب.",
+        "year": "أدخل سنة بين 1980 وسنتين قادمتين.",
+        "plate": "أدخل لوحة سعودية مثل 1234 ABC.",
+        "plateAr": "أدخل من 3 إلى 24 حرفاً.",
+        "registration": "أدخل 3 أحرف على الأقل.",
+        "vin": "رقم الهيكل 17 خانة (بدون I أو O أو Q).",
+        "colour": "أدخل حرفين على الأقل.",
+        "payload": "أدخل الحمولة بالكيلوغرام (حتى 100,000).",
+        "volume": "أدخل حجماً بين 0 و1,000 م³.",
+        "seats": "أدخل من 1 إلى 100 مقعد.",
+        "odometer": "أدخل كيلومترات صحيحة.",
+        "date": "أدخل تاريخاً."
+      }
+    },
+    "detail": {
+      "documents": "المستندات",
+      "calendar": "التقويم",
+      "drivers": "السائقون",
+      "submit": "إرسال للاعتماد",
+      "submitHint": "عند تأكيد كل المستندات الإلزامية تنتقل المركبة للاعتماد تلقائياً؛ هذا الزر يعيد الإرسال بعد الرفض.",
+      "submitted": "تم الإرسال للاعتماد.",
+      "reasons": "سبب عدم الجاهزية",
+      "rejectedReason": "سبب الرفض",
+      "window": "الفترة",
+      "days": "{count} يوم",
+      "noEntries": "لا يوجد شيء في التقويم لهذه الفترة.",
+      "block": "حجب تواريخ",
+      "blockHint": "لا يمكن وضع حجوزات في فترة محجوبة.",
+      "blockFrom": "من",
+      "blockTo": "إلى",
+      "blockNotes": "ملاحظات",
+      "addBlock": "إضافة حجب",
+      "release": "إلغاء الحجب",
+      "releaseConfirm": "إلغاء هذا الحجب؟ تصبح المركبة قابلة للحجز في تلك الفترة مجدداً.",
+      "assign": "تعيين سائق",
+      "primary": "أساسي",
+      "active": "نشط",
+      "unassign": "إلغاء التعيين",
+      "unassignConfirm": "إلغاء تعيين {name} من هذه المركبة؟",
+      "assignmentHistory": "سجل التعيينات",
+      "noDrivers": "لا يوجد سائق معتمد لديك متاح للتعيين. يعمل السائق لدى مالك واحد ولا يُعيَّن إلا على مركباته.",
+      "registerDriver": "تسجيل سائق"
+    },
+    "spec": {
+      "title": "بيانات المركبة",
+      "color": "اللون",
+      "passengerCapacity": "عدد المقاعد",
+      "payloadCapacityKg": "الحمولة (كجم)",
+      "cargoVolumeM3": "حجم الشحن (م³)",
+      "bodyType": "نوع الهيكل",
+      "features": "المزايا",
+      "refrigeration": "مبرّدة",
+      "tailLift": "رافعة خلفية",
+      "rating": "التقييم",
+      "drivers": "السائقون المعيّنون",
+      "operational": "الحالة التشغيلية"
+    }
+  },
+  "drivers": {
+    "title": "السائقون",
+    "subtitle": "سجّل السائقين وارفع رخصة القيادة وبطاقة هيئة النقل، ثم عيّنهم على المركبات.",
+    "detailTitle": "السائق",
+    "add": "إضافة سائق",
+    "driver": "السائق",
+    "licence": "الرخصة",
+    "verticals": "القطاعات",
+    "licenceEnding": "رخصة تنتهي بـ {last4}",
+    "created": "تم تسجيل السائق {name} — ارفع مستنداته الآن.",
+    "verticalAdded": "تمت إضافة القطاع — ارفع بطاقة هيئة النقل الخاصة به؛ يُعتمد السائق له بعد التحقق.",
+    "addVertical": "التقديم لقطاع {vertical}",
+    "availabilityHint": "تخبر الجاهزية الإسناد إن كان السائق يستطيع أخذ رحلة اليوم. «في رحلة» يحددها النظام.",
+    "form": {
+      "title": "تسجيل سائق",
+      "identity": "الهوية",
+      "fullNameEn": "الاسم الكامل (إنجليزي)",
+      "fullNameAr": "الاسم الكامل (عربي)",
+      "phone": "رقم الجوال",
+      "locale": "اللغة المفضلة",
+      "idType": "نوع الهوية",
+      "nationalId": "رقم الهوية / الإقامة",
+      "dateOfBirth": "تاريخ الميلاد",
+      "licenseNumber": "رقم الرخصة",
+      "licenseExpiryDate": "انتهاء الرخصة",
+      "licenseCategories": "فئات الرخصة",
+      "licenceCategories": {
+        "PRIVATE": "خصوصي",
+        "PUBLIC": "عمومي",
+        "HEAVY": "ثقيل",
+        "BUS": "حافلة",
+        "MOTORCYCLE": "دراجة نارية"
+      },
+      "transportTypes": "القطاعات التي سيعمل بها السائق",
+      "emergency": "جهة اتصال للطوارئ",
+      "emergencyContactName": "اسم جهة الطوارئ",
+      "emergencyContactPhone": "هاتف جهة الطوارئ",
+      "loginHint": "يسجّل السائق الدخول لتطبيق السائق بهذا الرقم ورمز لمرة واحدة — لا تُحدَّد كلمة مرور هنا.",
+      "submit": "تسجيل السائق"
+    }
+  },
+  "documents": {
+    "title": "المستندات",
+    "subtitle": "ارفع المستندات التي تحتاجها يونيجيت للتحقق منك. يقوم فريقنا بالتحقق.",
+    "checklistFor": "قائمة التحقق — {target}",
+    "targetUser": "الهوية",
+    "targetOwner": "النشاط",
+    "mandatory": "إلزامي",
+    "optional": "اختياري",
+    "upload": "رفع",
+    "replace": "استبدال",
+    "dialogTitle": "رفع {name}",
+    "issueDate": "تاريخ الإصدار (اختياري)",
+    "expiryDate": "تاريخ الانتهاء (اختياري)",
+    "expiryDateRequired": "تاريخ الانتهاء",
+    "uploading": "جارٍ الرفع…",
+    "uploaded": "تم الرفع — بانتظار التحقق.",
+    "accepted": "المقبول: PDF، JPEG، PNG، WebP. تُضغط الصور إلى 2 م.ب.",
+    "constraints": "{types} · حتى {max}",
+    "expires": "ينتهي في {date}",
+    "noChecklist": "لا يوجد ما يلزم رفعه حالياً.",
+    "pick": {
+      "camera": "التقاط صورة",
+      "gallery": "اختيار صورة",
+      "file": "اختيار ملف (PDF)",
+      "none": "لم يُختر ملف بعد.",
+      "permission": "تم رفض الإذن. اسمح بالوصول إلى الكاميرا / الصور من إعدادات الهاتف.",
+      "tooLarge": "حجم الملف أكبر مما يسمح به نوع المستند.",
+      "typeNotAllowed": "نوع الملف غير مقبول هنا ({types})."
+    },
+    "stage": {
+      "hashing": "جارٍ تجهيز الملف…",
+      "requesting": "جارٍ طلب مكان للرفع…",
+      "uploading": "جارٍ الرفع…",
+      "confirming": "جارٍ التأكيد…"
+    }
+  },
+  "owner": {
+    "title": "ملف الشركة / المالك",
+    "subtitle": "حالة التسجيل وبيانات النشاط والقطاعات ومناطق الخدمة.",
+    "type": {
+      "INDIVIDUAL": "فرد",
+      "COMPANY": "شركة",
+      "PLATFORM": "أسطول يونيجيت"
+    },
+    "onboarding": {
+      "DRAFT": "مسودة — أكمل ملفك وارفع المستندات.",
+      "DOCUMENTS_SUBMITTED": "تم إرسال المستندات — أرسل الملف للمراجعة.",
+      "UNDER_REVIEW": "قيد المراجعة من يونيجيت.",
+      "APPROVED": "معتمد — يمكنك تسجيل المركبات وتقديم العروض.",
+      "REJECTED": "مرفوض — صحّح البيانات وأعد الإرسال.",
+      "SUSPENDED": "موقوف — تواصل مع يونيجيت."
+    },
+    "submit": "إرسال للمراجعة",
+    "submitted": "ملفك الآن قيد المراجعة.",
+    "missing": "مفقود أو غير متحقق منه: {codes}",
+    "details": "بيانات النشاط",
+    "edit": "تعديل البيانات",
+    "editApprovedHint": "تعديل ملف معتمد يعيد البيانات المتغيرة إلى المراجعة.",
+    "ownerType": "نوع المالك",
+    "businessNameEn": "اسم النشاط (إنجليزي)",
+    "businessNameAr": "اسم النشاط (عربي)",
+    "crNumber": "السجل التجاري",
+    "vatNumber": "الرقم الضريبي",
+    "isVatRegistered": "مسجل في ضريبة القيمة المضافة",
+    "approvedAt": "تاريخ الاعتماد",
+    "verticals": "القطاعات",
+    "applyVertical": "التقديم لقطاع {vertical}",
+    "serviceAreas": "مناطق الخدمة",
+    "serviceAreasHint": "المدن التي تخدمها — تُطابق الفرص بناءً عليها.",
+    "noServiceAreas": "لا توجد مناطق خدمة بعد — لن تصلك فرص حتى تضيف بعضها.",
+    "cities": "المدن",
+    "editServiceAreas": "تعديل مناطق الخدمة",
+    "privacy": "ما يراه العملاء",
+    "privacyKeys": {
+      "showBusinessName": "إظهار اسم النشاط",
+      "showRating": "إظهار تقييمي",
+      "showFleetSize": "إظهار حجم أسطولي",
+      "showCity": "إظهار مدينتي",
+      "showContactPhone": "إظهار هاتف التواصل"
+    },
+    "saved": "تم الحفظ."
+  },
+  "settlements": {
+    "title": "التسويات",
+    "subtitle": "أرباحك المعلّقة وسجل التسويات.",
+    "detailTitle": "التسوية",
+    "pending": "التسوية المعلّقة (آخر 30 يوماً)",
+    "gross": "الإجمالي",
+    "deductions": "الاستقطاعات",
+    "adjustments": "التعديلات",
+    "net": "صافي المستحق",
+    "heldCount": "حجوزات محجوزة",
+    "belowMinimum": "أقل من الحد الأدنى للدفع {min} — يُرحَّل الرصيد.",
+    "nothingPending": "لا شيء معلّق في هذه الفترة.",
+    "lines": "{count} بند",
+    "linesTitle": "البنود",
+    "totals": "الإجماليات",
+    "payout": "الدفع",
+    "paidTo": "دُفع إلى",
+    "paymentReference": "مرجع التحويل",
+    "paidAt": "تاريخ الدفع"
+  },
+  "expenses": {
+    "title": "المصروفات",
+    "subtitle": "تكاليف التشغيل لكل مركبة؛ تُسجَّل الضريبة بجانب المبلغ الصافي.",
+    "detailTitle": "المصروف",
+    "record": "تسجيل مصروف",
+    "summary": "حسب الفئة",
+    "category": "الفئة",
+    "amount": "المبلغ الصافي",
+    "vat": "الضريبة",
+    "date": "التاريخ",
+    "vehicle": "المركبة",
+    "vendor": "المورّد",
+    "description": "الوصف",
+    "reimbursable": "قابل للاسترداد",
+    "total": "الإجمالي",
+    "locked": "مُسوّى",
+    "lockedHint": "هذا المصروف ضمن فترة تسوية مدفوعة ولا يمكن تغييره.",
+    "receipt": "الإيصال",
+    "receiptAttached": "الإيصال مرفق",
+    "receiptAttachedNotice": "تم إرفاق الإيصال.",
+    "noReceipt": "بلا إيصال",
+    "attachReceipt": "إرفاق إيصال",
+    "replaceReceipt": "استبدال الإيصال",
+    "created": "تم تسجيل المصروف. أرفق الإيصال إن وُجد.",
+    "remove": "حذف المصروف",
+    "removeConfirm": "حذف هذا المصروف؟"
+  },
+  "maintenance": {
+    "title": "الصيانة",
+    "subtitle": "زيارات الورشة تحجز المركبة في تقويمها؛ الإكمال يحدّث العداد ويقيّد التكلفة.",
+    "detailTitle": "سجل الصيانة",
+    "record": "تخطيط زيارة ورشة",
+    "vehicle": "المركبة",
+    "serviceType": "الخدمة",
+    "kind": "النوع",
+    "kinds": {
+      "SCHEDULED": "مجدولة",
+      "UNSCHEDULED": "غير مجدولة",
+      "REPAIR": "إصلاح",
+      "INSPECTION": "فحص"
+    },
+    "from": "من",
+    "to": "إلى",
+    "initialStatus": "تبدأ كـ",
+    "cost": "التكلفة (صافي)",
+    "vat": "الضريبة",
+    "total": "الإجمالي",
+    "workshop": "الورشة",
+    "description": "ملاحظات",
+    "window": "الفترة",
+    "actualStart": "بدأت",
+    "actualEnd": "انتهت",
+    "nextService": "الخدمة التالية",
+    "nextServiceKm": "الخدمة التالية عند",
+    "holdHint": "تُحجب الفترة في تقويم المركبة فوراً — لا يمكن للحجوزات التداخل معها. يُرفض وجود حجز داخل الفترة.",
+    "start": "بدء",
+    "started": "المركبة الآن في الورشة.",
+    "cancel": "إلغاء",
+    "cancelReason": "سبب الإلغاء",
+    "cancelConfirm": "إلغاء سجل الصيانة هذا وتحرير الحجب في التقويم؟",
+    "cancelled": "أُلغيت الصيانة — تم تحرير الحجب في التقويم.",
+    "created": "تم تخطيط زيارة الورشة — المركبة محجوزة في تقويمها.",
+    "completed": "تم التحديد كمكتملة.",
+    "complete": {
+      "title": "إكمال — {plate} · {type}",
+      "odometer": "العداد (كم)",
+      "notes": "ملاحظات",
+      "recordExpense": "تقييد التكلفة كمصروف",
+      "confirm": "تحديد كمكتملة"
+    },
+    "due": {
+      "title": "مستحقة قريباً",
+      "overdue": "متأخرة",
+      "inDays": "خلال {n} يوم",
+      "inKm": "خلال {n} كم"
+    }
   }
 }

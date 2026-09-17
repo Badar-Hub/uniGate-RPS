@@ -53,6 +53,8 @@ interface Props<T> {
   onFilter?: ((value: string) => void) | undefined;
   /** Right-hand header action (e.g. "New request"). */
   action?: ReactNode;
+  /** Scrolls with the list, above the first row (a summary card). */
+  above?: ReactNode;
   header?: boolean;
   pageSize?: number;
 }
@@ -74,6 +76,7 @@ export function ListScreen<T>({
   filter = '',
   onFilter,
   action,
+  above,
   header = false,
   pageSize = PAGE_SIZE,
 }: Props<T>) {
@@ -131,6 +134,7 @@ export function ListScreen<T>({
           onEndReached={() => {
             if (q.hasNextPage && !q.isFetchingNextPage) void q.fetchNextPage();
           }}
+          ListHeaderComponent={above ? <View>{above}</View> : null}
           ListEmptyComponent={<Empty text={t('common.empty')} />}
           ListFooterComponent={q.isFetchingNextPage ? <Loading /> : <View className="h-6" />}
           contentContainerClassName="pb-6"

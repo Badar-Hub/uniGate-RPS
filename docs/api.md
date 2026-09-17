@@ -1093,7 +1093,7 @@ No `/me` route takes a permission code. The scope layer binds every one of them 
 | Method | Path | Permission | Scope | Description |
 |---|---|---|---|---|
 | GET | `/drivers` | `drivers.read` | own → global | Owners see their own drivers; `drivers.read_any` sees all. Filters: `approvalStatus`, `availabilityStatus`, `licenseExpiringWithinDays`, `q`. |
-| POST | `/drivers` | `drivers.create` | own | Create a driver under the acting owner. Creates the `users` row (phone-only, OTP login) plus `driver_profiles`. |
+| POST | `/drivers` **⧗** | `drivers.create` | own | Create a driver under the acting owner. Creates the `users` row (phone-only, OTP login) plus `driver_profiles`. |
 | GET | `/drivers/{id}` | `drivers.read` | own → global | Profile. `nationalIdLast4`, `licenseNumberLast4` — never the encrypted values. |
 | PATCH | `/drivers/{id}` | `drivers.update` | own → global | Licence details, categories, emergency contact. |
 | POST | `/drivers/{id}/approve` | `drivers.approve` | global | → approved, after document verification. `POST …/reject` shares the route. |
@@ -1130,6 +1130,7 @@ No `/me` route takes a permission code. The scope layer binds every one of them 
 | GET | `/vehicles/{id}/calendar` | `vehicles.read` | own → global | `vehicle_calendar_entries` in a window. Returns `entryType`, `period.from`/`to`, `status`, and `bookingNumber` where the entry is a reservation the actor is party to. |
 | POST | `/vehicles/{id}/calendar/blocks` | `vehicles.availability.manage` | own → global | Owner-declared blackout (`entry_type = OWNER_BLOCK`). `409 VEHICLE_CALENDAR_CONFLICT` (with the blocking booking) if it overlaps. `DELETE …/{entryId}` releases it. |
 | GET | `/vehicles/{id}/availability` | `vehicles.read` | own → global | Boolean + reasons for a `from`/`to` window: dispatchable predicate, calendar overlap, document expiry inside the window. This is the endpoint the bid form calls before allowing submission. |
+| GET | `/vehicles/{id}/drivers` | `vehicles.read` | own → global | Assignment history for the vehicle (open rows have `assignedTo: null`); the driver pickers on the portal and the app read it. |
 | POST | `/vehicles/{id}/drivers` | `drivers.assign` | own → global | Open a `vehicle_driver_assignments` row (`isPrimary` optional). Closes the previous primary assignment rather than overwriting it. `DELETE …/{assignmentId}` sets `assigned_to`. |
 
 ### 8.9 `/vehicle-categories` and `/reference/*` (10)
@@ -1194,7 +1195,7 @@ An opportunity is a `trip_request_invitations` row joined to its request. It exi
 
 | Method | Path | Permission | Scope | Description |
 |---|---|---|---|---|
-| GET | `/opportunities` | `trip_requests.read` | own | Open invitations for the acting owner. Filters: `transportType`, `vehicleCategoryId`, `pickupCityId`, `pickupFrom`/`pickupTo`, `hasBid` (boolean), `closingWithinHours`. Default sort `matchScore desc`. |
+| GET | `/opportunities` | `trip_requests.read` | own | Open invitations for the acting owner. Filters: `transportType`, `vehicleCategoryId`, `pickupCityId`, `pickupFrom`/`pickupTo`, `hasBid` (boolean), `includeDismissed` (boolean, default false), `closingWithinHours`. Default sort `matchScore desc`. |
 | GET | `/opportunities/{id}` | `trip_requests.read` | own | The request detail plus `matchReason`, the owner's eligible vehicles for it, and their own existing bid if any. Marks `viewed_at` on first read. |
 | POST | `/opportunities/{id}/dismiss` | `opportunities.dismiss` | own | Sets `dismissed_at`; removes it from the default list and suppresses reminder notifications. Reversible with `?undo=true`. |
 

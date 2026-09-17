@@ -5,9 +5,37 @@ import type { Tone } from '@/components/ui';
  * `BID_TONE`, the invoice `TONE` map). Labels come from the catalogue under `status.<group>.<code>`;
  * an unknown code falls back to the raw code so a new lifecycle state never renders blank.
  */
-export type StatusGroup = 'request' | 'booking' | 'bookingPayment' | 'bid' | 'trip' | 'payment' | 'invoice' | 'complaint';
+export type StatusGroup =
+  | 'request'
+  | 'booking'
+  | 'bookingPayment'
+  | 'bid'
+  | 'trip'
+  | 'payment'
+  | 'invoice'
+  | 'complaint'
+  | 'vehicleApproval'
+  | 'vehicleLifecycle'
+  | 'vehicleOperational'
+  | 'onboarding'
+  | 'vertical'
+  | 'driverAvailability'
+  | 'document'
+  | 'settlement'
+  | 'maintenance'
+  | 'calendarEntry';
 
 const TONES: Record<StatusGroup, Record<string, Tone>> = {
+  vehicleApproval: { DRAFT: 'neutral', PENDING_APPROVAL: 'warning', APPROVED: 'success', REJECTED: 'danger' },
+  vehicleLifecycle: { ACTIVE: 'success', INACTIVE: 'neutral', SUSPENDED: 'danger', ARCHIVED: 'neutral' },
+  vehicleOperational: { IDLE: 'neutral', RESERVED: 'info', ON_TRIP: 'info', UNDER_MAINTENANCE: 'warning', OUT_OF_SERVICE: 'danger' },
+  onboarding: { DRAFT: 'neutral', DOCUMENTS_SUBMITTED: 'info', UNDER_REVIEW: 'warning', APPROVED: 'success', REJECTED: 'danger', SUSPENDED: 'danger' },
+  vertical: { NOT_APPLIED: 'neutral', UNDER_REVIEW: 'warning', APPROVED: 'success', REJECTED: 'danger' },
+  driverAvailability: { OFF_DUTY: 'neutral', AVAILABLE: 'success', ON_TRIP: 'info' },
+  document: { MISSING: 'neutral', PENDING: 'warning', VERIFIED: 'success', REJECTED: 'danger', EXPIRED: 'danger' },
+  settlement: { DRAFT: 'neutral', PENDING_APPROVAL: 'warning', APPROVED: 'info', PROCESSING: 'info', PAID: 'success', FAILED: 'danger', CANCELLED: 'neutral' },
+  maintenance: { PLANNED: 'info', IN_PROGRESS: 'warning', COMPLETED: 'success', CANCELLED: 'neutral' },
+  calendarEntry: { RESERVATION: 'info', MAINTENANCE: 'warning', OWNER_BLOCK: 'neutral' },
   request: { DRAFT: 'neutral', PUBLISHED: 'info', PARTIALLY_AWARDED: 'warning', FULLY_AWARDED: 'success', CLOSED_PARTIAL: 'neutral', COMPLETED: 'success', CANCELLED: 'danger', EXPIRED: 'neutral' },
   booking: { PENDING_PAYMENT: 'warning', CONFIRMED: 'info', DRIVER_ASSIGNED: 'info', READY: 'info', IN_PROGRESS: 'info', COMPLETED: 'success', CANCELLED: 'danger', DISPUTED: 'danger', REFUNDED: 'neutral' },
   bookingPayment: { UNPAID: 'warning', INVOICED: 'info', PARTIALLY_PAID: 'warning', PAID: 'success', REFUNDED: 'neutral', PARTIALLY_REFUNDED: 'neutral' },
@@ -61,3 +89,9 @@ export const BIDDABLE_REQUEST_STATUSES: readonly string[] = ['PUBLISHED', 'PARTI
 
 /** Payable invoice states (web: `payable`). */
 export const PAYABLE_INVOICE_STATUSES: readonly string[] = ['ISSUED', 'PARTIALLY_PAID', 'OVERDUE'];
+
+/** Vehicle approval states from which the owner may (re)submit for approval (web: VehicleDetail). */
+export const VEHICLE_SUBMITTABLE_STATUSES: readonly string[] = ['DRAFT', 'REJECTED'];
+
+/** Owner onboarding states from which "submit for review" is offered (web: Dashboard). */
+export const OWNER_SUBMITTABLE_STATUSES: readonly string[] = ['DRAFT', 'DOCUMENTS_SUBMITTED', 'REJECTED'];

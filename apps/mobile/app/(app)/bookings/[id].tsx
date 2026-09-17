@@ -1,6 +1,5 @@
-import { useState, type ReactNode } from 'react';
-import { Alert, Modal, ScrollView, Text, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { useState } from 'react';
+import { Alert, ScrollView, Text, View } from 'react-native';
 import { useQuery } from '@tanstack/react-query';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { idempotencyKey } from '@unigate/api-client';
@@ -11,8 +10,10 @@ import type {
   CancelBookingResultDto,
   CancellationQuoteDto,
 } from '@unigate/types';
+import { useEligibleDrivers } from '@/components/bid-form';
 import { SelectField } from '@/components/select-field';
 import { RatingPrompt } from '@/components/rating-prompt';
+import { Sheet } from '@/components/sheet';
 import {
   Badge,
   Button,
@@ -64,6 +65,7 @@ export default function BookingDetailScreen() {
 
   const b = q.data;
   const isCustomer = Boolean(b && me?.profiles.customer?.id === b.customerProfileId);
+  const isOwner = Boolean(b && me?.profiles.owner?.id === b.ownerProfileId);
   const refresh = () => invalidate(keys.booking(bookingId), keys.bookingHistory(bookingId), keys.bookings, keys.requests);
 
   return (
@@ -109,6 +111,16 @@ export default function BookingDetailScreen() {
             ) : null}
             {b.billingMode === 'INVOICED' ? <Notice tone="info" message={t('bookings.detail.invoicedNotice')} /> : null}
 
+            {isOwner && (b.status === 'CONFIRMED' || b.status === 'DRIVER_ASSIGNED') ? (
+              <OwnerDispatchCard
+                booking={b}
+                onDone={(message) => {
+                  setNotice(message);
+                  void refresh();
+                }}
+              />
+            ) : null}
+
             {b.trip && TRACKABLE_TRIP_STATUSES.includes(b.trip.status) ? (
               <View className="mb-3">
                 <Button
@@ -148,6 +160,21 @@ export default function BookingDetailScreen() {
               <Row label={t('bookings.detail.billingMode')} value={enumLabel({ t, has }, 'billingMode', b.billingMode)} />
               {b.creditTermsDaysSnapshot !== null ? <Row label={t('bookings.detail.creditTerms')} value={t('bookings.detail.days', { count: b.creditTermsDaysSnapshot })} /> : null}
             </Card>
+
+            {b.financial ? (
+              <>
+                <SectionTitle>{t('bookings.detail.financial')}</SectionTitle>
+                <Card>
+                  <Row label={t('bookings.detail.gross')} value={formatMoney(b.financial.grossAmount, b.currency)} ltr />
+                  <Row label={t('bookings.detail.netOfVat')} value={formatMoney(b.financial.netOfVatAmount, b.currency)} ltr />
+                  <Row label={t('bookings.detail.commission')} value={`− ${formatMoney(b.financial.commissionAmount, b.currency)}`} ltr />
+                  <Row label={t('bookings.detail.commissionVat')} value={`− ${formatMoney(b.financial.commissionVatAmount, b.currency)}`} ltr />
+                  {b.financial.paymentFeeAmount !== '0.00' ? <Row label={t('bookings.detail.paymentFee')} value={`− ${formatMoney(b.financial.paymentFeeAmount, b.currency)}`} ltr /> : null}
+                  <Row label={t('bookings.detail.net')} value={<Text className="text-base font-bold text-card-foreground" style={{ writingDirection: 'ltr' }}>{formatMoney(b.financial.ownerNetAmount, b.currency)}</Text>} />
+                  <Row label={t('bookings.detail.commissionSource')} value={enumLabel({ t, has }, 'commissionSource', b.financial.commissionSource)} />
+                </Card>
+              </>
+            ) : null}
 
             {b.cancellation ? (
               <>
@@ -264,7 +291,7 @@ function CancelSheet({ booking, onClose, onCancelled }: { booking: BookingDto; o
   };
 
   return (
-    <Sheet title={t('bookings.detail.cancelTitle', { number: booking.bookingNumber })} onClose={onClose}>
+    <Sheet title={t('bookings.detail.cancelTitle', { number: booking.bookingNumber })} onClose={onClose} ltrTitle>
       {quote.isPending ? (
         <Loading />
       ) : quote.isError ? (
@@ -350,19 +377,63 @@ function DisputeSheet({ booking, onClose, onDisputed }: { booking: BookingDto; o
   );
 }
 
-function Sheet({ title, onClose, children }: { title: string; onClose: () => void; children: ReactNode }) {
+/**
+ * Owner dispatch (api.md §8.14): `POST /bookings/{id}/assign-driver { driverProfileId }` ⧗ from the
+ * vehicle's open assignments (approved drivers only), then `POST /bookings/{id}/ready` once the
+ * pre-dispatch checks are done — the same two actions the web's BookingDetail offers the owner.
+ */
+function OwnerDispatchCard({ booking, onDone }: { booking: BookingDto; onDone: (message: string) => void }) {
   const { t } = useI18n();
+  const action = useAction(['driverProfileId']);
+  const drivers = useEligibleDrivers(booking.vehicleId, t('fleet.detail.primary'));
+  const [driverId, setDriverId] = useState('');
+  const chosen = driverId || (drivers.options[0]?.value ?? '');
+
+  const assign = async () => {
+    const res = await action.run(() =>
+      api<BookingDto>(`/bookings/${booking.id}/assign-driver`, {
+        method: 'POST',
+        body: { driverProfileId: chosen },
+        headers: { 'Idempotency-Key': idempotencyKey() },
+      }),
+    );
+    if (!res) return;
+    onDone(t('bookings.detail.assigned', { number: res.trip?.tripNumber ?? '' }));
+  };
+  const ready = async () => {
+    const res = await action.run(() => api<BookingDto>(`/bookings/${booking.id}/ready`, { method: 'POST', body: {} }));
+    if (!res) return;
+    onDone(t('bookings.detail.readyDone'));
+  };
+
   return (
-    <Modal visible animationType="slide" presentationStyle="pageSheet" onRequestClose={onClose}>
-      <SafeAreaView edges={['top', 'bottom']} className="flex-1 bg-background">
-        <ScrollView keyboardShouldPersistTaps="handled" contentContainerClassName="p-4 pb-12">
-          <Text className="mb-3 text-xl font-bold text-foreground text-start" style={{ writingDirection: 'ltr' }}>{title}</Text>
-          {children}
-          <View className="mt-3">
-            <Button title={t('common.back')} variant="ghost" onPress={onClose} />
-          </View>
-        </ScrollView>
-      </SafeAreaView>
-    </Modal>
+    <Card>
+      <Text className="text-base font-semibold text-card-foreground text-start">{t('bookings.detail.dispatch')}</Text>
+      <View className="mt-3">
+        <ErrorBanner message={action.banner} />
+        {booking.status === 'CONFIRMED' ? (
+          <>
+            <SelectField
+              label={t('bookings.detail.selectDriver')}
+              value={chosen}
+              options={drivers.options}
+              onChange={setDriverId}
+              placeholder={drivers.loading ? t('common.loading') : t('bookings.detail.noDrivers')}
+              disabled={drivers.options.length === 0}
+              error={action.fields['driverProfileId']}
+            />
+            {!drivers.loading && drivers.options.length === 0 ? <Muted>{t('bookings.detail.noDrivers')}</Muted> : null}
+            <Button title={t('bookings.detail.assignDriver')} loading={action.busy} disabled={!chosen} onPress={() => void assign()} />
+          </>
+        ) : (
+          <>
+            <Muted>{t('bookings.detail.readyHint')}</Muted>
+            <View className="mt-3">
+              <Button title={t('bookings.detail.ready')} loading={action.busy} onPress={() => void ready()} />
+            </View>
+          </>
+        )}
+      </View>
+    </Card>
   );
 }
