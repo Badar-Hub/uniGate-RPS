@@ -6,6 +6,7 @@ import DateTimePicker, {
 } from '@react-native-community/datetimepicker';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { Button, Label, usePalette } from '@/components/ui';
+import { clampToMinimum } from '@/lib/date-clamp';
 import { useI18n } from '@/i18n';
 import { formatDateTime } from '@/lib/format';
 
@@ -38,7 +39,7 @@ export function DateTimeField({
   const [draft, setDraft] = useState<Date>(value ?? defaultStart());
 
   const openAndroid = () => {
-    const start = value ?? defaultStart();
+    const start = clampToMinimum(value ?? defaultStart(), minimumDate);
     DateTimePickerAndroid.open({
       value: start,
       mode: 'date',
@@ -51,7 +52,7 @@ export function DateTimeField({
           onValueChange: (_e2: DateTimePickerChangeEvent, time: Date) => {
             const next = new Date(day);
             next.setHours(time.getHours(), time.getMinutes(), 0, 0);
-            onChange(next);
+            onChange(clampToMinimum(next, minimumDate));
           },
         });
       },
@@ -113,7 +114,7 @@ export function DateTimeField({
               <Button
                 title={doneLabel}
                 onPress={() => {
-                  onChange(draft);
+                  onChange(clampToMinimum(draft, minimumDate));
                   setIosOpen(false);
                 }}
               />
