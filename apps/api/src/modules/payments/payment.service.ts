@@ -19,6 +19,8 @@ import { writeAudit } from '@/modules/platform/audit.service.js';
 import { getSettingValue } from '@/modules/reference/settings.service.js';
 import { toPaymentDto, toTransactionDto } from './payments.mapper.js';
 import * as repo from './payment.repository.js';
+import { BANK_TRANSFER_PROVIDER } from './payment.repository.js';
+import { createBankTransfer } from './bank-transfer.service.js';
 
 /**
  * Payments (api.md §8.17, §6.4, ADR-005). The client creates an *intent*; the terminal state is
@@ -33,12 +35,32 @@ export const paymentsSystemScope: AnyScope = { kind: 'SYSTEM', jobName: 'payment
 
 const DEFAULT_METHODS = ['MADA', 'VISA', 'MASTERCARD', 'STC_PAY', 'APPLE_PAY', 'BANK_TRANSFER'];
 
+/**
+ * Bank transfer (IBFT) is settled by UniGate's finance team against the bank statement, not by the
+ * gateway, so it is offered whenever the admin enables it AND has entered the receiving IBAN —
+ * independent of which gateway is configured (payments.md §Bank transfer).
+ */
+async function bankTransferConfig(): Promise<PaymentConfigDto['bankTransfer']> {
+  const [iban, bankName, accountName, instructionsEn, instructionsAr, receiptWindowHours] = await Promise.all([
+    getSettingValue<string>('finance.bank_transfer.iban', ''),
+    getSettingValue<string>('finance.bank_transfer.bank_name', ''),
+    getSettingValue<string>('finance.bank_transfer.account_name', ''),
+    getSettingValue<string>('finance.bank_transfer.instructions_en', ''),
+    getSettingValue<string>('finance.bank_transfer.instructions_ar', ''),
+    getSettingValue<number>('finance.bank_transfer.receipt_window_hours', 48),
+  ]);
+  if (!iban || !bankName) return null;
+  return { bankName, accountName, iban, instructionsEn, instructionsAr, receiptWindowHours };
+}
+
 export async function paymentConfig(): Promise<PaymentConfigDto> {
   const g = paymentGateway();
   const enabled = await getSettingValue<string[]>('finance.payment_methods_enabled', DEFAULT_METHODS);
   const currency = await getSettingValue<string>('finance.currency', 'SAR');
+  const bankTransfer = enabled.includes('BANK_TRANSFER') ? await bankTransferConfig() : null;
+  const methodTypes = enabled.filter((m) => (m === 'BANK_TRANSFER' ? bankTransfer !== null : (g.supportedMethods as readonly string[]).includes(m)));
   // Never a secret: the publishable key is the only credential a browser may see (ADR-005).
-  return { providerCode: g.code, methodTypes: enabled.filter((m) => (g.supportedMethods as readonly string[]).includes(m)), currency, publishableKey: g.publishableKey, isMock: g.code === 'mock' };
+  return { providerCode: g.code, methodTypes, currency, publishableKey: g.publishableKey, isMock: g.code === 'mock', bankTransfer };
 }
 
 // ── reads ────────────────────────────────────────────────────────────────────
@@ -102,6 +124,9 @@ export async function createPayment(scope: ActorScope, body: z.infer<typeof crea
   if (!money(body.amount).eq(b.totalAmount) || body.currency !== b.currency) throw new BusinessRuleError('PAYMENT_AMOUNT_MISMATCH', 'The amount shown to the customer is out of date', { expected: b.totalAmount.toFixed(2), received: body.amount, currency: b.currency });
   const pending = await repo.findPendingForBooking(scope, b.id);
   if (pending) throw new ConflictError('PAYMENT_ALREADY_PENDING', `Payment ${pending.paymentNumber} is already in progress for this booking`, { paymentId: pending.id });
+  if (body.methodType === 'BANK_TRANSFER') {
+    return createBankTransfer(scope, { bookingId: b.id, customerProfileId: b.customerProfileId, purpose: 'BOOKING_PAYMENT', amount: b.totalAmount, currency: b.currency, reference: b.bookingNumber }, cfg, idempotencyKey);
+  }
 
   const g = paymentGateway();
   const id = newId();
@@ -149,6 +174,9 @@ async function createInvoicePayment(scope: ActorScope, body: z.infer<typeof crea
   if (amount.lte(0) || amount.gt(inv.outstandingAmount) || body.currency !== inv.currency) throw new BusinessRuleError('PAYMENT_AMOUNT_MISMATCH', 'The amount must be positive and at most the outstanding balance', { outstandingAmount: inv.outstandingAmount.toFixed(2), received: body.amount, currency: inv.currency });
   const pending = await repo.findPendingForInvoice(scope, inv.id);
   if (pending) throw new ConflictError('PAYMENT_ALREADY_PENDING', `Payment ${pending.paymentNumber} is already in progress for this invoice`, { paymentId: pending.id });
+  if (body.methodType === 'BANK_TRANSFER') {
+    return createBankTransfer(scope, { invoiceId: inv.id, customerProfileId: inv.customerProfileId, purpose: 'INVOICE_PAYMENT', amount, currency: inv.currency, reference: inv.invoiceNumber }, cfg, idempotencyKey);
+  }
 
   const g = paymentGateway();
   const id = newId();
@@ -194,7 +222,7 @@ export interface GatewayOutcome {
  * results (a late `authorized` on a PAID payment) are recorded IGNORED, never applied as a
  * regression. Capture advances the booking and posts the ledger in the same transaction.
  */
-export async function applyGatewayOutcome(paymentId: string, o: GatewayOutcome, source: 'webhook' | 'sync', tx: Prisma.TransactionClient): Promise<'applied' | 'ignored'> {
+export async function applyGatewayOutcome(paymentId: string, o: GatewayOutcome, source: 'webhook' | 'sync' | 'verification', tx: Prisma.TransactionClient): Promise<'applied' | 'ignored'> {
   const scope = paymentsSystemScope;
   await repo.lockPayment(scope, paymentId, tx);
   const p = await repo.findPayment(scope, paymentId, tx);
@@ -224,7 +252,7 @@ export async function applyGatewayOutcome(paymentId: string, o: GatewayOutcome, 
     const b = await bookingForPayment(scope, p.bookingId, tx);
     if (b) {
       await applyPaymentCaptured(scope, b.id, tx);
-      await postCapture(p.id, b, o.occurredAt, tx);
+      await postCapture(p.id, b, o.occurredAt, tx, p.providerCode === BANK_TRANSFER_PROVIDER ? 'CASH_BANK' : 'CASH_GATEWAY');
     }
     await publishEvent('payment', paymentId, 'payment.captured', { paymentNumber: p.paymentNumber, bookingId: p.bookingId, customerProfileId: p.customerProfileId, amount: p.amount.toFixed(2) }, tx);
   } else if (to === 'PAID' && p.invoiceId) {
@@ -249,12 +277,12 @@ export async function applyGatewayOutcome(paymentId: string, o: GatewayOutcome, 
  *   DEBIT CASH_GATEWAY gross / CREDIT TRANSPORT_REVENUE net / CREDIT VAT_PAYABLE fare VAT
  * — no owner payable, no commission, no settlement.
  */
-async function postCapture(paymentId: string, b: BookingPaymentView, at: Date, tx: Prisma.TransactionClient): Promise<void> {
+async function postCapture(paymentId: string, b: BookingPaymentView, at: Date, tx: Prisma.TransactionClient, cash: 'CASH_GATEWAY' | 'CASH_BANK' = 'CASH_GATEWAY'): Promise<void> {
   const s = b.split;
   if (!s) return;
   if (b.ownerIsPlatformFleet) {
     await postLedger({ description: `capture ${b.bookingNumber} (platform fleet)`, occurredAt: at, currency: b.currency, bookingId: b.id, paymentId, lines: [
-      { account: 'CASH_GATEWAY', direction: 'DEBIT', amount: s.grossAmount, customerProfileId: b.customerProfileId },
+      { account: cash, direction: 'DEBIT', amount: s.grossAmount, customerProfileId: b.customerProfileId },
       { account: 'TRANSPORT_REVENUE', direction: 'CREDIT', amount: s.grossAmount.sub(s.vatAmount) },
       { account: 'VAT_PAYABLE', direction: 'CREDIT', amount: s.vatAmount },
     ] }, tx);
@@ -264,12 +292,12 @@ async function postCapture(paymentId: string, b: BookingPaymentView, at: Date, t
     {
       description: `capture ${b.bookingNumber}`, occurredAt: at, currency: b.currency, bookingId: b.id, paymentId,
       lines: [
-        { account: 'CASH_GATEWAY', direction: 'DEBIT', amount: s.grossAmount, customerProfileId: b.customerProfileId },
+        { account: cash, direction: 'DEBIT', amount: s.grossAmount, customerProfileId: b.customerProfileId },
         { account: 'OWNER_PAYABLE', direction: 'CREDIT', amount: s.ownerNetAmount, ownerProfileId: b.ownerProfileId },
         { account: 'PLATFORM_COMMISSION_REVENUE', direction: 'CREDIT', amount: s.commissionAmount },
         { account: 'VAT_PAYABLE', direction: 'CREDIT', amount: s.commissionVatAmount },
         { account: 'PAYMENT_PROCESSING_FEES', direction: 'DEBIT', amount: s.paymentFeeAmount },
-        { account: 'CASH_GATEWAY', direction: 'CREDIT', amount: s.paymentFeeAmount },
+        { account: cash, direction: 'CREDIT', amount: s.paymentFeeAmount },
       ],
     },
     tx,
@@ -285,6 +313,7 @@ export function outcomeFromStatus(st: GatewayPaymentStatus): GatewayOutcome | nu
 export async function syncPayment(scope: ActorScope, id: string): Promise<PaymentDto> {
   const p = await repo.findPayment(scope, id);
   if (!p?.providerPaymentId) throw new NotFoundError();
+  if (p.providerCode === BANK_TRANSFER_PROVIDER) throw new BusinessRuleError('PAYMENT_INVALID_TRANSITION', 'A bank transfer is verified by finance, not synced with a gateway', { providerCode: p.providerCode });
   const g = paymentGateway();
   let st: GatewayPaymentStatus;
   try {

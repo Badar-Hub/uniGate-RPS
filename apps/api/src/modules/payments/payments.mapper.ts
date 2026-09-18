@@ -1,6 +1,6 @@
 import type { PaymentDto, PaymentTransactionDto, RefundDto } from '@unigate/types';
 import { money, toMoneyString } from '@/common/money.js';
-import type { PaymentRow, RefundRow, TransactionRow } from './payment.repository.js';
+import { BANK_TRANSFER_PROVIDER, type PaymentRow, type RefundRow, type TransactionRow } from './payment.repository.js';
 
 const iso = (d: Date | null): string | null => (d ? d.toISOString() : null);
 
@@ -28,6 +28,10 @@ export function toPaymentDto(p: PaymentRow): PaymentDto {
     failureCode: p.failureCode,
     expiresAt: iso(p.expiresAt),
     refundedAmount: toMoneyString(refunded),
+    bankTransfer:
+      p.providerCode === BANK_TRANSFER_PROVIDER
+        ? { transferReference: p.transferReference, transferredAt: iso(p.transferredAt), receiptDocumentId: p.receiptDocumentId, receiptSubmittedAt: iso(p.receiptSubmittedAt), verifiedAt: iso(p.verifiedAt), verificationNotes: p.verificationNotes, awaitingVerification: p.status === 'PENDING' && p.receiptSubmittedAt !== null }
+        : null,
     createdAt: p.createdAt.toISOString(),
     updatedAt: p.updatedAt.toISOString(),
   };

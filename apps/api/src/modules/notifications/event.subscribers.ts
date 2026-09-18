@@ -90,6 +90,9 @@ export const subscribers: Record<string, Subscriber> = {
   'payment.captured': async (e) => {
     await send(e, await who.usersOfCustomer(e.payload['customerProfileId']), 'PAYMENT_SUCCESSFUL', { paymentNumber: s(e.payload['paymentNumber']), amount: s(e.payload['amount']), currency: await currency() }, { data: { paymentId: e.aggregateId, bookingId: s(e.payload['bookingId']), invoiceId: s(e.payload['invoiceId']) } });
   },
+  'payment.receipt_submitted': async (e) => {
+    await send(e, await who.usersWithPermission('payments.manage'), 'BANK_TRANSFER_RECEIPT_SUBMITTED', { paymentNumber: s(e.payload['paymentNumber']), amount: s(e.payload['amount']), currency: await currency() }, { data: { paymentId: e.aggregateId, bookingId: s(e.payload['bookingId']), invoiceId: s(e.payload['invoiceId']) } });
+  },
   'payment.failed': async (e) => {
     await send(e, await who.usersOfCustomer(e.payload['customerProfileId']), 'PAYMENT_FAILED', { paymentNumber: s(e.payload['paymentNumber']), failureCode: s(e.payload['failureCode'], 'declined') }, { data: { paymentId: e.aggregateId, bookingId: s(e.payload['bookingId']) } });
   },

@@ -9,9 +9,13 @@ import { prisma } from '@/database/prisma.js';
  *   GLOBAL — payments.read_any / payments.manage
  */
 
+/** providerCode of a payment settled by bank transfer (IBFT) and verified by finance, not by a gateway. */
+export const BANK_TRANSFER_PROVIDER = 'bank_transfer';
+
 export const paymentSelect = {
   id: true, paymentNumber: true, bookingId: true, invoiceId: true, customerProfileId: true, purpose: true, amount: true, currency: true, status: true, providerCode: true, providerPaymentId: true,
   paymentMethodType: true, paymentMethodLast4: true, authorizedAt: true, paidAt: true, failedAt: true, failureCode: true, failureMessage: true, expiresAt: true, idempotencyKey: true, metadata: true, createdAt: true, updatedAt: true,
+  transferReference: true, transferredAt: true, receiptDocumentId: true, receiptSubmittedAt: true, verifiedByUserId: true, verifiedAt: true, verificationNotes: true,
   booking: { select: { bookingNumber: true, ownerProfileId: true, status: true, paymentStatus: true, totalAmount: true, currency: true } },
   refunds: { select: { amount: true, status: true } },
 } satisfies Prisma.PaymentSelect;

@@ -924,6 +924,8 @@ export interface PaymentDto extends TimestampedDto {
   failureCode: string | null;
   expiresAt: string | null;
   refundedAmount: MoneyString;
+  /** Bank transfer (IBFT): what the payer declared, and finance's verification. `awaitingVerification` = receipt in, not yet verified. */
+  bankTransfer: { transferReference: string | null; transferredAt: string | null; receiptDocumentId: string | null; receiptSubmittedAt: string | null; verifiedAt: string | null; verificationNotes: string | null; awaitingVerification: boolean } | null;
 }
 
 /** What the client must do next. Opaque to the client (api.md §6.4). */
@@ -970,6 +972,8 @@ export interface PaymentConfigDto {
   publishableKey: string | null;
   /** True for the development gateway: the checkout page is the app's own mock page. */
   isMock: boolean;
+  /** Present when BANK_TRANSFER is offered: the account the customer transfers to. Never a secret (it is printed on invoices). */
+  bankTransfer: { bankName: string; accountName: string; iban: string; instructionsEn: string; instructionsAr: string; receiptWindowHours: number } | null;
 }
 
 export interface RefundDto extends TimestampedDto {

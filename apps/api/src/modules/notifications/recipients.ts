@@ -15,6 +15,16 @@ export async function usersOfOwner(ownerProfileId: unknown): Promise<string[]> {
   return o ? [o.userId] : [];
 }
 
+/** Every active user holding a permission (e.g. finance officers for a bank-transfer receipt). */
+export async function usersWithPermission(code: string): Promise<string[]> {
+  const rows = await prisma().user.findMany({
+    where: { status: 'ACTIVE', deletedAt: null, userRoles: { some: { role: { rolePermissions: { some: { permission: { code } } } } } } },
+    select: { id: true },
+    take: 200,
+  });
+  return rows.map((r) => r.id);
+}
+
 export async function usersOfCustomer(customerProfileId: unknown): Promise<string[]> {
   const id = str(customerProfileId);
   if (!id) return [];

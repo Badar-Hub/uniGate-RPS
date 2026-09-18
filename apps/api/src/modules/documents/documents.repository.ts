@@ -11,7 +11,7 @@ import { targetColumn } from './documents.mapper.js';
 
 export const documentSelect = {
   id: true, documentTypeCode: true, userId: true, ownerProfileId: true, driverProfileId: true, vehicleId: true,
-  corporateCustomerProfileId: true, expenseId: true, maintenanceRecordId: true, tripProofId: true,
+  corporateCustomerProfileId: true, expenseId: true, maintenanceRecordId: true, tripProofId: true, paymentId: true,
   storageBucket: true, storageKey: true, originalFilename: true, mimeType: true, sizeBytes: true, checksumSha256: true,
   uploadStatus: true, verificationStatus: true, verifiedByUserId: true, verifiedAt: true, rejectionReason: true,
   issueDate: true, expiryDate: true, visibility: true, createdAt: true, updatedAt: true, deletedAt: true,
@@ -35,7 +35,7 @@ export function ownershipWhere(scope: AnyScope): Prisma.DocumentWhereInput {
     );
   }
   if (a.driverProfileId) or.push({ driverProfileId: a.driverProfileId }, { tripProof: { trip: { driverProfileId: a.driverProfileId } } });
-  if (a.customerProfileId) or.push({ corporateCustomer: { customerProfileId: a.customerProfileId } });
+  if (a.customerProfileId) or.push({ corporateCustomer: { customerProfileId: a.customerProfileId } }, { payment: { customerProfileId: a.customerProfileId } });
   return { OR: or };
 }
 
@@ -62,6 +62,9 @@ export async function targetInScope(scope: AnyScope, kind: DocumentAppliesTo, id
       return a.ownerProfileId ? Boolean(await db.maintenanceRecord.findFirst({ where: { id, vehicle: { ownerProfileId: a.ownerProfileId } }, select: { id: true } })) : false;
     case 'TRIP_PROOF':
       return a.driverProfileId ? Boolean(await db.tripProof.findFirst({ where: { id, trip: { driverProfileId: a.driverProfileId } }, select: { id: true } })) : false;
+    case 'PAYMENT':
+      // The payer attaches the bank-transfer receipt to their own payment.
+      return a.customerProfileId ? Boolean(await db.payment.findFirst({ where: { id, customerProfileId: a.customerProfileId }, select: { id: true } })) : false;
   }
 }
 
@@ -85,6 +88,8 @@ async function targetExists(kind: DocumentAppliesTo, id: string): Promise<boolea
       return Boolean(await db.maintenanceRecord.findUnique({ where: { id }, ...sel }));
     case 'TRIP_PROOF':
       return Boolean(await db.tripProof.findUnique({ where: { id }, ...sel }));
+    case 'PAYMENT':
+      return Boolean(await db.payment.findUnique({ where: { id }, ...sel }));
   }
 }
 

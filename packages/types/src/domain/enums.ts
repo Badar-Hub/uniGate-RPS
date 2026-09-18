@@ -98,6 +98,7 @@ export const DOCUMENT_APPLIES_TO = enumOf([
   'EXPENSE',
   'MAINTENANCE_RECORD',
   'TRIP_PROOF',
+  'PAYMENT',
 ]);
 export type DocumentAppliesTo = (typeof DOCUMENT_APPLIES_TO)[number];
 

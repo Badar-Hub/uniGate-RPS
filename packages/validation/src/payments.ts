@@ -45,6 +45,17 @@ export const listPaymentsQuery = offsetPagination
 
 export const cancelPaymentBody = z.object({ reason: safeText(500).optional() }).strict();
 
+/** Bank transfer: the payer attaches the receipt (a document uploaded against target PAYMENT/{id}) and what they typed on the transfer. */
+export const submitTransferReceiptBody = z
+  .object({
+    documentId: uuid,
+    transferReference: safeText(64).optional(),
+    transferredAt: isoTimestamp.optional(),
+  })
+  .strict();
+export const verifyTransferBody = z.object({ notes: safeText(1000).optional() }).strict();
+export const rejectTransferBody = z.object({ reason: safeText(1000).pipe(z.string().min(5)) }).strict();
+
 export const createRefundBody = z
   .object({
     paymentId: uuid,

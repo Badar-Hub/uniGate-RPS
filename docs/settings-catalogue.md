@@ -99,6 +99,12 @@ Where a value varies by scope (global → category → customer/owner → per ca
 | `finance.commission_basis_default` | enum `GROSS` \| `NET_OF_VAT` | `NET_OF_VAT` | — | INTERNAL | yes — via the rule snapshot | OQ-01 |
 | `finance.rounding_mode` | enum | `HALF_UP` | code-managed | INTERNAL | — | — |
 | `finance.bad_debt_writeoff_requires_approval` | bool | `true` | — | INTERNAL | no | A-48 |
+| `finance.bank_transfer.bank_name` | string | `` (empty) | ≤ 120 | INTERNAL | no | Bank transfer (IBFT): receiving bank; empty = method not offered |
+| `finance.bank_transfer.account_name` | string | `` (empty) | ≤ 160 | INTERNAL | no | Account holder shown with the transfer instructions |
+| `finance.bank_transfer.iban` | string | `` (empty) | Saudi IBAN or empty | INTERNAL | no | Receiving IBAN; empty = method not offered even if enabled |
+| `finance.bank_transfer.instructions_en` | string | see registry | ≤ 1000 | INTERNAL | no | Customer instructions (en) |
+| `finance.bank_transfer.instructions_ar` | string | see registry | ≤ 1000 | INTERNAL | no | Customer instructions (ar) |
+| `finance.bank_transfer.receipt_window_hours` | integer | `48` | 1–720 | INTERNAL | no | Hours a bank-transfer payment stays open for the receipt |
 | `finance.seller_vat_number` | string | `` (empty) | `^3[0-9]{13}3$` or empty | INTERNAL | **yes** → `invoices.seller_vat_number` | ADR-007 |
 | `finance.seller_name_en` | string | `` (empty) | ≤ 160 | INTERNAL | yes → invoice QR / document | ADR-007 |
 | `finance.seller_name_ar` | string | `` (empty) | ≤ 160 | INTERNAL | yes → invoice document | ADR-007 |

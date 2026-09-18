@@ -326,7 +326,7 @@ export async function warnExpiringDocuments(): Promise<number> {
   let warned = 0;
   for (const daysLeft of marks) {
     const target = new Date(today.getTime() + daysLeft * 86_400_000);
-    const rows = await prisma().document.findMany({ where: { verificationStatus: 'VERIFIED', deletedAt: null, expiryDate: target }, select: { id: true, documentTypeCode: true, userId: true, ownerProfileId: true, driverProfileId: true, vehicleId: true, corporateCustomerProfileId: true, expenseId: true, maintenanceRecordId: true, tripProofId: true, expiryDate: true }, take: 2000 });
+    const rows = await prisma().document.findMany({ where: { verificationStatus: 'VERIFIED', deletedAt: null, expiryDate: target }, select: { id: true, documentTypeCode: true, userId: true, ownerProfileId: true, driverProfileId: true, vehicleId: true, corporateCustomerProfileId: true, expenseId: true, maintenanceRecordId: true, tripProofId: true, paymentId: true, expiryDate: true }, take: 2000 });
     for (const d of rows) {
       await publishEvent('document', d.id, 'document.expiring', { target: targetOf(d), documentTypeCode: d.documentTypeCode, daysLeft, expiryDate: d.expiryDate?.toISOString().slice(0, 10) ?? '' });
       warned++;

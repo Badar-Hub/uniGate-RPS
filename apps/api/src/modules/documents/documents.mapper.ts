@@ -28,10 +28,12 @@ export function targetColumn(kind: DocumentAppliesTo): keyof Prisma.DocumentUnch
       return 'maintenanceRecordId';
     case 'TRIP_PROOF':
       return 'tripProofId';
+    case 'PAYMENT':
+      return 'paymentId';
   }
 }
 
-export function targetOf(d: Pick<DocumentRow, 'id' | 'userId' | 'ownerProfileId' | 'driverProfileId' | 'vehicleId' | 'corporateCustomerProfileId' | 'expenseId' | 'maintenanceRecordId' | 'tripProofId'>): { kind: string; id: string } {
+export function targetOf(d: Pick<DocumentRow, 'id' | 'userId' | 'ownerProfileId' | 'driverProfileId' | 'vehicleId' | 'corporateCustomerProfileId' | 'expenseId' | 'maintenanceRecordId' | 'tripProofId' | 'paymentId'>): { kind: string; id: string } {
   if (d.userId) return { kind: 'USER', id: d.userId };
   if (d.ownerProfileId) return { kind: 'OWNER', id: d.ownerProfileId };
   if (d.driverProfileId) return { kind: 'DRIVER', id: d.driverProfileId };
@@ -40,6 +42,7 @@ export function targetOf(d: Pick<DocumentRow, 'id' | 'userId' | 'ownerProfileId'
   if (d.expenseId) return { kind: 'EXPENSE', id: d.expenseId };
   if (d.maintenanceRecordId) return { kind: 'MAINTENANCE_RECORD', id: d.maintenanceRecordId };
   if (d.tripProofId) return { kind: 'TRIP_PROOF', id: d.tripProofId };
+  if (d.paymentId) return { kind: 'PAYMENT', id: d.paymentId };
   throw new Error(`document ${d.id} has no target`);
 }
 

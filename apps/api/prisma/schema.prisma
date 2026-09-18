@@ -156,6 +156,7 @@ enum DocumentAppliesTo {
   EXPENSE
   MAINTENANCE_RECORD
   TRIP_PROOF
+  PAYMENT
 
   @@map("document_applies_to")
 }
@@ -1516,6 +1517,8 @@ model Document {
   expenseId                  String?                    @map("expense_id") @db.Uuid
   maintenanceRecordId        String?                    @map("maintenance_record_id") @db.Uuid
   tripProofId                String?                    @map("trip_proof_id") @db.Uuid
+  /// Bank-transfer receipt attached by the payer (documents.md: target PAYMENT).
+  paymentId                  String?                    @map("payment_id") @db.Uuid
   storageBucket              String                     @map("storage_bucket") @db.VarChar(128)
   storageKey                 String                     @map("storage_key")
   originalFilename           String                     @map("original_filename") @db.VarChar(255)
@@ -1543,10 +1546,12 @@ model Document {
   expense           Expense?                  @relation("DocumentExpense", fields: [expenseId], references: [id], onDelete: Cascade)
   maintenanceRecord MaintenanceRecord?        @relation("DocumentMaintenance", fields: [maintenanceRecordId], references: [id], onDelete: Cascade)
   tripProof         TripProof?                @relation("DocumentTripProof", fields: [tripProofId], references: [id], onDelete: Cascade)
+  payment           Payment?                  @relation("DocumentPayment", fields: [paymentId], references: [id], onDelete: Cascade)
 
   @@index([vehicleId])
   @@index([ownerProfileId])
   @@index([driverProfileId])
+  @@index([paymentId])
   @@index([verificationStatus])
   @@map("documents")
 }
@@ -2196,6 +2201,14 @@ model Payment {
   expiresAt          DateTime?          @map("expires_at") @db.Timestamptz
   idempotencyKey     String?            @map("idempotency_key") @db.VarChar(64)
   metadata           Json               @default("{}")
+  /// Bank transfer (IBFT): what the payer declared and when finance verified it against the bank statement.
+  transferReference  String?            @map("transfer_reference") @db.VarChar(64)
+  transferredAt      DateTime?          @map("transferred_at") @db.Timestamptz
+  receiptDocumentId  String?            @map("receipt_document_id") @db.Uuid
+  receiptSubmittedAt DateTime?          @map("receipt_submitted_at") @db.Timestamptz
+  verifiedByUserId   String?            @map("verified_by_user_id") @db.Uuid
+  verifiedAt         DateTime?          @map("verified_at") @db.Timestamptz
+  verificationNotes  String?            @map("verification_notes")
   createdAt          DateTime           @default(now()) @map("created_at") @db.Timestamptz
   updatedAt          DateTime           @updatedAt @map("updated_at") @db.Timestamptz
 
@@ -2206,6 +2219,7 @@ model Payment {
   refunds         Refund[]
   webhookEvents   PaymentWebhookEvent[]
   ledgerEntries   LedgerEntry[]
+  documents       Document[]            @relation("DocumentPayment")
 
   @@index([bookingId])
   @@index([invoiceId])

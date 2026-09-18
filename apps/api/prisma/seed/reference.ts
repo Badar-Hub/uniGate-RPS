@@ -112,6 +112,7 @@ export const DOCUMENT_TYPES = [
   { code: 'EXPENSE_RECEIPT', a: 'EXPENSE', nameEn: 'Receipt', nameAr: 'إيصال', expiry: false, mandatory: false, mime: PDF_IMG, sort: 10 },
   { code: 'MAINTENANCE_INVOICE', a: 'MAINTENANCE_RECORD', nameEn: 'Workshop invoice', nameAr: 'فاتورة الورشة', expiry: false, mandatory: false, mime: PDF_IMG, sort: 10 },
   { code: 'POD_PHOTO', a: 'TRIP_PROOF', nameEn: 'Proof of delivery photo', nameAr: 'صورة إثبات التسليم', expiry: false, mandatory: false, mime: IMG, sort: 10 },
+  { code: 'PAYMENT_RECEIPT', a: 'PAYMENT', nameEn: 'Bank transfer receipt', nameAr: 'إيصال التحويل البنكي', expiry: false, mandatory: true, mime: PDF_IMG, sort: 10 },
   { code: 'POD_SIGNATURE', a: 'TRIP_PROOF', nameEn: 'Recipient signature', nameAr: 'توقيع المستلم', expiry: false, mandatory: false, mime: IMG, sort: 20 },
   { code: 'REPORT_EXPORT', a: 'USER', nameEn: 'Report export', nameAr: 'تصدير تقرير', expiry: false, mandatory: false, mime: ['text/csv'], sort: 90 },
   { code: 'SUPPLIER_INVOICE_PDF', a: 'OWNER', nameEn: 'Supplier tax invoice (PDF)', nameAr: 'فاتورة المورد الضريبية', expiry: false, mandatory: false, mime: ['application/pdf'], sort: 60 },

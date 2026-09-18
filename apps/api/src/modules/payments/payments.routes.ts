@@ -1,6 +1,6 @@
 import express, { Router, type Request, type Response } from 'express';
 import type { z } from 'zod';
-import { cancelPaymentBody, createPaymentBody, createRefundBody, idParams, listPaymentsQuery, listRefundsQuery, mockCheckoutBody, providerParams, refundDecisionBody, rejectRefundBody } from '@unigate/validation';
+import { cancelPaymentBody, createPaymentBody, createRefundBody, idParams, listPaymentsQuery, listRefundsQuery, mockCheckoutBody, providerParams, refundDecisionBody, rejectRefundBody, rejectTransferBody, submitTransferReceiptBody, verifyTransferBody } from '@unigate/validation';
 import { ok, paginated, sendOk } from '@/common/envelope.js';
 import { NotFoundError } from '@/common/errors.js';
 import { h } from '@/common/handler.js';
@@ -12,6 +12,7 @@ import { idempotent } from '@/middleware/idempotency.js';
 import { providerTier, routeTier } from '@/middleware/rate-limit.js';
 import { validate, type ValidatedRequest } from '@/middleware/validate.js';
 import { HEADER_IDEMPOTENCY_KEY } from '@unigate/types';
+import * as bankTransfer from './bank-transfer.service.js';
 import * as payments from './payment.service.js';
 import * as refunds from './refund.service.js';
 import { ingestWebhook, processWebhookEvent } from './webhook.service.js';
@@ -60,7 +61,7 @@ export function paymentsRouter(): Router {
     sendOk(res, { outcome: body.outcome, delivered: receipts });
   }));
 
-  r.use(['/payments', '/refunds'], authenticate(), csrfGuard());
+  r.use(['/payments', '/refunds', '/admin/payments'], authenticate(), csrfGuard());
   const readScope = (req: Request) => scopeFor(req, 'payments.read_any', 'PARTY');
 
   // ── payments ──────────────────────────────────────────────────────────────
@@ -78,6 +79,19 @@ export function paymentsRouter(): Router {
     const result = await payments.createPayment(scopeFor(req, 'payments.manage', 'OWN'), body, key);
     res.setHeader('Location', `/api/v1/payments/${result.payment.id}`);
     res.status(201).json(ok(result));
+  }));
+  // Bank transfer (IBFT): the payer attaches the receipt; finance verifies or rejects against the bank statement.
+  r.post('/payments/:id/receipt', requirePermission('payments.create'), validate({ params: idParams, body: submitTransferReceiptBody }), h(async (req, res) => {
+    const { params, body } = (req as R<z.infer<typeof submitTransferReceiptBody>, unknown, Id>).validated;
+    sendOk(res, await bankTransfer.submitReceipt(scopeFor(req, 'payments.manage', 'OWN'), params.id, body));
+  }));
+  r.post('/admin/payments/:id/verify-transfer', requirePermission('payments.manage'), validate({ params: idParams, body: verifyTransferBody }), h(async (req, res) => {
+    const { params, body } = (req as R<z.infer<typeof verifyTransferBody>, unknown, Id>).validated;
+    sendOk(res, await bankTransfer.verifyTransfer(scopeFor(req, 'payments.manage'), params.id, body));
+  }));
+  r.post('/admin/payments/:id/reject-transfer', requirePermission('payments.manage'), validate({ params: idParams, body: rejectTransferBody }), h(async (req, res) => {
+    const { params, body } = (req as R<z.infer<typeof rejectTransferBody>, unknown, Id>).validated;
+    sendOk(res, await bankTransfer.rejectTransfer(scopeFor(req, 'payments.manage'), params.id, body));
   }));
   r.get('/payments/:id', requirePermission('payments.read'), validate({ params: idParams }), h(async (req, res) => {
     const { params } = (req as R<unknown, unknown, Id>).validated;
