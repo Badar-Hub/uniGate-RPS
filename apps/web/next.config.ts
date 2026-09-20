@@ -1,3 +1,4 @@
+import path from 'node:path';
 import type { NextConfig } from 'next';
 import createNextIntlPlugin from 'next-intl/plugin';
 
@@ -17,6 +18,9 @@ const securityHeaders = [
 const nextConfig: NextConfig = {
   reactStrictMode: true,
   poweredByHeader: false,
+  // Self-contained server for docker/Dockerfile.web (deployment.md); the tracing root is the monorepo so workspace packages are included.
+  output: 'standalone',
+  outputFileTracingRoot: path.join(__dirname, '../../'),
   transpilePackages: ['@unigate/types', '@unigate/validation'],
   headers: () => Promise.resolve([{ source: '/(.*)', headers: securityHeaders }]),
   // Prisma must never be bundled into the web app (architecture.md §3) — this makes an

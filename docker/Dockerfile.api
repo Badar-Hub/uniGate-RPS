@@ -1,0 +1,54 @@
+# UniGate API / worker image (docs/deployment.md).
+#
+# One image serves three roles, selected by the command:
+#   node dist/main.js            the HTTP API (default)
+#   node dist/worker.js          the BullMQ worker (jobs, outbox → notifications)
+#   node_modules/.bin/prisma migrate deploy      one-shot migration job, run BEFORE the API starts (architecture.md §13)
+#   node_modules/.bin/tsx prisma/seed/index.ts   reference data + first admin (also src/cli/create-admin.ts, e2e-seed.ts)
+#
+# Build from the repository root:  docker build -f docker/Dockerfile.api -t unigate/api .
+
+# ── deps: workspace install (cached until a manifest or the lockfile changes) ─────────────────────
+FROM node:22-alpine AS deps
+RUN apk add --no-cache libc6-compat openssl python3 make g++ && corepack enable && corepack prepare pnpm@9.15.4 --activate
+WORKDIR /repo
+COPY pnpm-workspace.yaml pnpm-lock.yaml package.json .npmrc ./
+COPY apps/api/package.json apps/api/
+COPY packages/types/package.json packages/types/
+COPY packages/config/package.json packages/config/
+COPY packages/validation/package.json packages/validation/
+COPY packages/tsconfig/package.json packages/tsconfig/
+COPY packages/eslint-config/package.json packages/eslint-config/
+RUN pnpm install --frozen-lockfile --filter @unigate/api...
+
+# ── build: shared packages, Prisma client, compiled API ───────────────────────────────────────────
+FROM deps AS build
+COPY packages/tsconfig packages/tsconfig
+COPY packages/types packages/types
+COPY packages/config packages/config
+COPY packages/validation packages/validation
+COPY apps/api apps/api
+RUN pnpm --filter @unigate/types build \
+ && pnpm --filter @unigate/config build \
+ && pnpm --filter @unigate/validation build \
+ && pnpm --filter @unigate/api build
+# A self-contained copy of the API with its resolved dependencies (workspace packages copied as
+# built artefacts). Dev dependencies stay: the same image runs `prisma migrate deploy` and the
+# tsx-based seed / admin CLIs, which is worth more on a single box than a smaller image.
+RUN pnpm --filter @unigate/api deploy /out \
+ && cd /out && node_modules/.bin/prisma generate
+
+# ── runtime ───────────────────────────────────────────────────────────────────────────────────────
+FROM node:22-alpine AS runtime
+RUN apk add --no-cache libc6-compat openssl curl tini
+ENV NODE_ENV=production
+WORKDIR /app
+COPY --from=build --chown=node:node /out /app
+ARG GIT_SHA=unknown
+ENV GIT_SHA=$GIT_SHA
+USER node
+EXPOSE 4000
+HEALTHCHECK --interval=15s --timeout=5s --start-period=30s --retries=5 \
+  CMD curl -fsS http://127.0.0.1:${PORT:-4000}/api/v1/health || exit 1
+ENTRYPOINT ["/sbin/tini", "--"]
+CMD ["node", "dist/main.js"]

@@ -1,0 +1,8 @@
+# What `pnpm deploy` (docker/Dockerfile.api) leaves out of the runtime image. Without this file
+# npm-packlist would fall back to .gitignore rules and drop dist/.
+test/
+coverage/
+.env
+.env.*
+*.log
+.turbo/
