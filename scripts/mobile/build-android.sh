@@ -96,6 +96,9 @@ s = s.replace(/(release \{[\s\S]*?)signingConfig signingConfigs\.debug/, '$1sign
 fs.writeFileSync(p, s);
 EOF
   echo "== gradle assembleRelease bundleRelease (first run downloads Gradle + dependencies)"
+  # Gradle calls the Expo CLI with a bare `node`; in this pnpm workspace (node-linker=isolated) Babel then
+  # cannot see its presets/plugins. The bin shims pnpm generates fix that with NODE_PATH — do the same.
+  export NODE_PATH="/node_modules/.pnpm/node_modules"
   (cd android && ./gradlew --no-daemon -q assembleRelease bundleRelease)
   local dest="$OUT/$version"
   mkdir -p "$dest"

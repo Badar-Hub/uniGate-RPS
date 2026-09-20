@@ -267,6 +267,9 @@ importers:
       '@unigate/eslint-config':
         specifier: workspace:*
         version: link:../../packages/eslint-config
+      babel-preset-expo:
+        specifier: 57.0.12
+        version: 57.0.12(@babel/core@7.29.7)(@babel/runtime@7.29.7)(expo@57.0.23)(react-refresh@0.14.2)
       eslint:
         specifier: ^9.15.0
         version: 9.39.5(jiti@1.21.7)
