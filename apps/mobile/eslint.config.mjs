@@ -37,6 +37,8 @@ export default [
       'ios/**',
       'expo-env.d.ts',
       'src/theme/tokens.js',
+      // CommonJS config plugin consumed by Expo's prebuild, not by the app bundle.
+      'plugins/**',
     ],
   },
   {

@@ -20,3 +20,11 @@ expo-env.d.ts
 
 # local env files (only .env.example is committed — see root .gitignore)
 .env*.local
+
+# Store credentials never enter git (docs/deployment.md)
+play-service-account.json
+*.keystore
+*.jks
+keystore.properties
+# Deployment-specific CA bundled by plugins/with-network-security.js
+/certs/

@@ -30,6 +30,8 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   ios: {
     supportsTablet: false,
     bundleIdentifier: 'sa.unigate.app',
+    // Store build number; bump with every TestFlight / App Store upload (eas.json production autoIncrement does it on EAS).
+    buildNumber: '1',
     infoPlist: {
       ITSAppUsesNonExemptEncryption: false,
       // Driver live location keeps streaming with the app in the background (M3).
@@ -38,6 +40,8 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   },
   android: {
     package: 'sa.unigate.app',
+    // Play Store versionCode; must increase on every upload (scripts/mobile/build-android.sh reads it).
+    versionCode: 1,
     adaptiveIcon: {
       backgroundColor: '#0a7050',
       foregroundImage: './assets/images/android-icon-foreground.png',
@@ -69,6 +73,8 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
       },
     ],
     'expo-document-picker',
+    // Android trust anchors: system CAs, plus certs/ca.pem when a staging CA is present (docs/deployment.md).
+    './plugins/with-network-security.js',
     // Driver live location (M3): foreground + background permission strings, the Android
     // ACCESS_BACKGROUND_LOCATION + FOREGROUND_SERVICE_LOCATION permissions and the foreground
     // service the background task runs under (expo-task-manager needs no plugin of its own).
