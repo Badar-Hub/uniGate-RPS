@@ -2,7 +2,7 @@
 
 import { useEffect, type ReactNode } from 'react';
 import { useTranslations } from 'next-intl';
-import { Activity, BarChart3, BellRing, Building2, CalendarCheck2, IdCard, KeyRound, MessageSquareWarning, RotateCcw, ScrollText, Settings, CarFront, Smartphone, ClipboardList, FileCheck2, FileText, Gavel, LayoutDashboard, Loader2, LogOut, Percent, Receipt, Sparkles, Truck, UserCircle2, Users, Wallet, WalletCards, Wrench } from 'lucide-react';
+import { Activity, BarChart3, BellRing, Building2, CalendarCheck2, IdCard, KeyRound, Landmark, MessageSquareWarning, RotateCcw, ScrollText, Settings, CarFront, Smartphone, ClipboardList, FileCheck2, FileText, Gavel, LayoutDashboard, Loader2, LogOut, Percent, Receipt, Sparkles, Truck, UserCircle2, Users, Wallet, WalletCards, Wrench } from 'lucide-react';
 import { useSession } from '@/lib/auth/session-provider';
 import { Link, usePathname, useRouter } from '@/lib/i18n/routing';
 import { cn } from '@/lib/utils';
@@ -58,6 +58,7 @@ export function PortalShell({ children }: { children: ReactNode }) {
     { href: '/admin/notifications', label: t('notifications'), icon: BellRing, show: can('notifications.send') || can('notifications.templates.manage') },
     { href: '/admin/vendors', label: t('vendors'), icon: Building2, show: can('owners.create') && can('users.create') },
     { href: '/admin/refunds', label: t('refunds'), icon: RotateCcw, show: can('payments.refund') },
+    { href: '/admin/bank-transfers', label: t('bankTransfers'), icon: Landmark, show: can('payments.manage') },
     { href: '/admin/settings', label: t('settings'), icon: Settings, show: can('settings.read') },
     { href: '/admin/roles', label: t('roles'), icon: KeyRound, show: can('roles.read') },
     { href: '/admin/audit-logs', label: t('auditLogs'), icon: ScrollText, show: can('audit_logs.read') },

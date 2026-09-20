@@ -85,9 +85,9 @@ describeDb('authorization matrix', () => {
       expect: { SUPER_ADMIN: 422, ADMIN: 422, OPS_MANAGER: 422, FINANCE_OFFICER: 403, SUPPORT_AGENT: 403, CUSTOMER: 403, VEHICLE_OWNER: 422, DRIVER: 403, SPO: 403 },
     },
     {
-      name: 'GET /documents (documents.read — everyone with a profile; staff via documents.read_any)',
+      name: 'GET /documents (documents.read — everyone with a profile; staff via documents.read_any; finance reads receipts)',
       call: (t) => bearer(request(h.app).get('/api/v1/documents'), t),
-      expect: { SUPER_ADMIN: 200, ADMIN: 200, OPS_MANAGER: 200, FINANCE_OFFICER: 403, SUPPORT_AGENT: 200, CUSTOMER: 200, VEHICLE_OWNER: 200, DRIVER: 200, SPO: 403 },
+      expect: { SUPER_ADMIN: 200, ADMIN: 200, OPS_MANAGER: 200, FINANCE_OFFICER: 200, SUPPORT_AGENT: 200, CUSTOMER: 200, VEHICLE_OWNER: 200, DRIVER: 200, SPO: 403 },
     },
     {
       name: 'POST /documents/{id}/verify (documents.verify)',

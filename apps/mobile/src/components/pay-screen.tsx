@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Text, View } from 'react-native';
 import Constants from 'expo-constants';
 import * as Linking from 'expo-linking';
@@ -6,6 +6,7 @@ import { useRouter } from 'expo-router';
 import * as WebBrowser from 'expo-web-browser';
 import { idempotencyKey } from '@unigate/api-client';
 import type { CreatePaymentResultDto, PaymentActionDto, PaymentDto } from '@unigate/types';
+import { BANK_TRANSFER_PROVIDER, BankAccountDetails, BankTransferPanel } from '@/components/bank-transfer';
 import { SelectField } from '@/components/select-field';
 import {
   Button,
@@ -51,7 +52,8 @@ export function paymentReturnUrl(): string {
  * Pay-now (api.md §8.17): `POST /payments { bookingId | invoiceId, amount, currency, methodType,
  * returnUrl, purpose }` with an Idempotency-Key, then follow `action.type`:
  *  - REDIRECT → the hosted page in an auth session that closes on the `unigate://pay/return` link,
- *  - NONE (bank transfer / cash) → the reference to quote; the booking confirms on reconciliation,
+ *  - NONE (bank transfer) → the account details and the receipt form (BankTransferPanel); the PENDING
+ *    payment is found again on the next visit (GET /payments?bookingId|invoiceId&status=PENDING),
  *  - FORM_POST / SDK → not supported in this build (the gateway SDK lands later).
  * Success is never assumed from the return: the return screen polls `GET /payments/{id}/status`.
  */
@@ -62,12 +64,30 @@ export function PayScreen({ target }: { target: PayTarget }) {
   const action = useAction(['methodType', 'amount', 'returnUrl']);
   const cfg = usePaymentConfig();
   const [method, setMethod] = useState('');
-  const [pendingRef, setPendingRef] = useState<string | null>(null);
+  const [bank, setBank] = useState<PaymentDto | null>(null);
+  const [resumed, setResumed] = useState(false);
   const [unsupported, setUnsupported] = useState<PaymentActionDto['type'] | null>(null);
   const [mock, setMock] = useState<PaymentDto | null>(null);
 
   const methodType = method || (cfg.data?.methodTypes[0] ?? '');
   const returnUrl = paymentReturnUrl();
+
+  // A bank transfer started earlier is still open: show it instead of the method picker.
+  useEffect(() => {
+    let cancelled = false;
+    const query = { status: 'PENDING', pageSize: 1, ...(target.bookingId ? { bookingId: target.bookingId } : { invoiceId: target.invoiceId ?? '' }) };
+    void api<PaymentDto[]>('/payments', { query }).then((res) => {
+      if (cancelled) return;
+      if (res.ok) {
+        const open = res.data.find((p) => p.providerCode === BANK_TRANSFER_PROVIDER);
+        if (open) setBank(open);
+      }
+      setResumed(true);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [target.bookingId, target.invoiceId]);
 
   const goToReturn = (paymentId: string) => {
     router.replace({
@@ -82,7 +102,6 @@ export function PayScreen({ target }: { target: PayTarget }) {
 
   const start = async () => {
     if (!methodType) return;
-    setPendingRef(null);
     setUnsupported(null);
     setMock(null);
     const body = {
@@ -124,9 +143,8 @@ export function PayScreen({ target }: { target: PayTarget }) {
       if (!cfg.data?.isMock) goToReturn(payment.id);
       return;
     }
-    if (next.type === 'NONE') {
-      const ref = next.clientPayload?.['reference'];
-      setPendingRef(typeof ref === 'string' ? ref : payment.paymentNumber);
+    if (next.type === 'NONE' && payment.providerCode === BANK_TRANSFER_PROVIDER) {
+      setBank(payment);
       return;
     }
     setUnsupported(next.type);
@@ -153,7 +171,7 @@ export function PayScreen({ target }: { target: PayTarget }) {
       </Card>
 
       <ErrorBanner message={action.banner} />
-      {cfg.isPending ? (
+      {cfg.isPending || !resumed ? (
         <Loading />
       ) : cfg.isError ? (
         <View>
@@ -164,12 +182,27 @@ export function PayScreen({ target }: { target: PayTarget }) {
             onPress={() => void cfg.refetch()}
           />
         </View>
-      ) : pendingRef ? (
-        <Notice tone="info" message={t('payments.bankTransfer', { reference: pendingRef })} />
+      ) : bank && cfg.data?.bankTransfer ? (
+        <BankTransferPanel
+          payment={bank}
+          bt={cfg.data.bankTransfer}
+          onChange={(p) => {
+            setBank(p);
+            if (p.status === 'PAID') void invalidate(keys.bookings, keys.invoices);
+          }}
+          onCancelled={() => {
+            setBank(null);
+          }}
+        />
       ) : unsupported ? (
         <Notice tone="warning" message={t('payments.unsupported', { type: unsupported })} />
       ) : (
         <View>
+          {methodType === 'BANK_TRANSFER' && cfg.data?.bankTransfer ? (
+            <View className="mb-3">
+              <BankAccountDetails bt={cfg.data.bankTransfer} amount={target.amount} currency={target.currency} reference={null} />
+            </View>
+          ) : null}
           <SelectField
             label={t('payments.method')}
             value={methodType}
@@ -183,8 +216,12 @@ export function PayScreen({ target }: { target: PayTarget }) {
           <Button
             title={
               action.busy
-                ? t('payments.redirecting')
-                : t('payments.pay', { amount: formatMoney(target.amount, target.currency) })
+                ? methodType === 'BANK_TRANSFER'
+                  ? t('payments.bank.starting')
+                  : t('payments.redirecting')
+                : methodType === 'BANK_TRANSFER'
+                  ? t('payments.bank.start')
+                  : t('payments.pay', { amount: formatMoney(target.amount, target.currency) })
             }
             loading={action.busy}
             disabled={!methodType}

@@ -196,6 +196,8 @@ export const ROLES: readonly RoleSeed[] = [
     permissions: [
       ...byModule('finance', 'reports', 'payments', 'expenses'),
       'customers.read', 'customers.verify', 'owners.read', 'vehicles.read_any', 'bookings.read_any', 'trip_requests.read_any', 'dashboard.read', 'settings.read', 'audit_logs.read', 'reference.read', 'notifications.read',
+      // Bank-transfer receipts and expense attachments are finance evidence: finance reads (never verifies) documents.
+      'documents.read', 'documents.read_any',
     ].filter((c) => c !== 'payments.config.manage'),
   },
   {

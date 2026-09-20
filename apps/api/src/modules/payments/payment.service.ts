@@ -312,8 +312,9 @@ export function outcomeFromStatus(st: GatewayPaymentStatus): GatewayOutcome | nu
 /** POST /payments/{id}/sync — server-to-server reconciliation; the only non-webhook way state changes. */
 export async function syncPayment(scope: ActorScope, id: string): Promise<PaymentDto> {
   const p = await repo.findPayment(scope, id);
-  if (!p?.providerPaymentId) throw new NotFoundError();
+  if (!p) throw new NotFoundError();
   if (p.providerCode === BANK_TRANSFER_PROVIDER) throw new BusinessRuleError('PAYMENT_INVALID_TRANSITION', 'A bank transfer is verified by finance, not synced with a gateway', { providerCode: p.providerCode });
+  if (!p.providerPaymentId) throw new NotFoundError();
   const g = paymentGateway();
   let st: GatewayPaymentStatus;
   try {

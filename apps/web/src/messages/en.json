@@ -245,7 +245,8 @@
       "refunds": "Refunds",
       "roles": "Roles",
       "auditLogs": "Audit log",
-      "system": "System"
+      "system": "System",
+      "bankTransfers": "Bank transfers"
     },
     "welcome": "Welcome, {name}",
     "roles": "Roles",
@@ -847,6 +848,40 @@
         "decline": "Simulate declined card",
         "done": "Outcome delivered. Returning to UniGate…",
         "unknown": "This checkout session is unknown or has already completed."
+      },
+      "startBankTransfer": "Pay by bank transfer",
+      "starting": "Preparing your transfer details…",
+      "bank": {
+        "bankName": "Bank",
+        "accountName": "Account name",
+        "iban": "IBAN",
+        "amount": "Amount",
+        "reference": "Reference",
+        "copy": "Copy {what}",
+        "intro": "Transfer the exact amount to the account below and quote the reference. Then upload the receipt — your booking is confirmed once our finance team verifies the transfer.",
+        "receiptDeadline": "Upload the receipt before {at}; after that the payment expires and you can start again.",
+        "receiptTitle": "Upload your transfer receipt",
+        "transferReference": "Transfer reference (optional)",
+        "transferReferenceHint": "as printed on your bank receipt",
+        "transferredAt": "Transferred on (optional)",
+        "receiptFile": "Receipt",
+        "receiptFileHint": "PDF, JPG or PNG. The file is verified by our finance team.",
+        "submitReceipt": "Submit receipt",
+        "replaceReceipt": "Replace receipt",
+        "checkStatus": "Check status",
+        "chooseAnother": "Choose another payment method",
+        "cancelConfirm": "Cancel this bank transfer and pick another payment method?",
+        "awaiting": "Receipt received on {at} — awaiting verification by our finance team. We will notify you once the payment is approved.",
+        "verified": "Payment approved — the transfer was verified on {at}.",
+        "rejected": "The transfer could not be verified: {reason}. You can pay again.",
+        "closed": "This payment is {status}.",
+        "stage": {
+          "hashing": "Preparing file…",
+          "requesting": "Requesting upload…",
+          "uploading": "Uploading…",
+          "confirming": "Confirming…",
+          "submitting": "Submitting…"
+        }
       }
     },
     "engagement": {
@@ -1594,6 +1629,36 @@
       },
       "verticalAdded": "Vertical added — upload its TGA card, verify it, then approve the driver again.",
       "addVertical": "Add {vertical}"
+    },
+    "adminBankTransfers": {
+      "title": "Bank transfers",
+      "subtitle": "Customers who chose IBFT upload a receipt; verify it against the bank statement to confirm the booking, or reject it with a reason.",
+      "configure": "Receiving account",
+      "receivingAccount": "Receiving account",
+      "notConfigured": "Bank transfer is not offered to customers yet: enter the receiving bank, account name and IBAN under Settings → finance (finance.bank_transfer.*) and keep BANK_TRANSFER in finance.payment_methods_enabled.",
+      "views": {
+        "TO_VERIFY": "To verify",
+        "AWAITING_RECEIPT": "Awaiting receipt",
+        "VERIFIED": "Verified",
+        "REJECTED": "Rejected",
+        "ALL": "All"
+      },
+      "payment": "Payment",
+      "for": "For",
+      "invoice": "Invoice",
+      "amount": "Amount",
+      "transfer": "Transfer",
+      "receipt": "Receipt",
+      "status": "Status",
+      "empty": "Nothing here.",
+      "openReceipt": "Open receipt",
+      "noReceipt": "No receipt yet",
+      "noReceiptUntil": "No receipt yet (expires {at})",
+      "verify": "Verify",
+      "reject": "Reject",
+      "verifyNotes": "Verify {number} for {amount} as received. Optional note (e.g. statement line):",
+      "rejectReason": "Reason for rejecting {number} (shown to the customer):",
+      "rejectReasonShort": "Please give a reason of at least 5 characters."
     }
   },
   "driver": {

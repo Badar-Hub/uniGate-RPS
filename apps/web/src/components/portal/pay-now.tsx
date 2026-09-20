@@ -3,13 +3,16 @@
 import { useEffect, useState } from 'react';
 import { useLocale, useTranslations } from 'next-intl';
 import { AlertCircle, CheckCircle2, Loader2 } from 'lucide-react';
-import type { CreatePaymentResultDto, PaymentConfigDto, PaymentStatusDto } from '@unigate/types';
+import type { CreatePaymentResultDto, PaymentConfigDto, PaymentDto, PaymentStatusDto } from '@unigate/types';
 import { api, idempotencyKey, type ApiError } from '@/lib/api-client';
 import { errorMessage } from '@/lib/errors';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
+import { BankAccountDetails, BankTransferPanel } from './bank-transfer-panel';
+
+const BANK_TRANSFER_PROVIDER = 'bank_transfer';
 
 /** What is being paid: a PENDING_PAYMENT booking or the outstanding balance of an invoice (api.md §6.4 — exactly one target). */
 export interface PayTarget {
@@ -27,6 +30,8 @@ export interface PayTarget {
  * Pay-now for a booking or an invoice: creates the intent and follows the gateway action.
  * When the browser returns (?payment=…), the panel polls GET /payments/{id}/status with a bounded
  * backoff — it never assumes success from the return itself (api.md §10).
+ * A bank transfer (IBFT) has no gateway hop: the PENDING payment is kept and shown again on reload
+ * (GET /payments?bookingId|invoiceId&status=PENDING) until finance verifies or rejects it.
  */
 export function PayNow({ target, returnedPaymentId, onPaid }: { target: PayTarget; returnedPaymentId: string | null; onPaid: () => void }) {
   const t = useTranslations('portal.payments');
@@ -38,7 +43,8 @@ export function PayNow({ target, returnedPaymentId, onPaid }: { target: PayTarge
   const [error, setError] = useState<ApiError | null>(null);
   const [poll, setPoll] = useState<PaymentStatusDto | null>(null);
   const [polling, setPolling] = useState(Boolean(returnedPaymentId));
-  const [bankRef, setBankRef] = useState<string | null>(null);
+  const [bank, setBank] = useState<PaymentDto | null>(null);
+  const [resumed, setResumed] = useState(false);
 
   useEffect(() => {
     void api<PaymentConfigDto>('/payments/config').then((res) => {
@@ -48,6 +54,19 @@ export function PayNow({ target, returnedPaymentId, onPaid }: { target: PayTarge
       } else setError(res.error);
     });
   }, []);
+
+  // A bank transfer started earlier is still open: show it instead of the method picker.
+  useEffect(() => {
+    if (returnedPaymentId) { setResumed(true); return; }
+    const query = { status: 'PENDING', pageSize: 1, ...(target.bookingId ? { bookingId: target.bookingId } : { invoiceId: target.invoiceId }) };
+    void api<PaymentDto[]>('/payments', { query }).then((res) => {
+      if (res.ok) {
+        const open = res.data.find((p) => p.providerCode === BANK_TRANSFER_PROVIDER);
+        if (open) setBank(open);
+      }
+      setResumed(true);
+    });
+  }, [returnedPaymentId, target.bookingId, target.invoiceId]);
 
   // Bounded backoff: 1s, 2s, 3s … up to ~45s total, then stop and tell the user the page keeps checking on reload.
   useEffect(() => {
@@ -101,10 +120,7 @@ export function PayNow({ target, returnedPaymentId, onPaid }: { target: PayTarge
       return;
     }
     setBusy(false);
-    if (action.type === 'NONE') {
-      const ref = action.clientPayload?.['reference'];
-      setBankRef(typeof ref === 'string' ? ref : payment.paymentNumber);
-    }
+    if (action.type === 'NONE' && payment.providerCode === BANK_TRANSFER_PROVIDER) setBank(payment);
   }
 
   if (returnedPaymentId) {
@@ -149,24 +165,31 @@ export function PayNow({ target, returnedPaymentId, onPaid }: { target: PayTarge
             <AlertDescription>{errorMessage(tc, error)}</AlertDescription>
           </Alert>
         )}
-        {bankRef ? (
-          <p className="text-sm">{t('bankTransfer', { reference: bankRef })}</p>
+        {bank && cfg?.bankTransfer ? (
+          <BankTransferPanel payment={bank} bt={cfg.bankTransfer} onChange={setBank} onPaid={onPaid} onCancelled={() => { setBank(null); }} />
+        ) : !resumed || !cfg ? (
+          <div className="flex items-center gap-2 text-sm text-muted-foreground"><Loader2 className="size-4 animate-spin" />{tc('loading')}</div>
         ) : (
+          <div className="space-y-3">
+            {method === 'BANK_TRANSFER' && cfg.bankTransfer && (
+              <BankAccountDetails bt={cfg.bankTransfer} amount={target.amount} currency={target.currency} reference={null} />
+            )}
           <div className="flex flex-wrap items-end gap-3">
             <div className="space-y-1">
               <Label htmlFor="pay-method">{t('method')}</Label>
               <select id="pay-method" className="flex h-9 min-w-48 rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm" value={method} onChange={(e) => { setMethod(e.target.value); }}>
-                {cfg?.methodTypes.map((m) => (
+                {cfg.methodTypes.map((m) => (
                   <option key={m} value={m}>
                     {t(`methods.${m}` as 'methods.MADA')}
                   </option>
                 ))}
               </select>
             </div>
-            <Button disabled={busy || !method || !cfg} onClick={() => void start()}>
+            <Button disabled={busy || !method} onClick={() => void start()}>
               {busy && <Loader2 className="animate-spin" />}
-              {busy ? t('redirecting') : t('pay', { amount: target.amount, currency: target.currency })}
+              {busy ? (method === 'BANK_TRANSFER' ? t('starting') : t('redirecting')) : method === 'BANK_TRANSFER' ? t('startBankTransfer') : t('pay', { amount: target.amount, currency: target.currency })}
             </Button>
+          </div>
           </div>
         )}
       </CardContent>

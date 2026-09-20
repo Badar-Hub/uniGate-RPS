@@ -11,17 +11,21 @@
  *     PROCESSING, the gateway's refund webhook → COMPLETED, payment REFUNDED, booking REFUNDED,
  *     reversing postings balance; Σ refunds ≤ captured
  */
-import { randomUUID } from 'node:crypto';
+import { createHash, randomUUID } from 'node:crypto';
 import request from 'supertest';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { prisma } from '@/database/prisma.js';
 import { mockGateway } from '@/integrations/payments/index.js';
+import { updateSetting } from '@/modules/reference/settings.service.js';
 import { TEST_DB, bearer, bootHarness, clearThrottles, createUserWithRoles, loginBearer, teardownHarness, type Harness } from './helpers.js';
 
 const describeDb = TEST_DB ? describe : describe.skip;
 const PW = 'payments test passphrase 1';
 const hours = (n: number) => new Date(Date.now() + n * 3_600_000).toISOString();
 const RETURN = 'http://localhost:3001/en/bookings/return';
+const RECEIPT = Buffer.from('%PDF-1.4\n1 0 obj << /Type /Catalog >> endobj\ntrailer << /Root 1 0 R >>\n%%EOF\n');
+const sha = (b: Buffer) => createHash('sha256').update(b).digest('hex');
+const SYSTEM = { kind: 'SYSTEM', jobName: 'test', requestId: 'test' } as const;
 
 describeDb('payments', () => {
   let h: Harness;
@@ -221,6 +225,73 @@ describeDb('payments', () => {
     await groupsBalance();
   });
 
+  it('bank transfer (IBFT): offered only when the IBAN is configured; receipt attached by the payer; finance verifies → PAID + CONFIRMED + CASH_BANK postings; rejection fails the payment with the reason', async () => {
+    // Not offered until the admin enters the receiving account, even though BANK_TRANSFER is in the enabled list.
+    let cfg = await bearer(request(h.app).get('/api/v1/payments/config'), customer);
+    expect(cfg.body.data.methodTypes).not.toContain('BANK_TRANSFER');
+    expect(cfg.body.data.bankTransfer).toBeNull();
+    await updateSetting(SYSTEM, 'finance.bank_transfer.bank_name', 'Al Rajhi Bank', null);
+    await updateSetting(SYSTEM, 'finance.bank_transfer.account_name', 'UniGate Transport Co.', null);
+    await updateSetting(SYSTEM, 'finance.bank_transfer.iban', 'SA0380000000608010167519', null);
+    cfg = await bearer(request(h.app).get('/api/v1/payments/config'), customer);
+    expect(cfg.body.data.methodTypes).toContain('BANK_TRANSFER');
+    expect(cfg.body.data.bankTransfer).toMatchObject({ bankName: 'Al Rajhi Bank', iban: 'SA0380000000608010167519', receiptWindowHours: 48 });
+
+    // 1. The customer picks bank transfer: PENDING, no gateway hop, action NONE.
+    const { bookingId } = await book(300);
+    const created = await pay(customer, { bookingId, amount: '1150.00', currency: 'SAR', methodType: 'BANK_TRANSFER', returnUrl: RETURN });
+    expect(created.status, JSON.stringify(created.body)).toBe(201);
+    const paymentId: string = created.body.data.payment.id;
+    expect(created.body.data.payment).toMatchObject({ status: 'PENDING', providerCode: 'bank_transfer', paymentMethodType: 'BANK_TRANSFER', providerPaymentId: null });
+    expect(created.body.data.action).toMatchObject({ type: 'NONE' });
+    expect(created.body.data.payment.bankTransfer).toMatchObject({ awaitingVerification: false, receiptDocumentId: null });
+
+    // Finance cannot verify before a receipt? It can (bank statement is the evidence) — but the customer cannot mark it paid by any route.
+    expect((await bearer(request(h.app).post(`/api/v1/admin/payments/${paymentId}/verify-transfer`), customer).send({})).status).toBe(403);
+    expect((await bearer(request(h.app).post(`/api/v1/payments/${paymentId}/sync`), finance)).status).toBe(422);
+
+    // 2. The receipt: a document on target PAYMENT/{id} — another customer's payment is out of scope.
+    const up = await bearer(request(h.app).post('/api/v1/documents/upload-url'), customer).send({ documentTypeCode: 'PAYMENT_RECEIPT', target: { kind: 'PAYMENT', id: paymentId }, originalFilename: 'receipt.pdf', mimeType: 'application/pdf', sizeBytes: RECEIPT.length, checksumSha256: sha(RECEIPT) });
+    expect(up.status, JSON.stringify(up.body)).toBe(201);
+    expect((await bearer(request(h.app).post('/api/v1/documents/upload-url'), owner).send({ documentTypeCode: 'PAYMENT_RECEIPT', target: { kind: 'PAYMENT', id: paymentId }, originalFilename: 'receipt.pdf', mimeType: 'application/pdf', sizeBytes: RECEIPT.length, checksumSha256: sha(RECEIPT) })).status).toBe(404);
+    const put = await fetch(up.body.data.upload.url, { method: 'PUT', headers: up.body.data.upload.headers, body: RECEIPT });
+    expect(put.status).toBe(200);
+    expect((await bearer(request(h.app).post(`/api/v1/documents/${up.body.data.documentId}/confirm`), customer).set('Idempotency-Key', randomUUID()).send({ checksumSha256: sha(RECEIPT) })).status).toBe(200);
+    // An unconfirmed / foreign document is refused as the receipt.
+    expect((await bearer(request(h.app).post(`/api/v1/payments/${paymentId}/receipt`), customer).send({ documentId: randomUUID() })).status).toBe(422);
+    const submitted = await bearer(request(h.app).post(`/api/v1/payments/${paymentId}/receipt`), customer).send({ documentId: up.body.data.documentId, transferReference: 'FT26091712345', transferredAt: new Date().toISOString() });
+    expect(submitted.status, JSON.stringify(submitted.body)).toBe(200);
+    expect(submitted.body.data.bankTransfer).toMatchObject({ awaitingVerification: true, transferReference: 'FT26091712345', receiptDocumentId: up.body.data.documentId });
+    expect(submitted.body.data.expiresAt).toBeNull(); // the expiry clock stops once the receipt is in
+    expect((await prisma().outboxEvent.count({ where: { aggregateId: paymentId, eventType: 'payment.receipt_submitted' } }))).toBe(1);
+    // Finance sees it in the queue; the customer cannot list as staff.
+    const queue = await bearer(request(h.app).get('/api/v1/payments?providerCode=bank_transfer&status=PENDING'), finance);
+    expect((queue.body.data as { id: string }[]).map((p) => p.id)).toContain(paymentId);
+    // Staff can open the receipt.
+    expect((await bearer(request(h.app).get(`/api/v1/documents/${up.body.data.documentId}/download-url`), finance)).status).toBe(200);
+
+    // 3. Verification runs the capture path: PAID, booking CONFIRMED, ledger against CASH_BANK (not the gateway account).
+    const verified = await bearer(request(h.app).post(`/api/v1/admin/payments/${paymentId}/verify-transfer`), finance).send({ notes: 'matched on statement line 42' });
+    expect(verified.status, JSON.stringify(verified.body)).toBe(200);
+    expect(verified.body.data).toMatchObject({ status: 'PAID', providerPaymentId: null });
+    expect(verified.body.data.bankTransfer).toMatchObject({ awaitingVerification: false, verificationNotes: 'matched on statement line 42' });
+    expect(verified.body.data.bankTransfer.verifiedAt).not.toBeNull();
+    expect((await bearer(request(h.app).get(`/api/v1/bookings/${bookingId}`), customer)).body.data).toMatchObject({ status: 'CONFIRMED', paymentStatus: 'PAID' });
+    const lines = await prisma().$queryRaw<{ code: string; direction: string; amount: string }[]>`SELECT a.code, e.direction::text, e.amount::text FROM ledger_entries e JOIN ledger_accounts a ON a.id = e.ledger_account_id WHERE e.payment_id = ${paymentId}::uuid ORDER BY a.code, e.direction`;
+    expect(lines.find((l) => l.code === 'CASH_BANK' && l.direction === 'DEBIT')?.amount).toBe('1150.00');
+    expect(lines.some((l) => l.code === 'CASH_GATEWAY' && l.direction === 'DEBIT')).toBe(false);
+    expect((await bearer(request(h.app).post(`/api/v1/admin/payments/${paymentId}/verify-transfer`), finance).send({})).status).toBe(422); // already settled
+    expect((await prisma().outboxEvent.count({ where: { aggregateId: paymentId, eventType: 'payment.captured' } }))).toBe(1);
+
+    // 4. Rejection: a second booking, receipt rejected with a reason → FAILED, the customer may pay again.
+    const other = await book(320);
+    const p2 = await pay(customer, { bookingId: other.bookingId, amount: '1150.00', currency: 'SAR', methodType: 'BANK_TRANSFER', returnUrl: RETURN });
+    expect(p2.status).toBe(201);
+    expect((await bearer(request(h.app).post(`/api/v1/admin/payments/${p2.body.data.payment.id}/reject-transfer`), finance).send({ reason: 'no credit on the statement for this reference' })).body.data).toMatchObject({ status: 'FAILED', failureCode: 'TRANSFER_REJECTED' });
+    expect((await bearer(request(h.app).get(`/api/v1/bookings/${other.bookingId}`), customer)).body.data).toMatchObject({ status: 'PENDING_PAYMENT', paymentStatus: 'UNPAID' });
+    expect((await pay(customer, { bookingId: other.bookingId, amount: '1150.00', currency: 'SAR', methodType: 'MADA', returnUrl: RETURN })).status).toBe(201);
+  });
+
   it('refunds: cancellation of a paid booking requests one; four-eyes approval; process → gateway → webhook → COMPLETED with reversing postings; Σ ≤ captured', async () => {
     const g = mockGateway();
     if (!g) throw new Error('mock gateway expected');
@@ -264,6 +335,6 @@ describeDb('payments', () => {
     const lines = await prisma().$queryRaw<{ code: string; direction: string; amount: string }[]>`SELECT a.code, e.direction::text, e.amount::text FROM ledger_entries e JOIN ledger_accounts a ON a.id = e.ledger_account_id WHERE e.refund_id = ${refundId}::uuid`;
     expect(lines).toEqual(expect.arrayContaining([{ code: 'CASH_GATEWAY', direction: 'CREDIT', amount: '1150.00' }, { code: 'OWNER_PAYABLE', direction: 'DEBIT', amount: '1050.00' }, { code: 'PLATFORM_COMMISSION_REVENUE', direction: 'DEBIT', amount: '100.00' }]));
     const { ownerPayableBalance } = await import('@/modules/finance/ledger.service.js');
-    expect((await ownerPayableBalance(ownerProfileId)).toFixed(2)).toBe('2100.00'); // the two earlier captures stay
+    expect((await ownerPayableBalance(ownerProfileId)).toFixed(2)).toBe('3150.00'); // the two earlier gateway captures and the verified bank transfer stay
   });
 });

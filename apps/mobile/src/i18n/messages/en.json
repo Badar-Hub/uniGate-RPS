@@ -748,6 +748,30 @@
       "succeed": "Simulate successful payment",
       "decline": "Simulate declined card",
       "check": "I paid on the page — check status"
+    },
+    "bank": {
+      "start": "Pay by bank transfer",
+      "starting": "Preparing your transfer details…",
+      "bankName": "Bank",
+      "accountName": "Account name",
+      "iban": "IBAN",
+      "amount": "Amount",
+      "reference": "Reference",
+      "intro": "Transfer the exact amount to the account below and quote the reference. Then upload the receipt — your booking is confirmed once our finance team verifies the transfer.",
+      "receiptDeadline": "Upload the receipt before {at}; after that the payment expires and you can start again.",
+      "receiptTitle": "Upload your transfer receipt",
+      "transferReference": "Transfer reference (optional)",
+      "transferReferenceHint": "as printed on your bank receipt",
+      "transferredAt": "Transferred on (optional)",
+      "submitReceipt": "Submit receipt",
+      "replaceReceipt": "Replace receipt",
+      "checkStatus": "Check status",
+      "chooseAnother": "Choose another payment method",
+      "cancelConfirm": "Cancel this bank transfer and pick another payment method?",
+      "awaiting": "Receipt received on {at} — awaiting verification by our finance team. We will notify you once the payment is approved.",
+      "verified": "Payment approved — the transfer was verified on {at}.",
+      "rejected": "The transfer could not be verified: {reason}. You can pay again.",
+      "closed": "This payment is {status}."
     }
   },
   "tracking": {
