@@ -42,3 +42,4 @@ apps/web/.e2e-report/
 
 # TLS material for the single-host deployment (scripts/deploy/make-certs.sh)
 /certs/
+.builds/

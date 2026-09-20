@@ -3,7 +3,7 @@
 #
 #   scripts/mobile/build-android.sh setup      one-time: JDK 17 + Android SDK under ~/android-tools (no sudo)
 #   scripts/mobile/build-android.sh keystore   one-time: upload keystore in ~/unigate-keys (KEEP IT — Play needs the same key forever)
-#   scripts/mobile/build-android.sh build      prebuild + gradle → ~/unigate-builds/<version>/unigate-<version>-<code>.{apk,aab}
+#   scripts/mobile/build-android.sh build [--no-prebuild]   prebuild + gradle → ~/unigate-builds/<version>/unigate-<version>-<code>.{apk,aab}
 #
 # The APK is what testers install directly; the AAB is what goes to Google Play. Both are signed with
 # the upload key. EXPO_PUBLIC_API_URL is inlined at bundle time from the environment or apps/mobile/.env.
@@ -61,6 +61,7 @@ EOF
 }
 
 build() {
+  local skip_prebuild="${1:-}"
   [[ -f "$KEYS/keystore.properties" ]] || { echo "run '$0 keystore' first" >&2; exit 1; }
   [[ -x "$JAVA_HOME/bin/java" ]] || { echo "run '$0 setup' first" >&2; exit 1; }
   cd "$ROOT/apps/mobile"
@@ -69,6 +70,7 @@ build() {
   local version code
   version="$(node -p "require('./package.json').version")"
   code="$(npx --yes expo config --type public --json 2>/dev/null | node -p "JSON.parse(require('fs').readFileSync(0,'utf8')).android.versionCode")"
+  if [[ "$skip_prebuild" != "--no-prebuild" ]]; then
   echo "== prebuild (android/ is generated, never committed)"
   rm -rf android
   CI=1 npx expo prebuild --platform android --no-install >/dev/null
@@ -92,14 +94,20 @@ s = s.replace(/signingConfigs \{\n\s*debug \{/, `signingConfigs {
             keyPassword props['keyPassword']
         }
         debug {`);
-s = s.replace(/(release \{[\s\S]*?)signingConfig signingConfigs\.debug/, '$1signingConfig signingConfigs.release');
+// Only buildTypes.release — the template's buildTypes.debug also says `signingConfig signingConfigs.debug`.
+const bt = s.indexOf('buildTypes {');
+const rel = bt < 0 ? -1 : s.indexOf('release {', bt);
+const sig = rel < 0 ? -1 : s.indexOf('signingConfig signingConfigs.debug', rel);
+if (sig < 0) throw new Error('android/app/build.gradle layout changed: release signing not patched');
+s = s.slice(0, sig) + 'signingConfig signingConfigs.release' + s.slice(sig + 'signingConfig signingConfigs.debug'.length);
 fs.writeFileSync(p, s);
 EOF
+  fi
   echo "== gradle assembleRelease bundleRelease (first run downloads Gradle + dependencies)"
   # Gradle calls the Expo CLI with a bare `node`; in this pnpm workspace (node-linker=isolated) Babel then
   # cannot see its presets/plugins. The bin shims pnpm generates fix that with NODE_PATH — do the same.
-  export NODE_PATH="/node_modules/.pnpm/node_modules"
-  (cd android && ./gradlew --no-daemon -q assembleRelease bundleRelease)
+  export NODE_PATH="$ROOT/node_modules/.pnpm/node_modules"
+  (cd android && ./gradlew --no-daemon assembleRelease bundleRelease | grep -vE "^> Task |^s*$")
   local dest="$OUT/$version"
   mkdir -p "$dest"
   cp android/app/build/outputs/apk/release/app-release.apk "$dest/unigate-$version-$code.apk"
@@ -111,6 +119,6 @@ EOF
 case "${1:-}" in
   setup) setup ;;
   keystore) keystore ;;
-  build) build ;;
+  build) build "${2:-}" ;;
   *) echo "usage: $0 setup|keystore|build" >&2; exit 2 ;;
 esac
