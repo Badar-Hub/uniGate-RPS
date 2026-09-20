@@ -119,8 +119,9 @@ export const NOTIFICATION_TEMPLATES: TemplateSeed[] = [
     ar: { title: 'فعّل حساب المورد في يونيجيت', body: 'أنشأت يونيجيت حساب مورد لـ {{companyName}}. عيّن كلمة المرور من هنا: {{activationUrl}} (صالح حتى {{expiresAt}}). ثم ارفع مستندات الشركة للموافقة.' } },
   // ── security ──────────────────────────────────────────────────────────────
   { code: 'PASSWORD_RESET', category: 'SECURITY', channels: ['EMAIL', 'SMS'], variables: ['resetUrl'],
-    en: { title: 'Reset your UniGate password', body: 'Use this link to choose a new password: {{resetUrl}}. It expires in 30 minutes. If you did not ask for this, ignore this message.' },
-    ar: { title: 'إعادة تعيين كلمة مرور يونيجيت', body: 'استخدم هذا الرابط لاختيار كلمة مرور جديدة: {{resetUrl}}. ينتهي خلال 30 دقيقة. إذا لم تطلب ذلك فتجاهل هذه الرسالة.' } },
+    // The link sits on its own line: a full stop glued to it ends up inside the token when copied.
+    en: { title: 'Reset your UniGate password', body: 'Use this link to choose a new password (it expires in 30 minutes):\n\n{{resetUrl}}\n\nIf you did not ask for this, ignore this message.' },
+    ar: { title: 'إعادة تعيين كلمة مرور يونيجيت', body: 'استخدم هذا الرابط لاختيار كلمة مرور جديدة (ينتهي خلال 30 دقيقة):\n\n{{resetUrl}}\n\nإذا لم تطلب ذلك فتجاهل هذه الرسالة.' } },
   { code: 'SECURITY_NEW_DEVICE', category: 'SECURITY', channels: QUIET, variables: ['clientType', 'ipAddress', 'at'],
     en: { title: 'New sign-in to your account', body: 'Your account was signed in from a new device ({{clientType}}, {{ipAddress}}) at {{at}}. If this was not you, change your password now.' },
     ar: { title: 'تسجيل دخول جديد إلى حسابك', body: 'تم تسجيل الدخول إلى حسابك من جهاز جديد ({{clientType}}، {{ipAddress}}) في {{at}}. إن لم يكن أنت، غيّر كلمة المرور فوراً.' } },

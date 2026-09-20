@@ -5,5 +5,7 @@ export default async function ResetPasswordPage({ params, searchParams }: { para
   const { locale } = await params;
   setRequestLocale(locale);
   const { token } = await searchParams;
-  return <ResetPasswordForm token={token ?? null} />;
+  // Mail clients and chat apps often glue the sentence's full stop or a closing bracket onto the link.
+  const clean = token?.replace(/[.,;:)\]]+$/u, '') ?? null;
+  return <ResetPasswordForm token={clean} />;
 }

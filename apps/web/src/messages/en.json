@@ -22,7 +22,7 @@
       "AUTH_ACCOUNT_SUSPENDED": "This account is suspended. Contact support.",
       "AUTH_PHONE_NOT_VERIFIED": "Please verify your phone number first.",
       "AUTH_IDENTIFIER_TAKEN": "An account with this phone or email already exists.",
-      "AUTH_PASSWORD_POLICY": "Choose a longer password that does not contain your phone or email.",
+      "AUTH_PASSWORD_POLICY": "Password rejected: use at least 10 characters, avoid common passwords, and do not include \"unigate\", your name, e-mail or phone number.",
       "AUTH_OTP_INVALID": "The code is incorrect or has expired.",
       "AUTH_OTP_MAX_ATTEMPTS": "Too many incorrect codes. Request a new one.",
       "AUTH_OTP_THROTTLED": "Please wait before requesting another code.",
