@@ -161,6 +161,8 @@ export const patchOwnerBody = z
   .refine((b) => Object.keys(b).length > 0, { message: 'at least one field is required' });
 
 export const ownerDecisionBody = z.object({ notes: safeText(1000).optional() }).strict();
+/** PUT /owners/{id}/verticals — the full set the vendor should operate in (admin). */
+export const ownerVerticalsBody = z.object({ transportTypes: z.array(z.enum(TRANSPORT_TYPE)).min(1).max(2) }).strict();
 export const ownerRejectBody = z.object({ rejectionReason: safeText(1000).pipe(z.string().min(5)) }).strict();
 export const ownerSuspendBody = z.object({ reason: safeText(1000).pipe(z.string().min(5)) }).strict();
 export const serviceAreasBody = z.object({ cityIds: z.array(uuid).min(1).max(50) }).strict();

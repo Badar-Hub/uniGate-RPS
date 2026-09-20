@@ -160,5 +160,30 @@ describeDb('vendor onboarding & access', () => {
     const vehicleApproved = await bearer(request(h.app).post(`/api/v1/vehicles/${vehicleId}/approve`), admin).send({});
     expect(vehicleApproved.status, JSON.stringify(vehicleApproved.body)).toBe(200);
     expect(vehicleApproved.body.data).toMatchObject({ approvalStatus: 'APPROVED', lifecycleStatus: 'ACTIVE' });
+
+    // Verticals are changed by an admin: adding one puts it under review on an approved vendor and the
+    // approve route accepts it; removing PASSENGER is refused because a vehicle is registered in it.
+    const verticals = (o: { verticals: { transportType: string; status: string }[] }) => Object.fromEntries(o.verticals.map((v) => [v.transportType, v.status]));
+    expect((await bearer(request(h.app).put(`/api/v1/owners/${ownerProfileId}/verticals`), vendor).send({ transportTypes: ['PASSENGER', 'GOODS'] })).status).toBe(403); // the vendor cannot change their own verticals
+    const added = await bearer(request(h.app).put(`/api/v1/owners/${ownerProfileId}/verticals`), admin).send({ transportTypes: ['PASSENGER', 'GOODS'] });
+    expect(added.status, JSON.stringify(added.body)).toBe(200);
+    expect(verticals(added.body.data)).toEqual({ PASSENGER: 'APPROVED', GOODS: 'UNDER_REVIEW' });
+    // The goods vertical brings its own mandatory document (the goods TGA licence): approval waits for it.
+    const goodsEarly = await bearer(request(h.app).post(`/api/v1/owners/${ownerProfileId}/approve`), admin).send({});
+    expect(goodsEarly.status).toBe(422);
+    expect(goodsEarly.body.error).toMatchObject({ code: 'OWNER_DOCUMENTS_INCOMPLETE', details: { missing: ['OWNER_TGA_LICENCE_GOODS'] } });
+    const goodsLicence = await upload({ ownerProfileId }, 'OWNER_TGA_LICENCE_GOODS');
+    expect((await bearer(request(h.app).post(`/api/v1/documents/${goodsLicence}/verify`), admin).send({})).status).toBe(200);
+    const goodsApproved = await bearer(request(h.app).post(`/api/v1/owners/${ownerProfileId}/approve`), admin).send({ notes: 'goods licence checked' });
+    expect(goodsApproved.status, JSON.stringify(goodsApproved.body)).toBe(200);
+    expect(verticals(goodsApproved.body.data)).toEqual({ PASSENGER: 'APPROVED', GOODS: 'APPROVED' });
+    expect((await bearer(request(h.app).post(`/api/v1/owners/${ownerProfileId}/approve`), admin).send({})).status).toBe(422); // nothing pending any more
+    const blocked = await bearer(request(h.app).put(`/api/v1/owners/${ownerProfileId}/verticals`), admin).send({ transportTypes: ['GOODS'] });
+    expect(blocked.status).toBe(422);
+    expect(blocked.body.error).toMatchObject({ code: 'OWNER_VERTICAL_IN_USE', details: { toRemove: ['PASSENGER'], vehicles: 1 } });
+    // GOODS has nothing in it yet, so it can be taken away again.
+    const removed = await bearer(request(h.app).put(`/api/v1/owners/${ownerProfileId}/verticals`), admin).send({ transportTypes: ['PASSENGER'] });
+    expect(removed.status, JSON.stringify(removed.body)).toBe(200);
+    expect(verticals(removed.body.data)).toEqual({ PASSENGER: 'APPROVED' });
   });
 });

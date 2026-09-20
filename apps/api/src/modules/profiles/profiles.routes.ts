@@ -22,7 +22,7 @@ import {
   listSpoCommissionsQuery,
   listSpoLeadsQuery,
   listSpoProfilesQuery,
-  ownerDecisionBody,
+  ownerDecisionBody, ownerVerticalsBody,
   ownerRejectBody,
   ownerSuspendBody,
   patchCustomerBody,
@@ -78,6 +78,7 @@ export function profilesRouter(): Router {
   r.patch('/owners/:id', requirePermissionOrProfile('owners.update', 'owner'), validate({ params: idParams, body: patchOwnerBody }), h(c.patchOwner));
   r.post('/owners/:id/submit-for-review', requirePermissionOrProfile('owners.update', 'owner'), validate({ params: idParams }), h(c.submitOwner));
   r.post('/owners/:id/approve', requirePermission('owners.approve'), validate({ params: idParams, body: ownerDecisionBody }), h(c.approveOwner));
+  r.put('/owners/:id/verticals', requirePermission('owners.approve'), validate({ params: idParams, body: ownerVerticalsBody }), h(c.setOwnerVerticals));
   r.post('/owners/:id/reject', requirePermission('owners.approve'), validate({ params: idParams, body: ownerRejectBody }), h(c.rejectOwner));
   r.post('/owners/:id/suspend', requirePermission('owners.suspend'), validate({ params: idParams, body: ownerSuspendBody }), h(c.suspendOwner));
   r.put('/owners/:id/service-areas', requirePermissionOrProfile('owners.update', 'owner'), validate({ params: idParams, body: serviceAreasBody }), h(c.setServiceAreas));

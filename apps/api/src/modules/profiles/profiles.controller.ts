@@ -23,7 +23,7 @@ import type {
   listSpoCommissionsQuery,
   listSpoLeadsQuery,
   listSpoProfilesQuery,
-  ownerDecisionBody,
+  ownerDecisionBody, ownerVerticalsBody,
   ownerRejectBody,
   ownerSuspendBody,
   patchCustomerBody,
@@ -136,6 +136,10 @@ export async function submitOwner(req: Request, res: Response): Promise<void> {
 export async function approveOwner(req: Request, res: Response): Promise<void> {
   const { params, body } = (req as R<z.infer<typeof ownerDecisionBody>, unknown, Id>).validated;
   sendOk(res, await owners.approveOwner(scopeFor(req, 'owners.approve'), params.id, body.notes));
+}
+export async function setOwnerVerticals(req: Request, res: Response): Promise<void> {
+  const { params, body } = (req as R<z.infer<typeof ownerVerticalsBody>, unknown, Id>).validated;
+  sendOk(res, await owners.setVerticals(scopeFor(req, 'owners.approve'), params.id, body.transportTypes));
 }
 export async function rejectOwner(req: Request, res: Response): Promise<void> {
   const { params, body } = (req as R<z.infer<typeof ownerRejectBody>, unknown, Id>).validated;

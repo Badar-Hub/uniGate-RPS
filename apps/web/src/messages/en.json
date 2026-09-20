@@ -150,7 +150,8 @@
       "EXPORT_EXPIRED": "The export file has expired — request it again.",
       "DOCUMENT_EXPIRED": "This document has already expired (its expiry date is in the past). Ask for a current copy to be uploaded.",
       "DOCUMENT_NOT_VERIFIABLE": "This document cannot be verified in its current state.",
-      "DRIVER_NOT_APPROVED_VERTICAL": "The driver is not approved for {vertical} transport — add the vertical on the Drivers page, verify the TGA card and approve."
+      "DRIVER_NOT_APPROVED_VERTICAL": "The driver is not approved for {vertical} transport — add the vertical on the Drivers page, verify the TGA card and approve.",
+      "OWNER_VERTICAL_IN_USE": "This vertical cannot be removed: the vendor already has bids, bookings, trips or vehicles in it."
     },
     "yes": "Yes",
     "no": "No",
@@ -314,7 +315,15 @@
         "empty": "No owners match this filter.",
         "approved": "Owner approved.",
         "rejected": "Owner rejected.",
-        "review": "Review"
+        "review": "Review",
+        "verticals": {
+          "title": "Verticals",
+          "hint": "What this vendor operates: passenger transport, goods, or both. A vertical can be removed only while the vendor has no bids, bookings, trips or vehicles in it; an added one goes through review.",
+          "PASSENGER": "Passenger",
+          "GOODS": "Goods",
+          "save": "Save verticals",
+          "approve": "Approve new vertical"
+        }
       },
       "documents": {
         "title": "Document verification",

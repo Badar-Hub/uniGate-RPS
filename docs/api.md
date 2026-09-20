@@ -336,6 +336,7 @@ Both mean "I understood you and you may do this kind of thing, but not now." The
 |---|---|---|---|
 | `OWNER_NOT_APPROVED` | 422 | Owner's `onboarding_status` is not `APPROVED` | Owner bidding before approval |
 | `OWNER_DOCUMENTS_INCOMPLETE` | 422 | Mandatory `document_types` for an owner are missing or unverified | Submitting for review too early |
+| `OWNER_VERTICAL_IN_USE` | 422 | A vertical cannot be removed from a vendor who has bid, been booked, driven a trip or registered a vehicle in it | Admin switching a vendor from goods to passenger after activity |
 | `DRIVER_NOT_APPROVED` | 422 | `driver_profiles.approval_status` not approved | Assigning an unapproved driver |
 | `DRIVER_LICENSE_EXPIRED` | 422 | `license_expiry_date` in the past | Assignment or dispatch |
 | `DRIVER_NOT_ASSIGNED_TO_VEHICLE` | 422 | No open `vehicle_driver_assignments` row | Dispatching a driver to a vehicle they do not hold |
@@ -1083,7 +1084,8 @@ No `/me` route takes a permission code. The scope layer binds every one of them 
 | GET | `/owners/{id}` | `owners.read` | own → global | Owners may read their own profile (also at `/me/owner-profile`). Private fields (`nationalIdLast4` only, never the encrypted value) are gated by `privacy_settings` (BRIEF-§28). |
 | PATCH | `/owners/{id}` | `owners.update` | own → global | Business details, service areas, privacy settings. Editing after `APPROVED` moves the profile to `UNDER_REVIEW` for the changed fields. |
 | POST | `/owners/{id}/submit-for-review` | `owners.update` | own | `DRAFT`/`DOCUMENTS_SUBMITTED` → `UNDER_REVIEW`. Rejects with `OWNER_DOCUMENTS_INCOMPLETE` if mandatory document types are missing or unverified. |
-| POST | `/owners/{id}/approve` | `owners.approve` | global | → `APPROVED`. Records `approved_by_user_id`. `POST …/reject` (with `rejectionReason`) shares the route file. **OQ-07**. |
+| POST | `/owners/{id}/approve` | `owners.approve` | global | → `APPROVED`. Records `approved_by_user_id`. `POST …/reject` (with `rejectionReason`) shares the route file. Also approves a vertical an admin added later (`PUT …/verticals`) on an already-approved vendor. **OQ-07**. |
+| PUT | `/owners/{id}/verticals` | `owners.approve` | global | Admin sets the full set of verticals (`{ transportTypes: ['PASSENGER' | 'GOODS'] }`). Added verticals enter review (UNDER_REVIEW on an approved vendor, NOT_APPLIED otherwise). A vertical is **removed only while the vendor has not taken part in anything** — no bid, booking or trip at all and no vehicle registered in it — else `422 OWNER_VERTICAL_IN_USE` with the counts in `details`. |
 | POST | `/owners/{id}/suspend` | `owners.suspend` | global | → `SUSPENDED`. Cascades: all the owner's vehicles become non-dispatchable; live bookings are untouched and flagged to ops. |
 | PUT | `/owners/{id}/service-areas` | `owners.update` | own → global | Replace `owner_service_areas` (a set of `cityId`). Drives opportunity matching. |
 | GET | `/owners/{id}/bank-accounts` | `settlements.read` | own → global | Payout accounts; IBAN as `ibanLast4` only. `POST` to the same path adds one and **requires a step-up token** (§8.1 `SENSITIVE_ACTION`) — payout redirection is the platform's highest-value fraud vector. |

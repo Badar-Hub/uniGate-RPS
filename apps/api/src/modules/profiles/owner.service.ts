@@ -176,10 +176,53 @@ export async function submitForReview(scope: ActorScope, id: string): Promise<Ow
   return getOwner(scope, id);
 }
 
+/**
+ * PUT /owners/{id}/verticals — an admin changes which verticals a vendor operates in.
+ * Adding one is always allowed: it enters review (UNDER_REVIEW when the profile is already
+ * APPROVED, otherwise NOT_APPLIED until the profile is submitted) and is approved through
+ * approveOwner like any other. Removing one is allowed only while the vendor has not taken part
+ * in anything — no bid, booking or trip at all, and no vehicle registered in that vertical —
+ * because bids, snapshots and settlements reference the vertical they were made in.
+ */
+export async function setVerticals(scope: ActorScope, id: string, transportTypes: TransportType[]): Promise<OwnerDto> {
+  const o = await repo.findOwner(scope, id);
+  if (!o) throw new NotFoundError();
+  if (o.ownerType === 'PLATFORM') throw new BusinessRuleError('OWNER_VERTICAL_IN_USE', 'The platform fleet operates in every enabled vertical', { ownerType: o.ownerType });
+  const wanted = [...new Set(transportTypes)];
+  const current = o.verticalApprovals.map((v) => v.transportType);
+  const toAdd = wanted.filter((t) => !current.includes(t));
+  const toRemove = current.filter((t) => !wanted.includes(t));
+  if (toAdd.length === 0 && toRemove.length === 0) return getOwner(scope, id);
+
+  if (toRemove.length) {
+    const [bids, bookings, trips, vehicles] = await Promise.all([
+      prisma().bid.count({ where: { ownerProfileId: id } }),
+      prisma().booking.count({ where: { ownerProfileId: id } }),
+      prisma().trip.count({ where: { booking: { ownerProfileId: id } } }),
+      prisma().vehicle.count({ where: { ownerProfileId: id, deletedAt: null, category: { transportType: { in: toRemove } } } }),
+    ]);
+    if (bids || bookings || trips || vehicles) {
+      throw new BusinessRuleError('OWNER_VERTICAL_IN_USE', 'A vertical can only be removed from a vendor who has not bid, been booked, driven a trip or registered a vehicle in it', { toRemove, bids, bookings, trips, vehicles });
+    }
+  }
+
+  await prisma().$transaction(async (tx) => {
+    if (toRemove.length) await tx.ownerVerticalApproval.deleteMany({ where: { ownerProfileId: id, transportType: { in: toRemove } } });
+    for (const t of toAdd) {
+      await tx.ownerVerticalApproval.create({ data: { id: newId(), ownerProfileId: id, transportType: t, status: o.onboardingStatus === 'APPROVED' ? 'UNDER_REVIEW' : 'NOT_APPLIED' } });
+    }
+    await writeAudit({ ...audit(scope), action: 'owner.verticals_changed', entityType: 'owner_profile', entityId: id, severity: 'NOTICE', beforeValue: { verticals: current }, afterValue: { verticals: wanted, added: toAdd, removed: toRemove } }, tx);
+    await publishEvent('owner', id, 'owner.verticals_changed', { userId: o.userId, verticals: wanted, added: toAdd, removed: toRemove }, tx);
+  });
+  return getOwner(scope, id);
+}
+
 export async function approveOwner(scope: ActorScope, id: string, notes?: string): Promise<OwnerDto> {
   const o = await repo.findOwner(scope, id);
   if (!o) throw new NotFoundError();
-  if (!['UNDER_REVIEW', 'DOCUMENTS_SUBMITTED'].includes(o.onboardingStatus)) {
+  // An APPROVED vendor comes back here when an admin added a vertical (setVerticals → UNDER_REVIEW).
+  const pendingVertical = o.onboardingStatus === 'APPROVED' && o.verticalApprovals.some((v) => v.status === 'UNDER_REVIEW' || v.status === 'NOT_APPLIED');
+  if (!['UNDER_REVIEW', 'DOCUMENTS_SUBMITTED'].includes(o.onboardingStatus) && !pendingVertical) {
     throw new BusinessRuleError('OWNER_NOT_APPROVED', `Only a profile under review can be approved (current: ${o.onboardingStatus})`, { onboardingStatus: o.onboardingStatus });
   }
   // The reviewer verifies every mandatory document before the profile is approved (vehicles can only be registered after this).

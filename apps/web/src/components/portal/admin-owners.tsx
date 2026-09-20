@@ -145,12 +145,14 @@ export function AdminOwners() {
           </Table>
         </CardContent>
       </Card>
-      {selected && <OwnerReviewDialog owner={selected} canApprove={can('owners.approve')} canVerify={can('documents.verify')} onDecide={decide} onClose={() => { setSelected(null); }} />}
+      {selected && <OwnerReviewDialog owner={selected} canApprove={can('owners.approve')} canVerify={can('documents.verify')} onDecide={decide} onChanged={(o) => { setSelected(o); setRows((r) => r.map((x) => (x.id === o.id ? o : x))); }} onClose={() => { setSelected(null); }} />}
     </div>
   );
 }
 
-function OwnerReviewDialog({ owner, canApprove, canVerify, onDecide, onClose }: { owner: OwnerDto; canApprove: boolean; canVerify: boolean; onDecide: (o: OwnerDto, a: 'approve' | 'reject', reason?: string) => Promise<void>; onClose: () => void }) {
+const VERTICALS = ['PASSENGER', 'GOODS'] as const;
+
+function OwnerReviewDialog({ owner, canApprove, canVerify, onDecide, onChanged, onClose }: { owner: OwnerDto; canApprove: boolean; canVerify: boolean; onDecide: (o: OwnerDto, a: 'approve' | 'reject', reason?: string) => Promise<void>; onChanged: (o: OwnerDto) => void; onClose: () => void }) {
   const t = useTranslations('portal.admin.owners');
   const td = useTranslations('portal.admin.documents');
   const tc = useTranslations('common');
@@ -158,6 +160,22 @@ function OwnerReviewDialog({ owner, canApprove, canVerify, onDecide, onClose }: 
   const [reason, setReason] = useState('');
   const [busy, setBusy] = useState<string | null>(null);
   const [error, setError] = useState<ApiError | null>(null);
+  const [verticals, setVerticals] = useState<string[]>(owner.verticals.map((v) => v.transportType));
+  const [savingVerticals, setSavingVerticals] = useState(false);
+  const verticalsDirty = VERTICALS.some((v) => verticals.includes(v) !== owner.verticals.some((x) => x.transportType === v));
+
+  // Admin changes the vendor's verticals; the API refuses a removal once the vendor has taken part in anything.
+  async function saveVerticals() {
+    setSavingVerticals(true);
+    setError(null);
+    const res = await api<OwnerDto>(`/owners/${owner.id}/verticals`, { method: 'PUT', body: { transportTypes: verticals } });
+    setSavingVerticals(false);
+    if (!res.ok) {
+      setError(res.error);
+      return;
+    }
+    onChanged(res.data);
+  }
 
   const load = useCallback(async () => {
     const [own, identity] = await Promise.all([
@@ -193,6 +211,8 @@ function OwnerReviewDialog({ owner, canApprove, canVerify, onDecide, onClose }: 
   }
 
   const pending = docs.filter((d) => d.verificationStatus === 'PENDING').length;
+  // An approved vendor with a vertical added later comes back for approval of that vertical alone.
+  const verticalPending = owner.onboardingStatus === 'APPROVED' && owner.verticals.some((v) => v.status === 'UNDER_REVIEW' || v.status === 'NOT_APPLIED');
 
   return (
     <Dialog open onOpenChange={(o) => { if (!o) onClose(); }}>
@@ -200,6 +220,30 @@ function OwnerReviewDialog({ owner, canApprove, canVerify, onDecide, onClose }: 
         <DialogHeader>
           <DialogTitle>{owner.businessNameEn ?? owner.fullNameEn}</DialogTitle>
         </DialogHeader>
+        {canApprove && owner.ownerType !== 'PLATFORM' && (
+          <Card>
+            <CardHeader className="p-4">
+              <CardTitle className="text-base">{t('verticals.title')}</CardTitle>
+              <CardDescription>{t('verticals.hint')}</CardDescription>
+            </CardHeader>
+            <CardContent className="flex flex-wrap items-center gap-4 p-4 pt-0">
+              {VERTICALS.map((v) => {
+                const current = owner.verticals.find((x) => x.transportType === v);
+                return (
+                  <label key={v} className="flex items-center gap-2 text-sm">
+                    <input type="checkbox" checked={verticals.includes(v)} disabled={savingVerticals} onChange={(e) => { setVerticals((cur) => (e.target.checked ? [...cur, v] : cur.filter((x) => x !== v))); }} />
+                    {t(`verticals.${v}`)}
+                    {current && <Badge variant={current.status === 'APPROVED' ? 'default' : 'outline'}>{current.status}</Badge>}
+                  </label>
+                );
+              })}
+              <Button size="sm" variant="outline" disabled={!verticalsDirty || verticals.length === 0 || savingVerticals} onClick={() => void saveVerticals()}>
+                {savingVerticals && <Loader2 className="animate-spin" />}
+                {t('verticals.save')}
+              </Button>
+            </CardContent>
+          </Card>
+        )}
         <Card>
           <CardHeader className="p-4">
             <CardTitle className="text-base">{td('title')}</CardTitle>
@@ -250,9 +294,9 @@ function OwnerReviewDialog({ owner, canApprove, canVerify, onDecide, onClose }: 
               {t('reject')}
             </Button>
           )}
-          {canApprove && ['UNDER_REVIEW', 'DOCUMENTS_SUBMITTED'].includes(owner.onboardingStatus) && (
+          {canApprove && (['UNDER_REVIEW', 'DOCUMENTS_SUBMITTED'].includes(owner.onboardingStatus) || verticalPending) && (
             <Button disabled={pending > 0} onClick={() => void onDecide(owner, 'approve')}>
-              {t('approve')}
+              {verticalPending ? t('verticals.approve') : t('approve')}
             </Button>
           )}
         </DialogFooter>

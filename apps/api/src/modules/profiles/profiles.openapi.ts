@@ -22,7 +22,7 @@ import {
   listSpoCommissionsQuery,
   listSpoLeadsQuery,
   listSpoProfilesQuery,
-  ownerDecisionBody,
+  ownerDecisionBody, ownerVerticalsBody,
   ownerRejectBody,
   ownerSuspendBody,
   patchCustomerBody,
@@ -131,6 +131,7 @@ registry.registerPath({ method: 'get', path: '/owners/{id}', tags: ['owners'], s
 registry.registerPath({ method: 'patch', path: '/owners/{id}', tags: ['owners'], summary: 'Business details, national id (encrypted), verticals, privacy; identity edits after approval → UNDER_REVIEW', security: bearer, request: { params: idParams, body: json(patchOwnerBody) }, responses: { 200: ok(owner, 'OwnerEnvelope'), 422: err('OWNER_NOT_APPROVED (suspended)') } });
 registry.registerPath({ method: 'post', path: '/owners/{id}/submit-for-review', tags: ['owners'], summary: 'DRAFT / REJECTED → UNDER_REVIEW once mandatory documents are verified', security: bearer, request: { params: idParams }, responses: { 200: ok(owner, 'OwnerEnvelope'), 422: err('OWNER_DOCUMENTS_INCOMPLETE (details.missing) / OWNER_NOT_APPROVED') } });
 registry.registerPath({ method: 'post', path: '/owners/{id}/approve', tags: ['owners'], summary: '→ APPROVED, verticals approved (owners.approve)', security: bearer, request: { params: idParams, body: json(ownerDecisionBody) }, responses: { 200: ok(owner, 'OwnerEnvelope'), 422: err('OWNER_NOT_APPROVED — not under review') } });
+registry.registerPath({ method: 'put', path: '/owners/{id}/verticals', tags: ['owners'], summary: 'Admin sets the verticals a vendor operates in: added ones enter review; removal only while the vendor has no bid, booking, trip or vehicle in it (owners.approve)', security: bearer, request: { params: idParams, body: json(ownerVerticalsBody) }, responses: { 200: ok(owner, 'OwnerEnvelope'), 422: err('OWNER_VERTICAL_IN_USE (details.bids/bookings/trips/vehicles)') } });
 registry.registerPath({ method: 'post', path: '/owners/{id}/reject', tags: ['owners'], summary: '→ REJECTED with a reason (owners.approve)', security: bearer, request: { params: idParams, body: json(ownerRejectBody) }, responses: { 200: ok(owner, 'OwnerEnvelope') } });
 registry.registerPath({ method: 'post', path: '/owners/{id}/suspend', tags: ['owners'], summary: '→ SUSPENDED; vehicles become non-dispatchable, live bookings untouched (owners.suspend)', security: bearer, request: { params: idParams, body: json(ownerSuspendBody) }, responses: { 200: ok(owner, 'OwnerEnvelope') } });
 registry.registerPath({ method: 'put', path: '/owners/{id}/service-areas', tags: ['owners'], summary: 'Replace the served cities', security: bearer, request: { params: idParams, body: json(serviceAreasBody) }, responses: { 200: ok(owner, 'OwnerEnvelope'), 422: err('VALIDATION_FAILED — unknown cities') } });

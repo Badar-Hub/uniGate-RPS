@@ -6711,6 +6711,19 @@
               "INVOICED"
             ]
           },
+          "invoiceId": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid"
+          },
+          "invoiceNumber": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
           "creditTermsDaysSnapshot": {
             "type": [
               "integer",
@@ -6831,6 +6844,8 @@
           "totalAmount",
           "currency",
           "billingMode",
+          "invoiceId",
+          "invoiceNumber",
           "creditTermsDaysSnapshot",
           "fulfilmentSequence",
           "status",
@@ -17268,7 +17283,8 @@
                           "CORPORATE_CUSTOMER",
                           "EXPENSE",
                           "MAINTENANCE_RECORD",
-                          "TRIP_PROOF"
+                          "TRIP_PROOF",
+                          "PAYMENT"
                         ]
                       },
                       "id": {
@@ -17621,7 +17637,8 @@
                 "CORPORATE_CUSTOMER",
                 "EXPENSE",
                 "MAINTENANCE_RECORD",
-                "TRIP_PROOF"
+                "TRIP_PROOF",
+                "PAYMENT"
               ]
             },
             "required": true,
@@ -19519,6 +19536,81 @@
           },
           "422": {
             "description": "OWNER_NOT_APPROVED — not under review",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {},
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/owners/{id}/verticals": {
+      "put": {
+        "tags": [
+          "owners"
+        ],
+        "summary": "Admin sets the verticals a vendor operates in: added ones enter review; removal only while the vendor has no bid, booking, trip or vehicle in it (owners.approve)",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "transportTypes": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "enum": [
+                        "PASSENGER",
+                        "GOODS"
+                      ]
+                    },
+                    "minItems": 1,
+                    "maxItems": 2
+                  }
+                },
+                "required": [
+                  "transportTypes"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OwnerEnvelope"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "OWNER_VERTICAL_IN_USE (details.bids/bookings/trips/vehicles)",
             "content": {
               "application/json": {
                 "schema": {
@@ -23551,7 +23643,8 @@
                 "CORPORATE_CUSTOMER",
                 "EXPENSE",
                 "MAINTENANCE_RECORD",
-                "TRIP_PROOF"
+                "TRIP_PROOF",
+                "PAYMENT"
               ]
             },
             "required": false,
