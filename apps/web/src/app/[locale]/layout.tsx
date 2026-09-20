@@ -29,6 +29,7 @@ export async function generateMetadata({
   return {
     title: { default: t('appName'), template: `%s · ${t('appName')}` },
     description: t('tagline'),
+    icons: { icon: '/favicon.png', apple: '/apple-touch-icon.png' },
   };
 }
 

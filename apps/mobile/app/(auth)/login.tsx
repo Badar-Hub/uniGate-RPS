@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { KeyboardAvoidingView, Platform, ScrollView, Text, View } from 'react-native';
+import { Image, KeyboardAvoidingView, Platform, ScrollView, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { fieldErrors, isThrottled, login, type ApiError } from '@unigate/api-client';
 import { identifier as identifierSchema, phoneE164 } from '@unigate/validation';
@@ -10,6 +10,7 @@ import { apiErrorOf, client } from '@/lib/api';
 import { deviceInfo } from '@/lib/auth/device';
 import { useSession } from '@/lib/session';
 import { platformClientType } from '@/config';
+import logo from '../../assets/images/logo-full.png';
 
 /** Codes after which the OTP path is the way forward (new device / step-up / unverified phone). */
 const OTP_NEXT_CODES = [
@@ -91,9 +92,13 @@ export default function LoginScreen() {
           contentContainerClassName="flex-grow justify-center py-8"
         >
           <View className="mb-8">
-            <Text className="mb-2 text-sm font-semibold uppercase tracking-wide text-primary text-start">
-              {t('common.appName')}
-            </Text>
+            <Image
+              source={logo}
+              accessibilityLabel={t('common.appName')}
+              className="mb-6 self-center"
+              style={{ width: 160, height: 200 }}
+              resizeMode="contain"
+            />
             <Title>{t('auth.signIn')}</Title>
             <Subtitle>{t('auth.signInSubtitle')}</Subtitle>
           </View>

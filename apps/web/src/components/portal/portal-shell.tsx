@@ -71,7 +71,11 @@ export function PortalShell({ children }: { children: ReactNode }) {
   return (
     <div className="flex min-h-dvh">
       <aside className="hidden w-60 shrink-0 border-e bg-card md:flex md:flex-col">
-        <div className="flex h-14 items-center border-b px-4 text-lg font-semibold">{tc('appName')}</div>
+        <div className="flex h-14 items-center gap-2 border-b px-4 text-lg font-semibold">
+          {/* eslint-disable-next-line @next/next/no-img-element -- static brand asset, no optimisation needed */}
+          <img src="/brand/logo-mark.png" alt="" className="size-8" />
+          {tc('appName')}
+        </div>
         <nav className="flex-1 space-y-1 p-2" aria-label="primary">
           {items
             .filter((i) => i.show)
@@ -89,7 +93,11 @@ export function PortalShell({ children }: { children: ReactNode }) {
       </aside>
       <div className="flex min-w-0 flex-1 flex-col">
         <header className="flex h-14 items-center justify-between border-b bg-background px-4">
-          <span className="text-sm text-muted-foreground md:hidden">{tc('appName')}</span>
+          <span className="flex items-center gap-2 text-sm text-muted-foreground md:hidden">
+            {/* eslint-disable-next-line @next/next/no-img-element -- static brand asset */}
+            <img src="/brand/logo-mark.png" alt="" className="size-6" />
+            {tc('appName')}
+          </span>
           <span className="hidden text-sm text-muted-foreground md:inline">{tp('welcome', { name: me.fullNameEn })}</span>
           <div className="flex items-center gap-1">
             <LanguageSwitch />
