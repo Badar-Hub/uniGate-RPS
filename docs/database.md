@@ -290,7 +290,7 @@ This is the mechanism that satisfies "never expose other users' personal informa
 
 `vehicle_categories`: `code`, `name_en`, `name_ar`, `transport_type` (`PASSENGER` \| `GOODS` — **the binding of a category to exactly one vertical**; a coach is passenger, a flatbed is goods, nothing is both — [ADR-010](decisions/ADR-010-vertical-modules-over-a-shared-core.md)), `description_en/ar`, `icon_key`, `min_passenger_capacity`, `max_passenger_capacity`, `min_payload_kg`, `max_payload_kg`, `requires_special_license`, `sort_order`, `is_active`.
 
-Seeded: `SEDAN`, `SUV`, `VAN`, `MINIBUS`, `COASTER`, `BUS`, `LUXURY_CAR`, `PICKUP`, `LIGHT_TRUCK`, `HEAVY_TRUCK`, `FLATBED_TRAILER`, `CURTAIN_TRAILER`, `REFRIGERATED_TRUCK`, `TANKER`, `CAR_CARRIER`, `LOWBED_TRAILER`.
+Seeded: `SEDAN`, `SUV`, `VAN`, `MINIBUS`, `COASTER`, `BUS`, `LUXURY_CAR`, `DYNA`, `REFRIGERATED_DYNA`, `LORRY`, `REFRIGERATED_LORRY`, `FLATBED_TRAILER`, `CURTAIN_TRAILER`, `REFRIGERATED_TRUCK`, `TANKER`, `CAR_CARRIER`, `LOWBED_TRAILER`. A category dropped from the seed list is **deactivated, never deleted** (vehicles and frozen snapshots reference it) — `PICKUP` went that way in `20260927000005_goods_category_vocabulary`, which also renamed `LIGHT_TRUCK` → `DYNA` and `HEAVY_TRUCK` → `LORRY` in place.
 
 `vehicle_makes` / `vehicle_models` (`make_id`, `name`, `body_type`, `is_active`) — normalised so admin reports group cleanly instead of on free text (`Toyota` vs `TOYOTA` vs `تويوتا`).
 

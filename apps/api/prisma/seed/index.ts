@@ -81,8 +81,10 @@ async function seedReference(): Promise<Map<string, string>> {
       minPayloadKg: 'minKg' in v ? new Prisma.Decimal(v.minKg) : null, maxPayloadKg: 'maxKg' in v ? new Prisma.Decimal(v.maxKg) : null,
       requiresSpecialLicense: 'special' in v ? v.special : false,
     };
-    await prisma.vehicleCategory.upsert({ where: { code: v.code }, create: { id: uuidv7(), code: v.code, ...data }, update: data });
+    await prisma.vehicleCategory.upsert({ where: { code: v.code }, create: { id: uuidv7(), code: v.code, ...data }, update: { ...data, isActive: true } });
   }
+  // Retired categories stay as rows (vehicles and frozen snapshots reference them) but leave the catalogue.
+  await prisma.vehicleCategory.updateMany({ where: { code: { notIn: VEHICLE_CATEGORIES.map((v) => v.code) }, isActive: true }, data: { isActive: false } });
   for (const d of DOCUMENT_TYPES) {
     const data = {
       nameEn: d.nameEn, nameAr: d.nameAr, appliesTo: d.a, transportType: 't' in d ? d.t : null, requiresExpiry: d.expiry, isMandatory: d.mandatory,
