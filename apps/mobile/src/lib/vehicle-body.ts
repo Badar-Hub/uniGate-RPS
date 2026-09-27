@@ -1,9 +1,10 @@
 /**
  * Builds the `POST /vehicles` body (api.md §8.8, `createVehicleBody` in @unigate/validation)
  * from the registration form, the way the web portal's `vehicle-form.tsx` does: integers for
- * year / capacity / odometer, numbers for payload and volume, trimmed strings, the plate upper-
- * cased, empty optionals omitted (the schema is `.strict()`), and the capacity field that
- * matches the category's vertical. Pure, unit-tested.
+ * year / seats / odometer / length, trimmed strings, the plate upper-cased, empty optionals
+ * omitted (the schema is `.strict()`), and the capacity field that matches the category's
+ * vertical — goods vehicles carry their capacity in the category, so only an optional overall
+ * length is asked for. Pure, unit-tested.
  */
 
 export type TransportType = 'PASSENGER' | 'GOODS';
@@ -16,15 +17,13 @@ export interface VehicleFormState {
   plateNumberEn: string;
   plateNumberAr: string;
   sequenceNumber: string;
-  registrationNumber: string;
+  /** The owner's national ID / iqama; replaced the istimara number on the form. */
+  ownerId: string;
   vin: string;
   colorCode: string;
   passengerCapacity: string;
-  payloadCapacityKg: string;
-  cargoVolumeM3: string;
-  bodyType: string;
-  hasRefrigeration: boolean;
-  hasTailLift: boolean;
+  /** Overall length in metres as typed; sent as centimetres. Goods only, optional. */
+  vehicleLengthM: string;
   baseCityId: string;
   odometerKm: string;
   insuranceExpiryDate: string;
@@ -41,15 +40,11 @@ export const DEFAULT_VEHICLE_FORM: VehicleFormState = {
   plateNumberEn: '',
   plateNumberAr: '',
   sequenceNumber: '',
-  registrationNumber: '',
+  ownerId: '',
   vin: '',
   colorCode: '',
   passengerCapacity: '',
-  payloadCapacityKg: '',
-  cargoVolumeM3: '',
-  bodyType: '',
-  hasRefrigeration: false,
-  hasTailLift: false,
+  vehicleLengthM: '',
   baseCityId: '',
   odometerKm: '',
   insuranceExpiryDate: '',
@@ -62,6 +57,8 @@ export const KNOWN_VEHICLE_FIELDS = [...Object.keys(DEFAULT_VEHICLE_FORM), 'owne
 
 export const PLATE_EN = /^\d{1,4}\s?[A-Z]{3}$/;
 export const VIN = /^[A-HJ-NPR-Z0-9]{17}$/;
+/** Saudi national ID / iqama: ten digits starting with 1 or 2. */
+export const OWNER_ID = /^[12]\d{9}$/;
 const ISO_DAY = /^\d{4}-\d{2}-\d{2}$/;
 
 /** Client-side gate mirroring the schema's hard rules; the API re-validates everything. */
@@ -73,15 +70,14 @@ export function validateVehicleForm(form: VehicleFormState, transportType: Trans
   if (!Number.isInteger(year) || year < 1980 || year > maxYear) errors['modelYear'] = 'fleet.form.errors.year';
   if (!PLATE_EN.test(form.plateNumberEn.trim().toUpperCase())) errors['plateNumberEn'] = 'fleet.form.errors.plate';
   if (form.plateNumberAr.trim() && (form.plateNumberAr.trim().length < 3 || form.plateNumberAr.trim().length > 24)) errors['plateNumberAr'] = 'fleet.form.errors.plateAr';
-  if (form.registrationNumber.trim().length < 3) errors['registrationNumber'] = 'fleet.form.errors.registration';
+  if (!OWNER_ID.test(form.ownerId.trim())) errors['ownerId'] = 'fleet.form.errors.ownerId';
   if (form.vin.trim() && !VIN.test(form.vin.trim().toUpperCase())) errors['vin'] = 'fleet.form.errors.vin';
   if (form.colorCode.trim().length < 2) errors['colorCode'] = 'fleet.form.errors.colour';
   if (transportType === 'GOODS') {
-    const kg = Number(form.payloadCapacityKg);
-    if (!form.payloadCapacityKg.trim() || !(kg > 0) || kg > 100_000) errors['payloadCapacityKg'] = 'fleet.form.errors.payload';
-    if (form.cargoVolumeM3.trim()) {
-      const m3 = Number(form.cargoVolumeM3);
-      if (!(m3 > 0) || m3 > 1000) errors['cargoVolumeM3'] = 'fleet.form.errors.volume';
+    // Capacity comes from the category (Dyna / Lorry); only the overall length is asked for, optionally.
+    if (form.vehicleLengthM.trim()) {
+      const m = Number(form.vehicleLengthM);
+      if (!(m > 0) || m > 30) errors['vehicleLengthCm'] = 'fleet.form.errors.length';
     }
   } else if (transportType === 'PASSENGER') {
     const seats = Number(form.passengerCapacity);
@@ -105,15 +101,11 @@ export interface CreateVehicleBody {
   plateNumberEn: string;
   plateNumberAr?: string;
   sequenceNumber?: string;
-  registrationNumber: string;
+  ownerId: string;
   vin?: string;
   colorCode: string;
   passengerCapacity?: number;
-  payloadCapacityKg?: number;
-  cargoVolumeM3?: number;
-  bodyType?: string;
-  hasRefrigeration?: boolean;
-  hasTailLift?: boolean;
+  vehicleLengthCm?: number;
   baseCityId?: string;
   odometerKm?: number;
   insuranceExpiryDate?: string;
@@ -132,18 +124,12 @@ export function buildVehicleBody(form: VehicleFormState, transportType: Transpor
     plateNumberEn: str(form.plateNumberEn).toUpperCase(),
     ...(str(form.plateNumberAr) ? { plateNumberAr: str(form.plateNumberAr) } : {}),
     ...(str(form.sequenceNumber) ? { sequenceNumber: str(form.sequenceNumber) } : {}),
-    registrationNumber: str(form.registrationNumber),
+    ownerId: str(form.ownerId),
     ...(str(form.vin) ? { vin: str(form.vin).toUpperCase() } : {}),
     colorCode: str(form.colorCode),
-    // The capacity block follows the category's vertical, like the web form's conditional field.
+    // Goods capacity comes from the category, so only the optional overall length is sent (metres → cm).
     ...(transportType === 'GOODS'
-      ? {
-          ...(form.payloadCapacityKg.trim() ? { payloadCapacityKg: Number(form.payloadCapacityKg) } : {}),
-          ...(form.cargoVolumeM3.trim() ? { cargoVolumeM3: Number(form.cargoVolumeM3) } : {}),
-          ...(str(form.bodyType) ? { bodyType: str(form.bodyType) } : {}),
-          hasRefrigeration: form.hasRefrigeration,
-          hasTailLift: form.hasTailLift,
-        }
+      ? { ...(form.vehicleLengthM.trim() ? { vehicleLengthCm: Math.round(Number(form.vehicleLengthM) * 100) } : {}) }
       : { ...(form.passengerCapacity.trim() ? { passengerCapacity: Number(form.passengerCapacity) } : {}) }),
     ...(form.baseCityId ? { baseCityId: form.baseCityId } : {}),
     ...(form.odometerKm.trim() ? { odometerKm: Number(form.odometerKm) } : {}),

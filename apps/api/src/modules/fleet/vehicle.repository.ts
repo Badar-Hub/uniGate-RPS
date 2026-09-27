@@ -10,7 +10,7 @@ import { prisma } from '@/database/prisma.js';
 
 export const vehicleSelect = {
   id: true, ownerProfileId: true, vehicleCategoryId: true, vehicleMakeId: true, vehicleModelId: true, modelYear: true, plateNumberEn: true, plateNumberAr: true,
-  sequenceNumber: true, registrationNumber: true, vin: true, colorCode: true, passengerCapacity: true, payloadCapacityKg: true, cargoVolumeM3: true, cargoLengthCm: true,
+  sequenceNumber: true, registrationNumber: true, ownerIdLast4: true, vin: true, colorCode: true, passengerCapacity: true, vehicleLengthCm: true, payloadCapacityKg: true, cargoVolumeM3: true, cargoLengthCm: true,
   cargoWidthCm: true, cargoHeightCm: true, bodyType: true, hasRefrigeration: true, hasTailLift: true, approvalStatus: true, lifecycleStatus: true, operationalStatus: true,
   approvedByUserId: true, approvedAt: true, rejectionReason: true, insurancePolicyNumber: true, insuranceExpiryDate: true, registrationExpiryDate: true, inspectionExpiryDate: true,
   odometerKm: true, baseCityId: true, notes: true, ratingAvg: true, ratingCount: true, createdAt: true, updatedAt: true, deletedAt: true,

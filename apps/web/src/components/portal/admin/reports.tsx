@@ -1,11 +1,10 @@
 'use client';
 
-import { useCallback, useEffect, useState, type SyntheticEvent } from 'react';
+import { useEffect, useState, type SyntheticEvent } from 'react';
 import { useLocale, useTranslations } from 'next-intl';
-import { AlertCircle, Download, FileSpreadsheet, Loader2, RefreshCw } from 'lucide-react';
-import type { ExportDownloadUrlDto, ExportJobDto, ReportColumnDto, ReportDefinitionDto } from '@unigate/types';
-import { api, idempotencyKey, type ApiError } from '@/lib/api-client';
-import { useSession } from '@/lib/auth/session-provider';
+import { AlertCircle, Loader2, RefreshCw } from 'lucide-react';
+import type { ReportColumnDto, ReportDefinitionDto } from '@unigate/types';
+import { api, type ApiError } from '@/lib/api-client';
 import { errorMessage } from '@/lib/errors';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
@@ -27,14 +26,12 @@ export function ReportsPage() {
   const t = useTranslations('portal.reports');
   const tc = useTranslations('common');
   const locale = useLocale();
-  const { can } = useSession();
   const [defs, setDefs] = useState<ReportDefinitionDto[]>([]);
   const [code, setCode] = useState('');
   const [filters, setFilters] = useState<Record<string, string>>({ dateFrom: day(new Date(Date.now() - 29 * 86_400_000)), dateTo: day(new Date()) });
   const [columns, setColumns] = useState<ReportColumnDto[]>([]);
   const [rows, setRows] = useState<Row[] | null>(null);
   const [meta, setMeta] = useState({ page: 1, totalItems: 0, totalPages: 1 });
-  const [exports, setExports] = useState<ExportJobDto[]>([]);
   const [error, setError] = useState<ApiError | null>(null);
   const [busy, setBusy] = useState(false);
   const def = defs.find((d) => d.code === code) ?? null;
@@ -47,15 +44,6 @@ export function ReportsPage() {
       } else setError(res.error);
     });
   }, []);
-  const loadExports = useCallback(async () => {
-    if (!can('reports.export')) return;
-    const res = await api<ExportJobDto[]>('/reports/exports', { query: { pageSize: 20 } });
-    if (res.ok) setExports(res.data);
-  }, [can]);
-  useEffect(() => {
-    void loadExports();
-  }, [loadExports]);
-
   function activeFilters(): Record<string, string> {
     if (!def) return {};
     return Object.fromEntries(Object.entries(filters).filter(([k, v]) => def.filters.includes(k) && v !== ''));
@@ -73,20 +61,6 @@ export function ReportsPage() {
     setRows(res.data);
     setColumns(Array.isArray(res.meta['columns']) ? (res.meta['columns'] as ReportColumnDto[]) : def.columns);
     setMeta({ page, totalItems: Number(res.meta['totalItems'] ?? 0), totalPages: Number(res.meta['totalPages'] ?? 1) });
-  }
-  async function queueExport() {
-    if (!def) return;
-    setBusy(true);
-    setError(null);
-    const res = await api<ExportJobDto>(`/reports/${def.code}/export`, { method: 'POST', headers: { 'Idempotency-Key': idempotencyKey() }, body: { format: 'CSV', filters: activeFilters() } });
-    setBusy(false);
-    if (!res.ok) setError(res.error);
-    await loadExports();
-  }
-  async function download(job: ExportJobDto) {
-    const res = await api<ExportDownloadUrlDto>(`/reports/exports/${job.id}/download-url`);
-    if (res.ok) window.open(res.data.url, '_blank', 'noopener');
-    else setError(res.error);
   }
   const submit = (e: SyntheticEvent) => {
     e.preventDefault();
@@ -128,7 +102,6 @@ export function ReportsPage() {
                 </div>
               ))}
               <Button type="submit" disabled={busy}>{busy ? <Loader2 className="animate-spin" /> : <RefreshCw className="size-4" />}{t('run')}</Button>
-              {can('reports.export') && <Button type="button" variant="outline" disabled={busy} onClick={() => void queueExport()}><FileSpreadsheet className="size-4" />{t('exportCsv')}</Button>}
             </form>
             {rows && (
               <>
@@ -158,41 +131,6 @@ export function ReportsPage() {
                 )}
               </>
             )}
-          </CardContent>
-        </Card>
-      )}
-      {can('reports.export') && (
-        <Card>
-          <CardHeader><CardTitle className="text-base">{t('exports.title')}</CardTitle></CardHeader>
-          <CardContent className="p-0">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>{t('exports.report')}</TableHead>
-                  <TableHead>{t('exports.status')}</TableHead>
-                  <TableHead>{t('exports.rows')}</TableHead>
-                  <TableHead>{t('exports.requested')}</TableHead>
-                  <TableHead />
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {exports.length === 0 ? (
-                  <TableRow><TableCell colSpan={5} className="py-6 text-center text-muted-foreground">{t('exports.empty')}</TableCell></TableRow>
-                ) : (
-                  exports.map((j) => (
-                    <TableRow key={j.id}>
-                      <TableCell dir="ltr" className="font-mono text-xs">{j.reportCode}</TableCell>
-                      <TableCell><Badge variant={j.status === 'COMPLETED' ? 'default' : j.status === 'FAILED' ? 'destructive' : 'outline'}>{j.status}</Badge>{j.errorMessage && <span className="ms-2 text-xs text-destructive">{j.errorMessage}</span>}</TableCell>
-                      <TableCell dir="ltr">{j.rowCount ?? '—'}</TableCell>
-                      <TableCell dir="ltr" className="text-xs">{new Intl.DateTimeFormat(locale, { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(j.createdAt))}</TableCell>
-                      <TableCell className="text-end">
-                        {j.downloadable ? <Button variant="ghost" size="sm" onClick={() => void download(j)}><Download className="size-4" />{t('exports.download')}</Button> : <Button variant="ghost" size="sm" onClick={() => void loadExports()}><RefreshCw className="size-4" /></Button>}
-                      </TableCell>
-                    </TableRow>
-                  ))
-                )}
-              </TableBody>
-            </Table>
           </CardContent>
         </Card>
       )}

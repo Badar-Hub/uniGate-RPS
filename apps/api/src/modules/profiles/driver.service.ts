@@ -16,6 +16,14 @@ import { toAssignmentDto, toDriverDto } from './profiles.mapper.js';
 
 /** Drivers: owner-managed records with an approval gate applied at dispatch (api.md §8.6). */
 
+/**
+ * One identity field: the number says which document it is — a Saudi national ID starts with 1,
+ * an iqama with 2 — so the forms ask for the number alone and the type follows from it.
+ */
+function idTypeOf(nationalId: string): 'NATIONAL_ID' | 'IQAMA' {
+  return nationalId.startsWith('2') ? 'IQAMA' : 'NATIONAL_ID';
+}
+
 function audit(scope: ActorScope) {
   return { actorUserId: scope.actor.userId, actorType: 'USER' as const, actorRoles: [...scope.actor.roles] };
 }
@@ -56,7 +64,7 @@ export async function createDriver(scope: ActorScope, body: z.infer<typeof creat
     await tx.userRole.create({ data: { userId, roleId: role.id, grantedBy: scope.actor.userId } });
     await tx.driverProfile.create({
       data: {
-        id, userId, ownerProfileId, idType: body.idType,
+        id, userId, ownerProfileId, idType: body.idType ?? idTypeOf(body.nationalId),
         nationalIdEncrypted: encryptPii(body.nationalId), nationalIdLast4: last4(body.nationalId), nationalIdBlindIndex: blindIndex(body.nationalId),
         dateOfBirth: body.dateOfBirth ? new Date(body.dateOfBirth) : null,
         licenseNumberEncrypted: encryptPii(body.licenseNumber), licenseNumberLast4: last4(body.licenseNumber), licenseNumberBlindIndex: blindIndex(body.licenseNumber),

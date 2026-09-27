@@ -78,16 +78,13 @@ const IMG = ['image/jpeg', 'image/png', 'image/webp'];
 /** Document checklist per entity (database.md §6.1). Vertical-specific licences carry transportType. */
 export const DOCUMENT_TYPES = [
   // user / identity
-  { code: 'NATIONAL_ID', a: 'USER', nameEn: 'National ID', nameAr: 'الهوية الوطنية', expiry: true, mandatory: true, mime: PDF_IMG, sort: 10 },
-  { code: 'IQAMA', a: 'USER', nameEn: 'Iqama', nameAr: 'الإقامة', expiry: true, mandatory: false, mime: PDF_IMG, sort: 20 },
+  { code: 'NATIONAL_ID', a: 'USER', nameEn: 'National ID / Iqama', nameAr: 'الهوية الوطنية / الإقامة', expiry: true, mandatory: true, mime: PDF_IMG, sort: 10 },
   // owner
   { code: 'OWNER_CR', a: 'OWNER', nameEn: 'Commercial registration', nameAr: 'السجل التجاري', expiry: true, mandatory: true, mime: PDF_IMG, sort: 10 },
   { code: 'OWNER_VAT_CERTIFICATE', a: 'OWNER', nameEn: 'VAT registration certificate', nameAr: 'شهادة التسجيل في ضريبة القيمة المضافة', expiry: false, mandatory: false, mime: PDF_IMG, sort: 20 },
   { code: 'OWNER_TGA_LICENCE_PASSENGER', a: 'OWNER', t: 'PASSENGER', nameEn: 'TGA passenger transport licence', nameAr: 'ترخيص هيئة النقل — نقل الركاب', expiry: true, mandatory: true, mime: PDF_IMG, sort: 30 },
   { code: 'OWNER_TGA_LICENCE_GOODS', a: 'OWNER', t: 'GOODS', nameEn: 'TGA goods transport licence', nameAr: 'ترخيص هيئة النقل — نقل البضائع', expiry: true, mandatory: true, mime: PDF_IMG, sort: 31 },
   { code: 'OWNER_BANK_LETTER', a: 'OWNER', nameEn: 'Bank IBAN letter', nameAr: 'خطاب الآيبان البنكي', expiry: false, mandatory: false, mime: PDF_IMG, sort: 40 },
-  { code: 'OWNER_SELF_BILLING_AGREEMENT', a: 'OWNER', nameEn: 'Signed self-billing agreement', nameAr: 'اتفاقية الفوترة الذاتية الموقعة', expiry: true, mandatory: false, mime: ['application/pdf'], sort: 50 },
-  { code: 'OWNER_ZATCA_APPROVAL', a: 'OWNER', nameEn: 'ZATCA self-billing approval', nameAr: 'موافقة الهيئة على الفوترة الذاتية', expiry: false, mandatory: false, mime: ['application/pdf'], sort: 51 },
   // driver
   { code: 'DRIVER_LICENCE', a: 'DRIVER', nameEn: 'Driving licence', nameAr: 'رخصة القيادة', expiry: true, mandatory: true, mime: PDF_IMG, sort: 10 },
   { code: 'DRIVER_TGA_CARD_PASSENGER', a: 'DRIVER', t: 'PASSENGER', nameEn: 'TGA professional driver card (passenger)', nameAr: 'بطاقة السائق المهني — ركاب', expiry: true, mandatory: true, mime: PDF_IMG, sort: 20 },
@@ -116,8 +113,6 @@ export const DOCUMENT_TYPES = [
   { code: 'PAYMENT_RECEIPT', a: 'PAYMENT', nameEn: 'Bank transfer receipt', nameAr: 'إيصال التحويل البنكي', expiry: false, mandatory: true, mime: PDF_IMG, sort: 10 },
   { code: 'POD_SIGNATURE', a: 'TRIP_PROOF', nameEn: 'Recipient signature', nameAr: 'توقيع المستلم', expiry: false, mandatory: false, mime: IMG, sort: 20 },
   { code: 'REPORT_EXPORT', a: 'USER', nameEn: 'Report export', nameAr: 'تصدير تقرير', expiry: false, mandatory: false, mime: ['text/csv'], sort: 90 },
-  { code: 'SUPPLIER_INVOICE_PDF', a: 'OWNER', nameEn: 'Supplier tax invoice (PDF)', nameAr: 'فاتورة المورد الضريبية', expiry: false, mandatory: false, mime: ['application/pdf'], sort: 60 },
-  { code: 'SUPPLIER_INVOICE_XML', a: 'OWNER', nameEn: 'Supplier tax invoice (XML)', nameAr: 'فاتورة المورد الضريبية (XML)', expiry: false, mandatory: false, mime: ['application/xml', 'text/xml'], sort: 61 },
 ] as const;
 
 export const EXPENSE_CATEGORIES = [

@@ -1024,14 +1024,10 @@
       "plateEn": "Plate (Latin)",
       "plateAr": "Plate (Arabic)",
       "sequenceNumber": "Sequence number",
-      "registrationNumber": "Registration (istimara) number",
       "vin": "VIN (optional)",
       "colour": "Colour",
       "capacity": "Capacity",
       "passengerCapacity": "Seats",
-      "payloadKg": "Payload (kg)",
-      "volumeM3": "Cargo volume (m³, optional)",
-      "bodyType": "Body type (optional)",
       "operations": "Operations",
       "baseCity": "Base city",
       "odometer": "Odometer (km)",
@@ -1047,15 +1043,17 @@
         "year": "Enter a year between 1980 and two years ahead.",
         "plate": "Enter a KSA plate such as 1234 ABC.",
         "plateAr": "Enter 3–24 characters.",
-        "registration": "Enter at least 3 characters.",
         "vin": "A VIN has 17 characters (no I, O or Q).",
         "colour": "Enter at least 2 characters.",
-        "payload": "Enter the payload in kg (up to 100,000).",
-        "volume": "Enter a volume between 0 and 1,000 m³.",
         "seats": "Enter 1–100 seats.",
         "odometer": "Enter whole kilometres.",
-        "date": "Enter a date."
-      }
+        "date": "Enter a date.",
+        "ownerId": "Enter the 10-digit national ID / iqama (starts with 1 or 2).",
+        "length": "Enter a length in metres (up to 30)."
+      },
+      "ownerId": "Owner ID",
+      "ownerIdHint": "10 digits, starting 1 or 2",
+      "vehicleLength": "Vehicle length (m, optional)"
     },
     "detail": {
       "documents": "Documents",

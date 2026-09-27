@@ -68,11 +68,11 @@ describeDb('fleet', () => {
   });
 
   it('registers a vehicle in DRAFT with vertical-validated capacity and unique plate/VIN', async () => {
-    const noSeats = await bearer(request(h.app).post('/api/v1/vehicles'), owner).send({ vehicleCategoryId: busCategoryId, modelYear: 2022, plateNumberEn: '1234 ABC', registrationNumber: 'REG-1', colorCode: 'WHITE', payloadCapacityKg: 500 });
+    const noSeats = await bearer(request(h.app).post('/api/v1/vehicles'), owner).send({ vehicleCategoryId: busCategoryId, modelYear: 2022, plateNumberEn: '1234 ABC', ownerId: '1012345678', colorCode: 'WHITE', payloadCapacityKg: 500 });
     expect(noSeats.status).toBe(422);
     expect(noSeats.body.error.details.fieldErrors).toHaveProperty('passengerCapacity');
 
-    const created = await bearer(request(h.app).post('/api/v1/vehicles'), owner).send({ vehicleCategoryId: busCategoryId, modelYear: 2022, plateNumberEn: '1234 ABC', plateNumberAr: '١٢٣٤ أ ب ج', registrationNumber: 'REG-1', vin: 'JT1234567890ABCDE', colorCode: 'WHITE', passengerCapacity: 45, insuranceExpiryDate: '2032-01-01' });
+    const created = await bearer(request(h.app).post('/api/v1/vehicles'), owner).send({ vehicleCategoryId: busCategoryId, modelYear: 2022, plateNumberEn: '1234 ABC', plateNumberAr: '١٢٣٤ أ ب ج', ownerId: '1012345678', vin: 'JT1234567890ABCDE', colorCode: 'WHITE', passengerCapacity: 45, insuranceExpiryDate: '2032-01-01' });
     expect(created.status, JSON.stringify(created.body)).toBe(201);
     vehicleId = created.body.data.id;
     expect(created.body.data.approvalStatus).toBe('DRAFT');
@@ -81,10 +81,10 @@ describeDb('fleet', () => {
     expect(created.body.data.vin).toBe('JT1234567890ABCDE');
 
     // same plate with different spacing/case → 409; same VIN → 409
-    const dupPlate = await bearer(request(h.app).post('/api/v1/vehicles'), otherOwner).send({ vehicleCategoryId: busCategoryId, modelYear: 2021, plateNumberEn: '1234abc', registrationNumber: 'REG-2', colorCode: 'BLUE', passengerCapacity: 45 });
+    const dupPlate = await bearer(request(h.app).post('/api/v1/vehicles'), otherOwner).send({ vehicleCategoryId: busCategoryId, modelYear: 2021, plateNumberEn: '1234abc', ownerId: '1012345678', colorCode: 'BLUE', passengerCapacity: 45 });
     expect(dupPlate.status).toBe(409);
     expect(dupPlate.body.error.code).toBe('VEHICLE_PLATE_TAKEN');
-    const dupVin = await bearer(request(h.app).post('/api/v1/vehicles'), otherOwner).send({ vehicleCategoryId: busCategoryId, modelYear: 2021, plateNumberEn: '9999 XYZ', registrationNumber: 'REG-3', vin: 'JT1234567890ABCDE', colorCode: 'BLUE', passengerCapacity: 45 });
+    const dupVin = await bearer(request(h.app).post('/api/v1/vehicles'), otherOwner).send({ vehicleCategoryId: busCategoryId, modelYear: 2021, plateNumberEn: '9999 XYZ', ownerId: '1012345678', vin: 'JT1234567890ABCDE', colorCode: 'BLUE', passengerCapacity: 45 });
     expect(dupVin.body.error.code).toBe('VEHICLE_VIN_TAKEN');
 
     // other owner cannot see it; staff sees it via vehicles.read_any; VIN masked for nobody here (staff sees it)
@@ -226,6 +226,6 @@ describeDb('fleet', () => {
     expect(row.deletedAt).not.toBeNull();
     expect(row.lifecycleStatus).toBe('ARCHIVED');
     // the plate is free again for a new registration
-    expect((await bearer(request(h.app).post('/api/v1/vehicles'), otherOwner).send({ vehicleCategoryId: busCategoryId, modelYear: 2021, plateNumberEn: '5678 DEF', registrationNumber: 'REG-9', colorCode: 'BLUE', passengerCapacity: 45 })).status).toBe(201);
+    expect((await bearer(request(h.app).post('/api/v1/vehicles'), otherOwner).send({ vehicleCategoryId: busCategoryId, modelYear: 2021, plateNumberEn: '5678 DEF', ownerId: '1012345678', colorCode: 'BLUE', passengerCapacity: 45 })).status).toBe(201);
   });
 });

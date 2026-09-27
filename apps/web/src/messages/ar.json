@@ -456,11 +456,9 @@
         "modelYear": "سنة الصنع",
         "plateEn": "اللوحة (لاتيني)",
         "plateAr": "اللوحة (عربي)",
-        "registrationNumber": "رقم الاستمارة",
         "vin": "رقم الهيكل (اختياري)",
         "colour": "اللون",
         "passengerCapacity": "عدد المقاعد",
-        "payloadKg": "الحمولة (كجم)",
         "baseCity": "المدينة الأساسية",
         "insuranceExpiry": "انتهاء التأمين",
         "registrationExpiry": "انتهاء الاستمارة",
@@ -469,7 +467,10 @@
         "created": "تم تسجيل المركبة كمسودة. ارفع مستنداتها الآن.",
         "owner": "المالك (التسجيل نيابة عنه)",
         "ownerPlaceholder": "اختر المورد",
-        "platformFleet": "أسطول يونيجيت (مركباتنا)"
+        "platformFleet": "أسطول يونيجيت (مركباتنا)",
+        "ownerId": "هوية المالك",
+        "ownerIdHint": "10 أرقام تبدأ بـ 1 أو 2",
+        "vehicleLength": "طول المركبة (متر، اختياري)"
       },
       "detail": {
         "documents": "المستندات",

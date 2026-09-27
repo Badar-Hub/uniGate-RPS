@@ -282,7 +282,6 @@ function AddDriverDialog({
     fullNameAr: '',
     phoneE164: '',
     preferredLocale: 'ar',
-    idType: 'NATIONAL_ID',
     nationalId: '',
     dateOfBirth: '',
     licenseNumber: '',
@@ -327,7 +326,6 @@ function AddDriverDialog({
       ...(form.fullNameAr.trim() ? { fullNameAr: form.fullNameAr.trim() } : {}),
       phoneE164: form.phoneE164.trim(),
       preferredLocale: form.preferredLocale,
-      idType: form.idType,
       nationalId: form.nationalId.trim(),
       ...(form.dateOfBirth ? { dateOfBirth: form.dateOfBirth } : {}),
       licenseNumber: form.licenseNumber.trim().toUpperCase(),
@@ -446,19 +444,6 @@ function AddDriverDialog({
             >
               <option value="ar">العربية</option>
               <option value="en">English</option>
-            </select>
-          </Field>
-          <Field id="idType" label={t('idType')} error={fe['idType']}>
-            <select
-              id="idType"
-              className={select}
-              value={form.idType}
-              onChange={(e) => {
-                set('idType')(e.target.value);
-              }}
-            >
-              <option value="NATIONAL_ID">{t('idTypes.NATIONAL_ID')}</option>
-              <option value="IQAMA">{t('idTypes.IQAMA')}</option>
             </select>
           </Field>
           <Field id="nationalId" label={t('nationalId')} error={fe['nationalId']}>

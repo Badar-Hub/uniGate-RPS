@@ -456,11 +456,9 @@
         "modelYear": "Model year",
         "plateEn": "Plate (Latin)",
         "plateAr": "Plate (Arabic)",
-        "registrationNumber": "Registration (Istimara) number",
         "vin": "VIN (optional)",
         "colour": "Colour",
         "passengerCapacity": "Seats",
-        "payloadKg": "Payload (kg)",
         "baseCity": "Base city",
         "insuranceExpiry": "Insurance expiry",
         "registrationExpiry": "Registration expiry",
@@ -469,7 +467,10 @@
         "created": "Vehicle registered in draft. Upload its documents next.",
         "owner": "Owner (registering on their behalf)",
         "ownerPlaceholder": "Choose the vendor",
-        "platformFleet": "UniGate fleet (our own vehicles)"
+        "platformFleet": "UniGate fleet (our own vehicles)",
+        "ownerId": "Owner ID",
+        "ownerIdHint": "10 digits, starting 1 or 2",
+        "vehicleLength": "Vehicle length (m, optional)"
       },
       "detail": {
         "documents": "Documents",

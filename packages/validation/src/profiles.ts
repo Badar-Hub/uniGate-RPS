@@ -196,7 +196,8 @@ export const createDriverBody = z
     fullNameAr: optionalNullable(safeText(160).pipe(z.string().min(2))),
     phoneE164,
     preferredLocale: locale.default('ar'),
-    idType: z.enum(ID_TYPE),
+    /** Derived from the number when absent: 1… is a national ID, 2… an iqama. */
+    idType: z.enum(ID_TYPE).optional(),
     nationalId: z.string().regex(/^[12]\d{9}$/, 'must be a 10-digit National ID or Iqama'),
     dateOfBirth: isoDate.optional(),
     licenseNumber: z.string().regex(/^[0-9A-Z]{5,20}$/, 'invalid licence number'),

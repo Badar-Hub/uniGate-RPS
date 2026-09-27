@@ -4153,7 +4153,18 @@
             ]
           },
           "registrationNumber": {
-            "type": "string"
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "istimara number of vehicles registered before the owner ID replaced it"
+          },
+          "ownerIdLast4": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "last four digits of the owner national ID / iqama; the full value is never returned"
           },
           "vin": {
             "type": [
@@ -4166,6 +4177,12 @@
             "type": "string"
           },
           "passengerCapacity": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "vehicleLengthCm": {
             "type": [
               "integer",
               "null"
@@ -4342,9 +4359,11 @@
           "plateNumberAr",
           "sequenceNumber",
           "registrationNumber",
+          "ownerIdLast4",
           "vin",
           "colorCode",
           "passengerCapacity",
+          "vehicleLengthCm",
           "payloadCapacityKg",
           "cargoVolumeM3",
           "cargoLengthCm",
@@ -21896,6 +21915,10 @@
                     "type": "string",
                     "maxLength": 64
                   },
+                  "ownerId": {
+                    "type": "string",
+                    "pattern": "^[12]\\d{9}$"
+                  },
                   "vin": {
                     "type": "string",
                     "pattern": "^[A-HJ-NPR-Z0-9]{17}$"
@@ -21908,6 +21931,11 @@
                     "type": "integer",
                     "minimum": 1,
                     "maximum": 100
+                  },
+                  "vehicleLengthCm": {
+                    "type": "integer",
+                    "exclusiveMinimum": 0,
+                    "maximum": 3000
                   },
                   "payloadCapacityKg": {
                     "type": "number",
@@ -21982,7 +22010,7 @@
                   "vehicleCategoryId",
                   "modelYear",
                   "plateNumberEn",
-                  "registrationNumber",
+                  "ownerId",
                   "colorCode"
                 ],
                 "additionalProperties": false
@@ -22145,6 +22173,10 @@
                     "type": "string",
                     "maxLength": 64
                   },
+                  "ownerId": {
+                    "type": "string",
+                    "pattern": "^[12]\\d{9}$"
+                  },
                   "vin": {
                     "type": [
                       "string",
@@ -22160,6 +22192,11 @@
                     "type": "integer",
                     "minimum": 1,
                     "maximum": 100
+                  },
+                  "vehicleLengthCm": {
+                    "type": "integer",
+                    "exclusiveMinimum": 0,
+                    "maximum": 3000
                   },
                   "payloadCapacityKg": {
                     "type": "number",

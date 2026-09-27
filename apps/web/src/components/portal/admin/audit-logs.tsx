@@ -2,10 +2,9 @@
 
 import { useCallback, useEffect, useState, type SyntheticEvent } from 'react';
 import { useLocale, useTranslations } from 'next-intl';
-import { AlertCircle, Download, History, Loader2 } from 'lucide-react';
-import type { AuditLogDto, ExportJobDto } from '@unigate/types';
-import { api, idempotencyKey, type ApiError } from '@/lib/api-client';
-import { useSession } from '@/lib/auth/session-provider';
+import { AlertCircle, History, Loader2 } from 'lucide-react';
+import type { AuditLogDto } from '@unigate/types';
+import { api, type ApiError } from '@/lib/api-client';
 import { errorMessage } from '@/lib/errors';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
@@ -23,14 +22,12 @@ export function AdminAuditLogsPage() {
   const t = useTranslations('portal.adminAudit');
   const tc = useTranslations('common');
   const locale = useLocale();
-  const { can } = useSession();
   const [filter, setFilter] = useState({ action: '', entityType: '', entityId: '', severity: '', dateFrom: '', dateTo: '' });
   const [applied, setApplied] = useState(filter);
   const [rows, setRows] = useState<AuditLogDto[] | null>(null);
   const [cursor, setCursor] = useState<string | null>(null);
   const [open, setOpen] = useState<AuditLogDto | null>(null);
   const [history, setHistory] = useState<AuditLogDto[] | null>(null);
-  const [exported, setExported] = useState<ExportJobDto | null>(null);
   const [error, setError] = useState<ApiError | null>(null);
 
   const query = useCallback((after: string | null) => ({
@@ -58,15 +55,6 @@ export function AdminAuditLogsPage() {
     if (res.ok) setHistory(res.data);
     else setError(res.error);
   }
-  async function exportCsv() {
-    if (!applied.dateFrom || !applied.dateTo) {
-      setError({ status: 422, code: 'VALIDATION_FAILED', message: 'date range required' });
-      return;
-    }
-    const res = await api<ExportJobDto>('/audit-logs/export', { method: 'POST', headers: { 'Idempotency-Key': idempotencyKey() }, body: { dateFrom: applied.dateFrom, dateTo: applied.dateTo, ...(applied.action ? { action: applied.action } : {}), ...(applied.entityType ? { entityType: applied.entityType } : {}), ...(applied.severity ? { severity: applied.severity } : {}) } });
-    if (res.ok) setExported(res.data);
-    else setError(res.error);
-  }
   const apply = (e: SyntheticEvent) => {
     e.preventDefault();
     setApplied(filter);
@@ -80,9 +68,6 @@ export function AdminAuditLogsPage() {
       </div>
       {error && (
         <Alert variant="destructive"><AlertCircle className="size-4" /><AlertDescription>{errorMessage(tc, error)}</AlertDescription></Alert>
-      )}
-      {exported && (
-        <Alert><Download className="size-4" /><AlertDescription>{t('exportQueued', { id: exported.id })}</AlertDescription></Alert>
       )}
       <form className="grid gap-2 sm:grid-cols-3 lg:grid-cols-7" onSubmit={apply}>
         <div className="space-y-1"><Label htmlFor="al-action">{t('action')}</Label><Input id="al-action" dir="ltr" placeholder="booking." value={filter.action} onChange={(e) => { setFilter({ ...filter, action: e.target.value }); }} /></div>
@@ -98,7 +83,6 @@ export function AdminAuditLogsPage() {
         <div className="space-y-1"><Label htmlFor="al-to">{t('to')}</Label><Input id="al-to" type="date" value={filter.dateTo} onChange={(e) => { setFilter({ ...filter, dateTo: e.target.value }); }} /></div>
         <div className="flex items-end gap-2">
           <Button type="submit">{t('apply')}</Button>
-          {can('reports.export') && <Button type="button" variant="outline" onClick={() => void exportCsv()}><Download className="size-4" />{t('export')}</Button>}
         </div>
       </form>
       <Card>

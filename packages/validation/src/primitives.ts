@@ -51,6 +51,8 @@ export const ksaVatNumber = z.string().regex(/^3\d{13}3$/, 'must be a 15-digit K
 
 /** Saudi Commercial Registration: 10 digits. */
 export const ksaCrNumber = z.string().regex(/^\d{10}$/, 'must be a 10-digit CR number');
+/** Saudi national ID (starts with 1) or iqama (starts with 2): ten digits. */
+export const ksaNationalId = z.string().regex(/^[12]\d{9}$/, 'must be 10 digits starting with 1 or 2');
 
 /** Saudi National Address components (FR-PROFILES-14). */
 export const nationalAddress = z.object({

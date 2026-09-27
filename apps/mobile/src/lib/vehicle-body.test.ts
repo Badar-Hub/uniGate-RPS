@@ -6,7 +6,7 @@ const filled: VehicleFormState = {
   vehicleCategoryId: 'cat',
   modelYear: '2022',
   plateNumberEn: ' 1234 abc ',
-  registrationNumber: 'REG-99',
+  ownerId: '1012345678',
   colorCode: 'White',
   passengerCapacity: '12',
 };
@@ -17,19 +17,21 @@ describe('buildVehicleBody', () => {
       vehicleCategoryId: 'cat',
       modelYear: 2022,
       plateNumberEn: '1234 ABC',
-      registrationNumber: 'REG-99',
+      ownerId: '1012345678',
       colorCode: 'White',
       passengerCapacity: 12,
     });
   });
 
-  it('carries the goods capacity block for a GOODS category and never the seat count', () => {
-    const body = buildVehicleBody(
-      { ...filled, passengerCapacity: '40', payloadCapacityKg: '3500', cargoVolumeM3: '18.5', bodyType: 'Box', hasRefrigeration: true, hasTailLift: false },
-      'GOODS',
-    );
-    expect(body).toMatchObject({ payloadCapacityKg: 3500, cargoVolumeM3: 18.5, bodyType: 'Box', hasRefrigeration: true, hasTailLift: false });
+  it('sends no capacity for a goods category — only the optional length, in centimetres', () => {
+    const body = buildVehicleBody({ ...filled, passengerCapacity: '40', vehicleLengthM: '6.2' }, 'GOODS');
+    expect(body).toMatchObject({ vehicleLengthCm: 620 });
     expect('passengerCapacity' in body).toBe(false);
+    expect('payloadCapacityKg' in body).toBe(false);
+  });
+
+  it('omits the length when it is left blank', () => {
+    expect('vehicleLengthCm' in buildVehicleBody({ ...filled, passengerCapacity: '' }, 'GOODS')).toBe(false);
   });
 
   it('includes make/model/plateAr/sequence/vin/city/odometer/dates/notes when given', () => {
@@ -77,16 +79,24 @@ describe('validateVehicleForm', () => {
       vehicleCategoryId: 'fleet.form.errors.required',
       modelYear: 'fleet.form.errors.year',
       plateNumberEn: 'fleet.form.errors.plate',
-      registrationNumber: 'fleet.form.errors.registration',
+      ownerId: 'fleet.form.errors.ownerId',
       vin: 'fleet.form.errors.vin',
       colorCode: 'fleet.form.errors.colour',
       passengerCapacity: 'fleet.form.errors.seats',
     });
   });
 
-  it('requires the payload for goods and validates the optional volume, odometer and dates', () => {
-    expect(validateVehicleForm({ ...filled, passengerCapacity: '' }, 'GOODS')).toEqual({ payloadCapacityKg: 'fleet.form.errors.payload' });
-    expect(validateVehicleForm({ ...filled, payloadCapacityKg: '500', cargoVolumeM3: '0' }, 'GOODS')).toEqual({ cargoVolumeM3: 'fleet.form.errors.volume' });
+  it('accepts a national ID (1…) or an iqama (2…) of ten digits and nothing else', () => {
+    expect(validateVehicleForm({ ...filled, ownerId: '2012345678' }, 'PASSENGER')).toEqual({});
+    for (const bad of ['3012345678', '101234567', '10123456789', '']) {
+      expect(validateVehicleForm({ ...filled, ownerId: bad }, 'PASSENGER')).toEqual({ ownerId: 'fleet.form.errors.ownerId' });
+    }
+  });
+
+  it('asks for no capacity on goods and checks the optional length, odometer and dates', () => {
+    expect(validateVehicleForm({ ...filled, passengerCapacity: '' }, 'GOODS')).toEqual({});
+    expect(validateVehicleForm({ ...filled, vehicleLengthM: '0' }, 'GOODS')).toEqual({ vehicleLengthCm: 'fleet.form.errors.length' });
+    expect(validateVehicleForm({ ...filled, vehicleLengthM: '31' }, 'GOODS')).toEqual({ vehicleLengthCm: 'fleet.form.errors.length' });
     expect(validateVehicleForm({ ...filled, odometerKm: '1.5' }, 'PASSENGER')).toEqual({ odometerKm: 'fleet.form.errors.odometer' });
     expect(validateVehicleForm({ ...filled, insuranceExpiryDate: '31/01/2027' }, 'PASSENGER')).toEqual({ insuranceExpiryDate: 'fleet.form.errors.date' });
   });

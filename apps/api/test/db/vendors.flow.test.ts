@@ -95,7 +95,7 @@ describeDb('vendor onboarding & access', () => {
     const me = await bearer(request(h.app).get('/api/v1/me'), vendor);
     expect(me.body.data.profiles.owner).toMatchObject({ id: ownerProfileId, onboardingStatus: 'DRAFT' });
     const busCategoryId = (await prisma().vehicleCategory.findFirstOrThrow({ where: { transportType: 'PASSENGER', maxPassengerCapacity: { gte: 40 } }, orderBy: { sortOrder: 'asc' } })).id;
-    const vehicleBody = { vehicleCategoryId: busCategoryId, modelYear: 2023, plateNumberEn: '7777 NJD', registrationNumber: 'REG-NJD-1', colorCode: 'WHITE', passengerCapacity: 45 };
+    const vehicleBody = { vehicleCategoryId: busCategoryId, modelYear: 2023, plateNumberEn: '7777 NJD', ownerId: '1012345678', colorCode: 'WHITE', passengerCapacity: 45 };
     const tooEarly = await bearer(request(h.app).post('/api/v1/vehicles'), vendor).send(vehicleBody);
     expect(tooEarly.status).toBe(422);
     expect(tooEarly.body.error.code).toBe('OWNER_NOT_APPROVED');

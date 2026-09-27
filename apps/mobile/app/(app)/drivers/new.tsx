@@ -15,7 +15,7 @@ import { enumLabel } from '@/lib/status';
 /** The licence classes the web form offers (portal `drivers.tsx` LICENCE_CATEGORIES). */
 const LICENCE_CATEGORIES = ['PRIVATE', 'PUBLIC', 'HEAVY', 'BUS', 'MOTORCYCLE'] as const;
 
-const FIELDS = ['fullNameEn', 'fullNameAr', 'phoneE164', 'preferredLocale', 'idType', 'nationalId', 'dateOfBirth', 'licenseNumber', 'licenseExpiryDate', 'licenseCategories', 'transportTypes', 'emergencyContactName', 'emergencyContactPhone'];
+const FIELDS = ['fullNameEn', 'fullNameAr', 'phoneE164', 'preferredLocale', 'nationalId', 'dateOfBirth', 'licenseNumber', 'licenseExpiryDate', 'licenseCategories', 'transportTypes', 'emergencyContactName', 'emergencyContactPhone'];
 
 /**
  * Register a driver under the acting owner (`POST /drivers` ⧗, api.md §8.6) with the same body
@@ -39,7 +39,6 @@ export default function NewDriverScreen() {
     fullNameAr: '',
     phoneE164: '',
     preferredLocale: 'ar',
-    idType: 'NATIONAL_ID',
     nationalId: '',
     dateOfBirth: '',
     licenseNumber: '',
@@ -71,7 +70,6 @@ export default function NewDriverScreen() {
       ...(form.fullNameAr.trim() ? { fullNameAr: form.fullNameAr.trim() } : {}),
       phoneE164: form.phoneE164.trim(),
       preferredLocale: form.preferredLocale,
-      idType: form.idType,
       nationalId: form.nationalId.trim(),
       ...(form.dateOfBirth ? { dateOfBirth: form.dateOfBirth } : {}),
       licenseNumber: form.licenseNumber.trim().toUpperCase(),
@@ -108,7 +106,6 @@ export default function NewDriverScreen() {
         value={form.preferredLocale}
         onChange={(v) => { set('preferredLocale', v); }}
       />
-      <SelectField label={t('drivers.form.idType')} value={form.idType} options={ID_TYPE.map((x) => ({ value: x, label: enumLabel({ t, has }, 'idType', x) }))} onChange={(v) => { set('idType', v); }} error={action.fields['idType']} />
       <Label>{t('drivers.form.nationalId')}</Label>
       <Field value={form.nationalId} onChangeText={(v) => { set('nationalId', v.replace(/[^0-9]/g, '')); }} keyboardType="number-pad" maxLength={10} error={action.fields['nationalId']} style={{ writingDirection: 'ltr' }} />
       <DateField label={t('drivers.form.dateOfBirth')} value={form.dateOfBirth} onChange={(v) => { set('dateOfBirth', v); }} maximumDate={new Date()} clearable error={action.fields['dateOfBirth']} />

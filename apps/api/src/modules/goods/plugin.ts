@@ -27,8 +27,10 @@ export const goodsPlugin: VerticalPlugin = {
   validateVehicleCapacity(category: CategoryShape, input: VehicleCapacityInput): CapacityValidation {
     const fieldErrors: Record<string, string[]> = {};
     const kg = input.payloadCapacityKg;
-    if (kg === undefined) fieldErrors['payloadCapacityKg'] = ['required for a goods category'];
-    else {
+    // Not asked for per vehicle any more: the category is the capacity tier (Dyna 1–5 t, Lorry
+    // 5–25 t) and the fleet service fills the column from its ceiling. A value that IS sent must
+    // still sit inside the tier.
+    if (kg !== undefined) {
       if (category.minPayloadKg !== null && kg < Number(category.minPayloadKg)) fieldErrors['payloadCapacityKg'] = [`at least ${category.minPayloadKg} kg for ${category.code}`];
       if (category.maxPayloadKg !== null && kg > Number(category.maxPayloadKg)) fieldErrors['payloadCapacityKg'] = [`at most ${category.maxPayloadKg} kg for ${category.code}`];
     }

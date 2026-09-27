@@ -525,11 +525,16 @@ export interface VehicleDto extends TimestampedDto {
   plateNumberEn: string;
   plateNumberAr: string | null;
   sequenceNumber: string | null;
-  registrationNumber: string;
+  /** Istimara number of vehicles registered before the owner ID replaced it; null since. */
+  registrationNumber: string | null;
+  /** Last four digits of the owner's national ID / iqama — the full value is never returned. */
+  ownerIdLast4: string | null;
   /** Masked to the last 4 for anyone but the owner and staff. */
   vin: string | null;
   colorCode: string;
   passengerCapacity: number | null;
+  /** Overall vehicle length in centimetres (optional); the cargo* fields describe the bed. */
+  vehicleLengthCm: number | null;
   payloadCapacityKg: string | null;
   cargoVolumeM3: string | null;
   cargoLengthCm: number | null;

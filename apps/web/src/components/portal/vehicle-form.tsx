@@ -18,11 +18,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 const NONE = '__none__';
 
 /** Hoisted so React keeps the inputs mounted between renders (an inline component type remounts on every keystroke). */
-function Field({ id, label, error, children }: { id: string; label: string; error?: string | undefined; children: React.ReactNode }) {
+function Field({ id, label, error, hint, children }: { id: string; label: string; error?: string | undefined; hint?: string | undefined; children: React.ReactNode }) {
   return (
     <div className="space-y-2">
       <Label htmlFor={id}>{label}</Label>
       {children}
+      {hint && !error && <p className="text-xs text-muted-foreground">{hint}</p>}
       {error && <p className="text-xs text-destructive">{error}</p>}
     </div>
   );
@@ -46,8 +47,8 @@ export function VehicleForm() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<ApiError | null>(null);
   const [form, setForm] = useState({
-    vehicleCategoryId: '', vehicleMakeId: NONE, vehicleModelId: NONE, modelYear: String(new Date().getFullYear()), plateNumberEn: '', plateNumberAr: '', registrationNumber: '', vin: '', colorCode: '',
-    passengerCapacity: '', payloadCapacityKg: '', baseCityId: NONE, insuranceExpiryDate: '', registrationExpiryDate: '', inspectionExpiryDate: '',
+    vehicleCategoryId: '', vehicleMakeId: NONE, vehicleModelId: NONE, modelYear: String(new Date().getFullYear()), plateNumberEn: '', plateNumberAr: '', ownerId: '', vin: '', colorCode: '',
+    passengerCapacity: '', vehicleLengthM: '', baseCityId: NONE, insuranceExpiryDate: '', registrationExpiryDate: '', inspectionExpiryDate: '',
   });
   const fe = fieldErrors(error);
   const set = (k: keyof typeof form) => (v: string) => {
@@ -95,14 +96,14 @@ export function VehicleForm() {
       vehicleCategoryId: form.vehicleCategoryId,
       modelYear: Number(form.modelYear),
       plateNumberEn: form.plateNumberEn.trim(),
-      registrationNumber: form.registrationNumber.trim(),
+      ownerId: form.ownerId.trim(),
       colorCode: form.colorCode.trim(),
       ...(form.vehicleMakeId !== NONE ? { vehicleMakeId: form.vehicleMakeId } : {}),
       ...(form.vehicleModelId !== NONE ? { vehicleModelId: form.vehicleModelId } : {}),
       ...(form.plateNumberAr.trim() ? { plateNumberAr: form.plateNumberAr.trim() } : {}),
       ...(form.vin.trim() ? { vin: form.vin.trim() } : {}),
       ...(form.passengerCapacity ? { passengerCapacity: Number(form.passengerCapacity) } : {}),
-      ...(form.payloadCapacityKg ? { payloadCapacityKg: Number(form.payloadCapacityKg) } : {}),
+      ...(form.vehicleLengthM ? { vehicleLengthCm: Math.round(Number(form.vehicleLengthM) * 100) } : {}),
       ...(form.baseCityId !== NONE ? { baseCityId: form.baseCityId } : {}),
       ...(form.insuranceExpiryDate ? { insuranceExpiryDate: form.insuranceExpiryDate } : {}),
       ...(form.registrationExpiryDate ? { registrationExpiryDate: form.registrationExpiryDate } : {}),
@@ -197,8 +198,8 @@ export function VehicleForm() {
           <Field id="plateNumberAr" label={t('plateAr')} error={fe['plateNumberAr']}>
             <Input id="plateNumberAr" value={form.plateNumberAr} onChange={(e) => { set('plateNumberAr')(e.target.value); }} dir="rtl" />
           </Field>
-          <Field id="registrationNumber" label={t('registrationNumber')} error={fe['registrationNumber']}>
-            <Input id="registrationNumber" value={form.registrationNumber} onChange={(e) => { set('registrationNumber')(e.target.value); }} required dir="ltr" />
+          <Field id="ownerId" label={t('ownerId')} error={fe['ownerId']} hint={t('ownerIdHint')}>
+            <Input id="ownerId" inputMode="numeric" maxLength={10} value={form.ownerId} onChange={(e) => { set('ownerId')(e.target.value.replace(/D/g, '')); }} required dir="ltr" />
           </Field>
           <Field id="vin" label={t('vin')} error={fe['vin']}>
             <Input id="vin" maxLength={17} value={form.vin} onChange={(e) => { set('vin')(e.target.value.toUpperCase()); }} dir="ltr" />
@@ -207,8 +208,8 @@ export function VehicleForm() {
             <Input id="colorCode" value={form.colorCode} onChange={(e) => { set('colorCode')(e.target.value); }} required />
           </Field>
           {category?.transportType === 'GOODS' ? (
-            <Field id="payloadCapacityKg" label={t('payloadKg')} error={fe['payloadCapacityKg']}>
-              <Input id="payloadCapacityKg" type="number" min={1} value={form.payloadCapacityKg} onChange={(e) => { set('payloadCapacityKg')(e.target.value); }} required dir="ltr" />
+            <Field id="vehicleLengthM" label={t('vehicleLength')} error={fe['vehicleLengthCm']}>
+              <Input id="vehicleLengthM" type="number" min={0} step={0.1} max={30} value={form.vehicleLengthM} onChange={(e) => { set('vehicleLengthM')(e.target.value); }} dir="ltr" />
             </Field>
           ) : (
             <Field id="passengerCapacity" label={t('passengerCapacity')} error={fe['passengerCapacity']}>

@@ -2,6 +2,7 @@ import type { Prisma } from '@prisma/client';
 import type { ActorScope, AnyScope, CalendarEntryDto, VehicleAssignmentDto, VehicleAvailabilityDto, VehicleDto } from '@unigate/types';
 import type { createVehicleBody, patchVehicleBody } from '@unigate/validation';
 import type { z } from 'zod';
+import { encryptPii, last4 } from '@/common/crypto.js';
 import { BusinessRuleError, ConflictError, NotFoundError } from '@/common/errors.js';
 import { newId } from '@/common/ids.js';
 import { money } from '@/common/money.js';
@@ -62,6 +63,16 @@ async function loadCategory(id: string) {
   return c;
 }
 
+/**
+ * Goods capacity is a property of the category, not of the individual truck: a vendor registering a
+ * Dyna or a Lorry is not asked for a payload, so the category's ceiling stands in. An explicit value
+ * still wins (the API accepts one, and validateVehicleCapacity range-checks it).
+ */
+function derivedPayloadKg(category: { maxPayloadKg: { toString(): string } | null }, given: number | undefined) {
+  if (given !== undefined) return money(given);
+  return category.maxPayloadKg ? money(category.maxPayloadKg.toString()) : null;
+}
+
 function categoryShape(c: { code: string; minPassengerCapacity: number | null; maxPassengerCapacity: number | null; minPayloadKg: { toString(): string } | null; maxPayloadKg: { toString(): string } | null }) {
   return { code: c.code, minPassengerCapacity: c.minPassengerCapacity, maxPassengerCapacity: c.maxPassengerCapacity, minPayloadKg: c.minPayloadKg?.toString() ?? null, maxPayloadKg: c.maxPayloadKg?.toString() ?? null };
 }
@@ -110,10 +121,14 @@ export async function createVehicle(scope: ActorScope, body: z.infer<typeof crea
     await tx.vehicle.create({
       data: {
         id, ownerProfileId, vehicleCategoryId: category.id, vehicleMakeId: body.vehicleMakeId ?? null, vehicleModelId: body.vehicleModelId ?? null, modelYear: body.modelYear,
-        plateNumberEn: body.plateNumberEn, plateNumberAr: body.plateNumberAr ?? null, sequenceNumber: body.sequenceNumber ?? null, registrationNumber: body.registrationNumber, vin: body.vin ?? null, colorCode: body.colorCode,
-        passengerCapacity: body.passengerCapacity ?? null, payloadCapacityKg: body.payloadCapacityKg !== undefined ? money(body.payloadCapacityKg) : null, cargoVolumeM3: body.cargoVolumeM3 !== undefined ? money(body.cargoVolumeM3) : null,
+        plateNumberEn: body.plateNumberEn, plateNumberAr: body.plateNumberAr ?? null, sequenceNumber: body.sequenceNumber ?? null, registrationNumber: body.registrationNumber ?? null, vin: body.vin ?? null, colorCode: body.colorCode,
+        ownerIdEncrypted: encryptPii(body.ownerId), ownerIdLast4: last4(body.ownerId),
+        passengerCapacity: body.passengerCapacity ?? null, vehicleLengthCm: body.vehicleLengthCm ?? null,
+        // The category carries the capacity tier (Dyna 1–5 t, Lorry 5–25 t) and says whether the body is
+        // refrigerated, so neither is asked for per vehicle; matching still reads these two columns.
+        payloadCapacityKg: derivedPayloadKg(category, body.payloadCapacityKg), cargoVolumeM3: body.cargoVolumeM3 !== undefined ? money(body.cargoVolumeM3) : null,
         cargoLengthCm: body.cargoLengthCm ?? null, cargoWidthCm: body.cargoWidthCm ?? null, cargoHeightCm: body.cargoHeightCm ?? null, bodyType: body.bodyType ?? null,
-        hasRefrigeration: body.hasRefrigeration ?? false, hasTailLift: body.hasTailLift ?? false,
+        hasRefrigeration: body.hasRefrigeration ?? category.code.includes('REFRIGERATED'), hasTailLift: body.hasTailLift ?? false,
         insurancePolicyNumber: body.insurancePolicyNumber ?? null, insuranceExpiryDate: dateOrNull(body.insuranceExpiryDate) ?? null, registrationExpiryDate: dateOrNull(body.registrationExpiryDate) ?? null, inspectionExpiryDate: dateOrNull(body.inspectionExpiryDate) ?? null,
         odometerKm: body.odometerKm ?? null, baseCityId: body.baseCityId ?? null, notes: body.notes ?? null, approvalStatus: 'DRAFT', lifecycleStatus: 'ACTIVE', operationalStatus: 'IDLE',
       },
@@ -157,9 +172,11 @@ export async function patchVehicle(scope: ActorScope, id: string, body: z.infer<
         ...(body.plateNumberAr !== undefined ? { plateNumberAr: body.plateNumberAr } : {}),
         ...(body.sequenceNumber !== undefined ? { sequenceNumber: body.sequenceNumber } : {}),
         ...(body.registrationNumber !== undefined ? { registrationNumber: body.registrationNumber } : {}),
+        ...(body.ownerId !== undefined ? { ownerIdEncrypted: encryptPii(body.ownerId), ownerIdLast4: last4(body.ownerId) } : {}),
         ...(body.vin !== undefined ? { vin: body.vin } : {}),
         ...(body.colorCode !== undefined ? { colorCode: body.colorCode } : {}),
         ...(body.passengerCapacity !== undefined ? { passengerCapacity: body.passengerCapacity } : {}),
+        ...(body.vehicleLengthCm !== undefined ? { vehicleLengthCm: body.vehicleLengthCm } : {}),
         ...(body.payloadCapacityKg !== undefined ? { payloadCapacityKg: money(body.payloadCapacityKg) } : {}),
         ...(body.cargoVolumeM3 !== undefined ? { cargoVolumeM3: money(body.cargoVolumeM3) } : {}),
         ...(body.cargoLengthCm !== undefined ? { cargoLengthCm: body.cargoLengthCm } : {}),

@@ -5,7 +5,7 @@ import { idempotencyKey } from '@unigate/api-client';
 import type { VehicleDto } from '@unigate/types';
 import { DateField } from '@/components/date-field';
 import { SelectField } from '@/components/select-field';
-import { Button, CheckRow, ErrorBanner, Field, FormScreen, Label, Muted, SectionTitle, Segmented, TextArea } from '@/components/ui';
+import { Button, ErrorBanner, Field, FormScreen, Label, Muted, SectionTitle, Segmented, TextArea } from '@/components/ui';
 import { useAction } from '@/hooks/use-action';
 import { useI18n } from '@/i18n';
 import { api } from '@/lib/api';
@@ -128,8 +128,16 @@ export default function NewVehicleScreen() {
       <Field value={form.plateNumberAr} onChangeText={(v) => { set('plateNumberAr', v); }} error={fe('plateNumberAr')} />
       <Label>{t('fleet.form.sequenceNumber')}</Label>
       <Field value={form.sequenceNumber} onChangeText={(v) => { set('sequenceNumber', v); }} error={fe('sequenceNumber')} style={{ writingDirection: 'ltr' }} />
-      <Label>{t('fleet.form.registrationNumber')}</Label>
-      <Field value={form.registrationNumber} onChangeText={(v) => { set('registrationNumber', v); }} error={fe('registrationNumber')} style={{ writingDirection: 'ltr' }} />
+      <Label>{t('fleet.form.ownerId')}</Label>
+      <Field
+        value={form.ownerId}
+        onChangeText={(v) => { set('ownerId', v.replace(/[^0-9]/g, '').slice(0, 10)); }}
+        keyboardType="number-pad"
+        maxLength={10}
+        placeholder={t('fleet.form.ownerIdHint')}
+        error={fe('ownerId')}
+        style={{ writingDirection: 'ltr' }}
+      />
       <Label>{t('fleet.form.vin')}</Label>
       <Field value={form.vin} onChangeText={(v) => { set('vin', v.toUpperCase()); }} autoCapitalize="characters" maxLength={17} error={fe('vin')} style={{ writingDirection: 'ltr' }} />
       <Label>{t('fleet.form.colour')}</Label>
@@ -138,14 +146,8 @@ export default function NewVehicleScreen() {
       <SectionTitle>{t('fleet.form.capacity')}</SectionTitle>
       {transportType === 'GOODS' ? (
         <>
-          <Label>{t('fleet.form.payloadKg')}</Label>
-          <Field value={form.payloadCapacityKg} onChangeText={(v) => { set('payloadCapacityKg', v); }} keyboardType="decimal-pad" error={fe('payloadCapacityKg')} />
-          <Label>{t('fleet.form.volumeM3')}</Label>
-          <Field value={form.cargoVolumeM3} onChangeText={(v) => { set('cargoVolumeM3', v); }} keyboardType="decimal-pad" error={fe('cargoVolumeM3')} />
-          <Label>{t('fleet.form.bodyType')}</Label>
-          <Field value={form.bodyType} onChangeText={(v) => { set('bodyType', v); }} error={fe('bodyType')} />
-          <CheckRow label={t('fleet.spec.refrigeration')} value={form.hasRefrigeration} onChange={(v) => { set('hasRefrigeration', v); }} />
-          <CheckRow label={t('fleet.spec.tailLift')} value={form.hasTailLift} onChange={(v) => { set('hasTailLift', v); }} />
+          <Label>{t('fleet.form.vehicleLength')}</Label>
+          <Field value={form.vehicleLengthM} onChangeText={(v) => { set('vehicleLengthM', v); }} keyboardType="decimal-pad" error={fe('vehicleLengthCm')} />
         </>
       ) : (
         <>

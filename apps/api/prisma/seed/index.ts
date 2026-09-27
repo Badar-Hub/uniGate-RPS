@@ -90,8 +90,10 @@ async function seedReference(): Promise<Map<string, string>> {
       nameEn: d.nameEn, nameAr: d.nameAr, appliesTo: d.a, transportType: 't' in d ? d.t : null, requiresExpiry: d.expiry, isMandatory: d.mandatory,
       allowedMimeTypes: [...d.mime], sortOrder: d.sort,
     };
-    await prisma.documentType.upsert({ where: { code: d.code }, create: { code: d.code, ...data }, update: data });
+    await prisma.documentType.upsert({ where: { code: d.code }, create: { code: d.code, ...data }, update: { ...data, isActive: true } });
   }
+  // Retired types stay as rows (documents reference them) but leave every checklist.
+  await prisma.documentType.updateMany({ where: { code: { notIn: DOCUMENT_TYPES.map((d) => d.code) }, isActive: true }, data: { isActive: false } });
   for (const e of EXPENSE_CATEGORIES) {
     await prisma.expenseCategory.upsert({ where: { code: e.code }, create: { id: uuidv7(), code: e.code, nameEn: e.nameEn, nameAr: e.nameAr, sortOrder: e.sort }, update: { nameEn: e.nameEn, nameAr: e.nameAr, sortOrder: e.sort } });
   }

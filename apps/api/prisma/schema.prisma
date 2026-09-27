@@ -1570,11 +1570,17 @@ model Vehicle {
   plateNumberEn          String                   @map("plate_number_en") @db.VarChar(16)
   plateNumberAr          String?                  @map("plate_number_ar") @db.VarChar(24)
   sequenceNumber         String?                  @map("sequence_number") @db.VarChar(32)
-  registrationNumber     String                   @map("registration_number") @db.VarChar(64)
+  /// Istimara number — no longer collected; kept for vehicles registered before the owner ID replaced it.
+  registrationNumber     String?                  @map("registration_number") @db.VarChar(64)
+  /// National ID / iqama of the person the vehicle belongs to (PII: encrypted, only the last 4 are ever returned).
+  ownerIdEncrypted       String?                  @map("owner_id_encrypted")
+  ownerIdLast4           String?                  @map("owner_id_last4") @db.Char(4)
   vin                    String?                  @db.VarChar(17)
   colorCode              String                   @map("color_code") @db.VarChar(32)
   passengerCapacity      Int?                     @map("passenger_capacity") @db.SmallInt
   payloadCapacityKg      Decimal?                 @map("payload_capacity_kg") @db.Decimal(10, 2)
+  /// Overall length of the vehicle; the cargo_* dimensions below describe the bed, not the vehicle.
+  vehicleLengthCm        Int?                     @map("vehicle_length_cm")
   cargoVolumeM3          Decimal?                 @map("cargo_volume_m3") @db.Decimal(10, 2)
   cargoLengthCm          Int?                     @map("cargo_length_cm")
   cargoWidthCm           Int?                     @map("cargo_width_cm")

@@ -154,6 +154,8 @@ export const PERMISSIONS: readonly PermissionSeed[] = [
   P('notifications', 'notifications.templates.manage', 'Manage notification templates', 'إدارة قوالب الإشعارات'),
   // reports
   P('reports', 'reports.read', 'View reports', 'عرض التقارير'),
+  // Report export is switched off product-wide: the permission exists but no role is granted it,
+  // and the portal has no export action. Granting it again re-opens /reports/{code}/export.
   P('reports', 'reports.export', 'Export reports', 'تصدير التقارير'),
   P('reports', 'reports.financial.read', 'View financial reports', 'عرض التقارير المالية'),
   // platform
@@ -182,7 +184,7 @@ export const ROLES: readonly RoleSeed[] = [
   { code: 'SUPER_ADMIN', nameEn: 'Super Administrator', nameAr: 'المدير العام', description: 'Every permission. Reserved for platform owners.', isSystem: true, permissions: 'ALL' },
   {
     code: 'ADMIN', nameEn: 'Administrator', nameAr: 'مدير', description: 'Back-office administration without user impersonation or role editing.', isSystem: true,
-    permissions: ALL.filter((c) => !['users.impersonate', 'roles.manage', 'permissions.assign', 'platform.jobs.manage'].includes(c)),
+    permissions: ALL.filter((c) => !['users.impersonate', 'roles.manage', 'permissions.assign', 'platform.jobs.manage', 'reports.export'].includes(c)),
   },
   {
     code: 'OPS_MANAGER', nameEn: 'Operations Manager', nameAr: 'مدير العمليات', description: 'Approvals, dispatch, trips, tracking and complaints.', isSystem: true,
@@ -194,7 +196,7 @@ export const ROLES: readonly RoleSeed[] = [
   {
     code: 'FINANCE_OFFICER', nameEn: 'Finance Officer', nameAr: 'موظف مالية', description: 'Settlements, refunds, invoices, commissions and financial reports.', isSystem: true,
     permissions: [
-      ...byModule('finance', 'reports', 'payments', 'expenses'),
+      ...byModule('finance', 'reports', 'payments', 'expenses').filter((c) => c !== 'reports.export'),
       'customers.read', 'customers.verify', 'owners.read', 'vehicles.read_any', 'bookings.read_any', 'trip_requests.read_any', 'dashboard.read', 'settings.read', 'audit_logs.read', 'reference.read', 'notifications.read',
       // Bank-transfer receipts and expense attachments are finance evidence: finance reads (never verifies) documents.
       'documents.read', 'documents.read_any',
@@ -213,7 +215,7 @@ export const ROLES: readonly RoleSeed[] = [
     permissions: [
       'trip_requests.read', 'trip_requests.create', 'trip_requests.update', 'trip_requests.cancel', 'bids.read', 'bids.accept', 'bookings.read', 'bookings.cancel',
       'trips.read', 'tracking.read', 'payments.read', 'payments.create', 'invoices.read', 'documents.read', 'documents.upload', 'ratings.read', 'ratings.create',
-      'complaints.read', 'complaints.create', 'notifications.read', 'reference.read', 'geo.use', 'reports.read', 'reports.export',
+      'complaints.read', 'complaints.create', 'notifications.read', 'reference.read', 'geo.use', 'reports.read',
     ],
   },
   {
@@ -223,7 +225,7 @@ export const ROLES: readonly RoleSeed[] = [
       'documents.read', 'documents.upload', 'documents.delete', 'trip_requests.read', 'opportunities.dismiss', 'bids.read', 'bids.create', 'bids.update', 'bids.withdraw',
       'bookings.read', 'bookings.cancel', 'bookings.assign_driver', 'trips.read', 'tracking.read', 'commissions.read', 'settlements.read', 'invoices.read',
       'expenses.read', 'expenses.create', 'expenses.update', 'expenses.delete', 'maintenance.read', 'maintenance.create', 'maintenance.update', 'maintenance.delete',
-      'ratings.read', 'ratings.create', 'complaints.read', 'complaints.create', 'notifications.read', 'reference.read', 'geo.use', 'dashboard.read', 'reports.read', 'reports.export',
+      'ratings.read', 'ratings.create', 'complaints.read', 'complaints.create', 'notifications.read', 'reference.read', 'geo.use', 'dashboard.read', 'reports.read',
     ],
   },
   {
@@ -232,6 +234,6 @@ export const ROLES: readonly RoleSeed[] = [
   },
   {
     code: 'SPO', nameEn: 'Sales Promotion Officer', nameAr: 'مندوب مبيعات', description: 'Acquires customers, manages leads, views attributed commissions.', isSystem: true,
-    permissions: ['spo.read', 'spo.leads.manage', 'spo.commissions.read', 'customers.read', 'customers.create', 'trip_requests.read', 'trip_requests.create', 'notifications.read', 'reference.read', 'geo.use', 'dashboard.read', 'reports.read', 'reports.export'],
+    permissions: ['spo.read', 'spo.leads.manage', 'spo.commissions.read', 'customers.read', 'customers.create', 'trip_requests.read', 'trip_requests.create', 'notifications.read', 'reference.read', 'geo.use', 'dashboard.read', 'reports.read'],
   },
 ];

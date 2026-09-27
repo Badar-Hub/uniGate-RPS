@@ -37,8 +37,10 @@ const dispatchable = z.object({ ok: z.boolean(), reasons: z.array(z.string()) })
 const vehicle = z
   .object({
     id: z.string().uuid(), ownerProfileId: z.string().uuid(), category: categoryRef, make: z.object({ id: z.string().uuid(), name: z.string() }).nullable(), model: z.object({ id: z.string().uuid(), name: z.string() }).nullable(),
-    modelYear: z.number().int(), plateNumberEn: z.string(), plateNumberAr: z.string().nullable(), sequenceNumber: z.string().nullable(), registrationNumber: z.string(), vin: z.string().nullable().openapi({ description: 'masked to the last 4 for anyone but the owner and staff' }),
-    colorCode: z.string(), passengerCapacity: z.number().int().nullable(), payloadCapacityKg: dec, cargoVolumeM3: dec, cargoLengthCm: z.number().int().nullable(), cargoWidthCm: z.number().int().nullable(), cargoHeightCm: z.number().int().nullable(),
+    modelYear: z.number().int(), plateNumberEn: z.string(), plateNumberAr: z.string().nullable(), sequenceNumber: z.string().nullable(), registrationNumber: z.string().nullable().openapi({ description: 'istimara number of vehicles registered before the owner ID replaced it' }),
+    ownerIdLast4: z.string().nullable().openapi({ description: 'last four digits of the owner national ID / iqama; the full value is never returned' }),
+    vin: z.string().nullable().openapi({ description: 'masked to the last 4 for anyone but the owner and staff' }),
+    colorCode: z.string(), passengerCapacity: z.number().int().nullable(), vehicleLengthCm: z.number().int().nullable(), payloadCapacityKg: dec, cargoVolumeM3: dec, cargoLengthCm: z.number().int().nullable(), cargoWidthCm: z.number().int().nullable(), cargoHeightCm: z.number().int().nullable(),
     bodyType: z.string().nullable(), hasRefrigeration: z.boolean(), hasTailLift: z.boolean(), approvalStatus: z.string(), lifecycleStatus: z.string(), operationalStatus: z.string(), approvedAt: z.string().datetime().nullable(), rejectionReason: z.string().nullable(),
     insurancePolicyNumber: z.string().nullable(), insuranceExpiryDate: z.string().nullable(), registrationExpiryDate: z.string().nullable(), inspectionExpiryDate: z.string().nullable(), odometerKm: z.number().int().nullable(), baseCityId: z.string().uuid().nullable(), notes: z.string().nullable(),
     ratingAvg: z.string(), ratingCount: z.number().int(),

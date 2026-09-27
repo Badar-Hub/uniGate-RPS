@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { VEHICLE_APPROVAL_STATUS, VEHICLE_LIFECYCLE_STATUS, VEHICLE_OPERATIONAL_STATUS } from '@unigate/types';
-import { isoTimestamp, safeText, uuid } from './primitives.js';
+import { isoTimestamp, ksaNationalId, safeText, uuid } from './primitives.js';
 import { offsetPagination } from './pagination.js';
 
 /** Fleet module schemas (api.md §8.8). Capacity rules per category are enforced in the service. */
@@ -29,6 +29,8 @@ export const listVehiclesQuery = offsetPagination.extend({
 
 const capacityFields = {
   passengerCapacity: z.number().int().min(1).max(100).optional(),
+  /** Overall vehicle length in centimetres; the cargo_* dimensions describe the bed, not the vehicle. */
+  vehicleLengthCm: z.number().int().positive().max(3000).optional(),
   payloadCapacityKg: z.number().positive().max(100_000).optional(),
   cargoVolumeM3: z.number().positive().max(1000).optional(),
   cargoLengthCm: z.number().int().positive().max(3000).optional(),
@@ -48,7 +50,10 @@ export const createVehicleBody = z
     plateNumberEn,
     plateNumberAr: plateNumberAr.optional(),
     sequenceNumber: safeText(32).optional(),
-    registrationNumber: safeText(64).pipe(z.string().min(3)),
+    /** Kept for vehicles registered before the owner ID replaced the istimara number; no longer asked for. */
+    registrationNumber: safeText(64).pipe(z.string().min(3)).optional(),
+    /** The owner's national ID / iqama — stored encrypted, returned only as the last four digits. */
+    ownerId: ksaNationalId,
     vin: vin.optional(),
     colorCode: safeText(32).pipe(z.string().min(2)),
     ...capacityFields,
