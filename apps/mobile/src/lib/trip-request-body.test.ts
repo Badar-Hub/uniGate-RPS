@@ -69,14 +69,13 @@ describe('goodsDetailsBody', () => {
       cargoDescription: 'Pallets',
       cargoWeightKg: '1200.00',
       requiresRefrigeration: false,
-      requiresTailLift: false,
       requiresCrane: false,
       loadingResponsibility: 'CUSTOMER',
       unloadingResponsibility: 'CUSTOMER',
       requiresInsurance: false,
     });
-    const chilled = goodsDetailsBody({ ...DEFAULT_GOODS, cargoType: 'PERISHABLE', cargoDescription: 'Dates', cargoWeightKg: '500.5', cargoVolumeM3: '2', packageCount: '40', requiresRefrigeration: true, tempMin: '-2', tempMax: '4', declaredValue: '9999.999', shipperName: 'A', shipperPhone: '+966500000001', consigneeName: 'B', consigneePhone: '+966500000002', loadingInstructions: 'dock 3', requiresInsurance: true, requiresTailLift: true });
-    expect(chilled).toMatchObject({ cargoWeightKg: '500.50', cargoVolumeM3: '2.00', packageCount: 40, requiredTemperatureMinC: -2, requiredTemperatureMaxC: 4, declaredValueAmount: '10000.00', shipperContactName: 'A', shipperContactPhone: '+966500000001', consigneeContactName: 'B', consigneeContactPhone: '+966500000002', loadingInstructions: 'dock 3', requiresInsurance: true, requiresTailLift: true });
+    const chilled = goodsDetailsBody({ ...DEFAULT_GOODS, cargoType: 'PERISHABLE', cargoDescription: 'Dates', cargoWeightKg: '500.5', cargoVolumeM3: '2', packageCount: '40', requiresRefrigeration: true, tempMin: '-2', tempMax: '4', declaredValue: '9999.999', shipperName: 'A', shipperPhone: '+966500000001', consigneeName: 'B', consigneePhone: '+966500000002', loadingInstructions: 'dock 3', requiresInsurance: true });
+    expect(chilled).toMatchObject({ cargoWeightKg: '500.50', cargoVolumeM3: '2.00', packageCount: 40, requiredTemperatureMinC: -2, requiredTemperatureMaxC: 4, declaredValueAmount: '10000.00', shipperContactName: 'A', shipperContactPhone: '+966500000001', consigneeContactName: 'B', consigneeContactPhone: '+966500000002', loadingInstructions: 'dock 3', requiresInsurance: true });
   });
 
   it('is the block sent for GOODS requests, with no passenger block', () => {

@@ -68,7 +68,6 @@ export const goodsPlugin: VerticalPlugin = {
       if (vehicle.payloadCapacityKg === null) return { ok: false, reasons: ['NO_PAYLOAD_CAPACITY'], score: 0 };
       if (Number(vehicle.payloadCapacityKg) < Number(d.cargoWeightKg)) return { ok: false, reasons: ['PAYLOAD_BELOW_CARGO_WEIGHT'], score: 0 };
       if (d.requiresRefrigeration && !vehicle.hasRefrigeration) return { ok: false, reasons: ['REFRIGERATION_REQUIRED'], score: 0 };
-      if (d.requiresTailLift && !vehicle.hasTailLift) return { ok: false, reasons: ['TAIL_LIFT_REQUIRED'], score: 0 };
       reasons.push('CATEGORY_MATCH', 'PAYLOAD_OK');
       return { ok: true, reasons, score: 100 };
     },

@@ -2,15 +2,13 @@ import { useMemo, useState } from 'react';
 import { View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { idempotencyKey } from '@unigate/api-client';
-import { ID_TYPE, type DriverDto } from '@unigate/types';
+import type { DriverDto } from '@unigate/types';
 import { DateField } from '@/components/date-field';
-import { SelectField } from '@/components/select-field';
 import { Button, CheckRow, ErrorBanner, Field, FormScreen, Label, Muted, SectionTitle, Segmented } from '@/components/ui';
 import { useAction } from '@/hooks/use-action';
 import { useI18n } from '@/i18n';
 import { api } from '@/lib/api';
 import { keys, settingValue, stringList, useInvalidate, usePublicSettings } from '@/lib/queries';
-import { enumLabel } from '@/lib/status';
 
 /** The licence classes the web form offers (portal `drivers.tsx` LICENCE_CATEGORIES). */
 const LICENCE_CATEGORIES = ['PRIVATE', 'PUBLIC', 'HEAVY', 'BUS', 'MOTORCYCLE'] as const;
@@ -24,7 +22,7 @@ const FIELDS = ['fullNameEn', 'fullNameAr', 'phoneE164', 'preferredLocale', 'nat
  * for and the emergency contact. The profile starts in DRAFT until its documents are verified.
  */
 export default function NewDriverScreen() {
-  const { t, has } = useI18n();
+  const { t } = useI18n();
   const router = useRouter();
   const invalidate = useInvalidate();
   const action = useAction(FIELDS);

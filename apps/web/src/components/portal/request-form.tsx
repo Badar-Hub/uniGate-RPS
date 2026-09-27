@@ -46,7 +46,7 @@ export function RequestForm() {
   const [error, setError] = useState<ApiError | null>(null);
   const [verticals, setVerticals] = useState<string[]>(['PASSENGER']);
   const [transportType, setTransportType] = useState<'PASSENGER' | 'GOODS'>('PASSENGER');
-  const [goods, setGoods] = useState({ cargoType: 'GENERAL', cargoDescription: '', cargoWeightKg: '', cargoVolumeM3: '', packageCount: '', requiresRefrigeration: false, tempMin: '2', tempMax: '8', requiresTailLift: false, requiresCrane: false, loadingResponsibility: 'CUSTOMER', unloadingResponsibility: 'CUSTOMER', loadingInstructions: '', declaredValue: '', requiresInsurance: false, shipperName: '', shipperPhone: '', consigneeName: '', consigneePhone: '' });
+  const [goods, setGoods] = useState({ cargoType: 'GENERAL', cargoDescription: '', cargoWeightKg: '', cargoVolumeM3: '', packageCount: '', requiresRefrigeration: false, tempMin: '2', tempMax: '8', requiresCrane: false, loadingResponsibility: 'CUSTOMER', unloadingResponsibility: 'CUSTOMER', loadingInstructions: '', declaredValue: '', requiresInsurance: false, shipperName: '', shipperPhone: '', consigneeName: '', consigneePhone: '' });
   const [form, setForm] = useState({
     vehicleCategoryId: '', vehiclesRequired: '1', allowPartialFulfilment: 'no', tripDirection: 'ONE_WAY', pickupAddress: '', pickupCityId: '', dropoffAddress: '', dropoffCityId: '',
     pickupAt: '', returnAt: '', passengerCount: '1', luggageCount: '0', tripPurpose: 'AIRPORT_TRANSFER', wheelchair: false, femaleDriver: false, childSeats: '0', budget: '', instructions: '',
@@ -106,7 +106,7 @@ export function RequestForm() {
       cargoType: goods.cargoType, cargoDescription: goods.cargoDescription, cargoWeightKg: Number(goods.cargoWeightKg || 0).toFixed(2),
       ...(goods.cargoVolumeM3 ? { cargoVolumeM3: Number(goods.cargoVolumeM3).toFixed(2) } : {}), ...(goods.packageCount ? { packageCount: Number(goods.packageCount) } : {}),
       requiresRefrigeration: goods.requiresRefrigeration, ...(goods.requiresRefrigeration ? { requiredTemperatureMinC: Number(goods.tempMin), requiredTemperatureMaxC: Number(goods.tempMax) } : {}),
-      requiresTailLift: goods.requiresTailLift, requiresCrane: goods.requiresCrane, loadingResponsibility: goods.loadingResponsibility, unloadingResponsibility: goods.unloadingResponsibility,
+      requiresCrane: goods.requiresCrane, loadingResponsibility: goods.loadingResponsibility, unloadingResponsibility: goods.unloadingResponsibility,
       ...(goods.loadingInstructions.trim() ? { loadingInstructions: goods.loadingInstructions.trim() } : {}), ...(goods.declaredValue ? { declaredValueAmount: Number(goods.declaredValue).toFixed(2) } : {}), requiresInsurance: goods.requiresInsurance,
       ...(goods.shipperName ? { shipperContactName: goods.shipperName } : {}), ...(goods.shipperPhone ? { shipperContactPhone: goods.shipperPhone } : {}), ...(goods.consigneeName ? { consigneeContactName: goods.consigneeName } : {}), ...(goods.consigneePhone ? { consigneeContactPhone: goods.consigneePhone } : {}),
     };
@@ -343,7 +343,6 @@ export function RequestForm() {
                     <span className="text-muted-foreground">°C</span>
                   </div>
                 )}
-                <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={goods.requiresTailLift} onChange={(e) => { setGoods({ ...goods, requiresTailLift: e.target.checked }); }} />{t('goods.tailLift')}</label>
                 <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={goods.requiresCrane} onChange={(e) => { setGoods({ ...goods, requiresCrane: e.target.checked }); }} />{t('goods.crane')}</label>
                 <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={goods.requiresInsurance} onChange={(e) => { setGoods({ ...goods, requiresInsurance: e.target.checked }); }} />{t('goods.insurance')}</label>
               </div>

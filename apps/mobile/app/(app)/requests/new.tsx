@@ -474,13 +474,6 @@ export default function NewRequestScreen() {
             </View>
           ) : null}
           <CheckRow
-            label={t('requests.form.goods.tailLift')}
-            value={goods.requiresTailLift}
-            onChange={(v) => {
-              setG('requiresTailLift', v);
-            }}
-          />
-          <CheckRow
             label={t('requests.form.goods.crane')}
             value={goods.requiresCrane}
             onChange={(v) => {

@@ -48,7 +48,6 @@ export interface GoodsFormState {
   requiresRefrigeration: boolean;
   tempMin: string;
   tempMax: string;
-  requiresTailLift: boolean;
   requiresCrane: boolean;
   loadingResponsibility: string;
   unloadingResponsibility: string;
@@ -97,7 +96,6 @@ export const DEFAULT_GOODS: GoodsFormState = {
   requiresRefrigeration: false,
   tempMin: '2',
   tempMax: '8',
-  requiresTailLift: false,
   requiresCrane: false,
   loadingResponsibility: 'CUSTOMER',
   unloadingResponsibility: 'CUSTOMER',
@@ -165,7 +163,6 @@ export function goodsDetailsBody(g: GoodsFormState): Record<string, unknown> {
     ...(g.requiresRefrigeration
       ? { requiredTemperatureMinC: Number(g.tempMin), requiredTemperatureMaxC: Number(g.tempMax) }
       : {}),
-    requiresTailLift: g.requiresTailLift,
     requiresCrane: g.requiresCrane,
     loadingResponsibility: g.loadingResponsibility,
     unloadingResponsibility: g.unloadingResponsibility,
